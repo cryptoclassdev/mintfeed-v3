@@ -2,12 +2,18 @@ import { useEffect } from "react";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useFonts, PlayfairDisplay_700Bold } from "@expo-google-fonts/playfair-display";
+import { Anton_400Regular } from "@expo-google-fonts/anton";
 import {
-  DMSans_400Regular,
-  DMSans_500Medium,
-  DMSans_700Bold,
-} from "@expo-google-fonts/dm-sans";
+  Inter_300Light,
+  Inter_400Regular,
+  Inter_600SemiBold,
+  Inter_700Bold,
+} from "@expo-google-fonts/inter";
+import {
+  JetBrainsMono_400Regular,
+  JetBrainsMono_700Bold,
+} from "@expo-google-fonts/jetbrains-mono";
+import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 import { useAppStore } from "@/lib/store";
 import { colors } from "@/constants/theme";
@@ -28,10 +34,13 @@ export default function RootLayout() {
   const themeColors = colors[theme];
 
   const [fontsLoaded] = useFonts({
-    PlayfairDisplay_700Bold,
-    DMSans_400Regular,
-    DMSans_500Medium,
-    DMSans_700Bold,
+    Anton_400Regular,
+    Inter_300Light,
+    Inter_400Regular,
+    Inter_600SemiBold,
+    Inter_700Bold,
+    JetBrainsMono_400Regular,
+    JetBrainsMono_700Bold,
   });
 
   useEffect(() => {

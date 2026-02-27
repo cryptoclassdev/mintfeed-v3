@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState, useEffect } from "react";
+import { useCallback, useRef } from "react";
 import { View, StyleSheet, ActivityIndicator, Text } from "react-native";
 import PagerView, {
   type PagerViewOnPageSelectedEvent,
@@ -11,32 +11,16 @@ import { fonts, fontSize } from "@/constants/typography";
 import { NewsCard } from "./NewsCard";
 
 const PREFETCH_THRESHOLD = 5;
-const API_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:3005";
 
 export function SwipeFeed() {
   const theme = useAppStore((s) => s.theme);
   const markAsRead = useAppStore((s) => s.markAsRead);
   const themeColors = colors[theme];
   const pagerRef = useRef<PagerView>(null);
-  const [debugInfo, setDebugInfo] = useState("Initializing...");
-
-  // Raw fetch test to bypass ky/tanstack and see what's actually happening
-  useEffect(() => {
-    const testUrl = `${API_URL}/api/v1/feed?category=all&limit=2`;
-    setDebugInfo(`Fetching: ${testUrl}`);
-    fetch(testUrl)
-      .then(async (res) => {
-        const text = await res.text();
-        const preview = text.substring(0, 200);
-        setDebugInfo(`Status: ${res.status}\nURL: ${testUrl}\nBody: ${preview}`);
-      })
-      .catch((err) => {
-        setDebugInfo(`FETCH ERROR:\n${err.name}: ${err.message}\nURL: ${testUrl}`);
-      });
-  }, []);
 
   const query = useFeed();
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = query;
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
+    query;
 
   const articles = data?.pages.flatMap((page) => page.data) ?? [];
 
@@ -66,11 +50,7 @@ export function SwipeFeed() {
     return (
       <View style={styles.centered}>
         <ActivityIndicator size="large" color={themeColors.accent} />
-        {__DEV__ && (
-          <Text style={[styles.debugText, { color: themeColors.accent }]}>
-            {`Loading...\nQuery: ${query.fetchStatus}\n\n${debugInfo}`}
-          </Text>
-        )}
+        <Text style={styles.loadingText}>LOADING FEED</Text>
       </View>
     );
   }
@@ -79,13 +59,8 @@ export function SwipeFeed() {
     return (
       <View style={styles.centered}>
         <Text style={[styles.emptyText, { color: themeColors.textMuted }]}>
-          No articles yet. Pull down to refresh.
+          NO ARTICLES YET
         </Text>
-        {__DEV__ && (
-          <Text style={[styles.debugText, { color: themeColors.accent }]}>
-            {`Query status: ${query.status}\nError: ${query.error?.message ?? "none"}\nPages: ${data?.pages?.length ?? 0}\n\n${debugInfo}`}
-          </Text>
-        )}
       </View>
     );
   }
@@ -99,9 +74,9 @@ export function SwipeFeed() {
       offscreenPageLimit={2}
       onPageSelected={onPageSelected}
     >
-      {articles.map((article) => (
+      {articles.map((article, index) => (
         <View key={article.id} style={styles.page}>
-          <NewsCard article={article} />
+          <NewsCard article={article} variant={index} />
         </View>
       ))}
     </PagerView>
@@ -121,15 +96,19 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 32,
   },
-  emptyText: {
-    fontFamily: fonts.sans.medium,
-    fontSize: fontSize.base,
-    textAlign: "center",
-  },
-  debugText: {
-    fontSize: 11,
+  loadingText: {
+    fontFamily: fonts.mono.regular,
+    fontSize: fontSize.xs,
+    color: "#E60000",
+    letterSpacing: 2,
     marginTop: 16,
-    textAlign: "left",
-    fontFamily: fonts.sans.regular,
+    textTransform: "uppercase",
+  },
+  emptyText: {
+    fontFamily: fonts.mono.regular,
+    fontSize: fontSize.sm,
+    textAlign: "center",
+    letterSpacing: 1,
+    textTransform: "uppercase",
   },
 });

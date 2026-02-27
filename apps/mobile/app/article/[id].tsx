@@ -1,4 +1,11 @@
-import { View, Text, ScrollView, StyleSheet, Pressable, Linking } from "react-native";
+import {
+  View,
+  Text,
+  ScrollView,
+  StyleSheet,
+  Pressable,
+  Linking,
+} from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Image } from "expo-image";
@@ -7,7 +14,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { api } from "@/lib/api-client";
 import { useAppStore } from "@/lib/store";
 import { colors } from "@/constants/theme";
-import { fonts, fontSize, lineHeight } from "@/constants/typography";
+import { fonts, fontSize, lineHeight, letterSpacing } from "@/constants/typography";
 import type { Article } from "@mintfeed/shared";
 
 export default function ArticleDetailScreen() {
@@ -55,9 +62,11 @@ export default function ArticleDetailScreen() {
         )}
 
         <View
-          style={[styles.badge, { backgroundColor: themeColors.accent }]}
+          style={[styles.badge, { borderColor: themeColors.accent }]}
         >
-          <Text style={styles.badgeText}>{article.category}</Text>
+          <Text style={[styles.badgeText, { color: themeColors.accent }]}>
+            {article.category}
+          </Text>
         </View>
 
         <Text style={[styles.source, { color: themeColors.textMuted }]}>
@@ -68,16 +77,20 @@ export default function ArticleDetailScreen() {
           {article.title}
         </Text>
 
-        <Text style={[styles.summary, { color: themeColors.textSecondary }]}>
-          {article.summary}
-        </Text>
+        <View style={[styles.summaryContainer, { borderLeftColor: themeColors.accent }]}>
+          <Text style={[styles.summary, { color: themeColors.textSecondary }]}>
+            {article.summary}
+          </Text>
+        </View>
 
         <Pressable
-          style={[styles.readMore, { backgroundColor: themeColors.accent }]}
+          style={[styles.readMore, { borderColor: themeColors.accent }]}
           onPress={() => Linking.openURL(article.sourceUrl)}
         >
-          <Text style={styles.readMoreText}>Read full article</Text>
-          <Ionicons name="arrow-forward" size={16} color="#0A0A0A" />
+          <Text style={[styles.readMoreText, { color: themeColors.accent }]}>
+            READ FULL ARTICLE
+          </Text>
+          <Ionicons name="arrow-forward" size={16} color={themeColors.accent} />
         </Pressable>
       </ScrollView>
     </SafeAreaView>
@@ -105,39 +118,48 @@ const styles = StyleSheet.create({
   heroImage: {
     width: "100%",
     height: 240,
-    borderRadius: 16,
+    borderRadius: 4,
     marginBottom: 16,
+    opacity: 0.9,
   },
   badge: {
     alignSelf: "flex-start",
-    paddingHorizontal: 10,
+    paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
+    borderWidth: 1,
     marginBottom: 12,
+    backgroundColor: "rgba(0,0,0,0.6)",
   },
   badgeText: {
-    fontFamily: fonts.sans.bold,
-    fontSize: fontSize.xs,
-    color: "#0A0A0A",
+    fontFamily: fonts.mono.regular,
+    fontSize: fontSize.xxs,
     textTransform: "uppercase",
-    letterSpacing: 0.5,
+    letterSpacing: letterSpacing.wide,
   },
   source: {
-    fontFamily: fonts.sans.medium,
-    fontSize: fontSize.sm,
+    fontFamily: fonts.mono.regular,
+    fontSize: fontSize.xs,
     marginBottom: 8,
+    textTransform: "uppercase",
+    letterSpacing: letterSpacing.wide,
   },
   title: {
-    fontFamily: fonts.serif.bold,
+    fontFamily: fonts.display.regular,
     fontSize: fontSize.xxxl,
     lineHeight: lineHeight.xxxl,
     marginBottom: 16,
+    textTransform: "uppercase",
+  },
+  summaryContainer: {
+    borderLeftWidth: 2,
+    paddingLeft: 12,
+    marginBottom: 24,
   },
   summary: {
-    fontFamily: fonts.sans.regular,
-    fontSize: fontSize.lg,
+    fontFamily: fonts.mono.regular,
+    fontSize: fontSize.sm,
     lineHeight: lineHeight.lg,
-    marginBottom: 24,
   },
   readMore: {
     flexDirection: "row",
@@ -145,11 +167,13 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 8,
     paddingVertical: 14,
-    borderRadius: 12,
+    borderRadius: 4,
+    borderWidth: 1,
   },
   readMoreText: {
-    fontFamily: fonts.sans.bold,
-    fontSize: fontSize.base,
-    color: "#0A0A0A",
+    fontFamily: fonts.mono.bold,
+    fontSize: fontSize.sm,
+    letterSpacing: letterSpacing.wider,
+    textTransform: "uppercase",
   },
 });

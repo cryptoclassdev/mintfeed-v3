@@ -2,6 +2,7 @@ import { Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useAppStore } from "@/lib/store";
 import { colors } from "@/constants/theme";
+import { fonts } from "@/constants/typography";
 
 export default function TabLayout() {
   const theme = useAppStore((s) => s.theme);
@@ -14,13 +15,18 @@ export default function TabLayout() {
         tabBarActiveTintColor: themeColors.accent,
         tabBarInactiveTintColor: themeColors.textMuted,
         tabBarStyle: {
-          backgroundColor: themeColors.background,
-          borderTopColor: themeColors.border,
-          borderTopWidth: 0.5,
+          backgroundColor: "transparent",
+          borderTopWidth: 1,
+          borderTopColor: "rgba(255,255,255,0.05)",
+          position: "absolute",
+          elevation: 0,
         },
+        tabBarBackground: () => null,
         tabBarLabelStyle: {
-          fontFamily: "DMSans_500Medium",
-          fontSize: 11,
+          fontFamily: fonts.mono.regular,
+          fontSize: 10,
+          textTransform: "uppercase",
+          letterSpacing: 1,
         },
       }}
     >
@@ -29,7 +35,7 @@ export default function TabLayout() {
         options={{
           title: "Feed",
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="newspaper-outline" size={size} color={color} />
+            <Ionicons name="grid-outline" size={size} color={color} />
           ),
         }}
       />
@@ -45,9 +51,9 @@ export default function TabLayout() {
       <Tabs.Screen
         name="settings"
         options={{
-          title: "Settings",
+          title: "Profile",
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="settings-outline" size={size} color={color} />
+            <Ionicons name="person-outline" size={size} color={color} />
           ),
         }}
       />

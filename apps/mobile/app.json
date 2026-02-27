@@ -7,9 +7,8 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
     "splash": {
-      "backgroundColor": "#0A0A0A"
+      "backgroundColor": "#030303"
     },
     "ios": {
       "supportsTablet": false,
@@ -17,7 +16,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#0A0A0A"
+        "backgroundColor": "#030303"
       },
       "package": "com.mintfeed.app"
     },
@@ -26,7 +25,7 @@
       "expo-font"
     ],
     "experiments": {
-      "autolinkingModuleResolution": true
+      "reactCompiler": true
     }
   }
 }

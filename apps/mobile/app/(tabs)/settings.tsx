@@ -1,10 +1,10 @@
-import { View, Text, Switch, StyleSheet, Pressable } from "react-native";
+import { View, Text, Switch, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAppStore } from "@/lib/store";
 import { colors } from "@/constants/theme";
-import { fonts, fontSize } from "@/constants/typography";
+import { fonts, fontSize, letterSpacing } from "@/constants/typography";
 
-export default function SettingsScreen() {
+export default function ProfileScreen() {
   const theme = useAppStore((s) => s.theme);
   const toggleTheme = useAppStore((s) => s.toggleTheme);
   const themeColors = colors[theme];
@@ -14,14 +14,20 @@ export default function SettingsScreen() {
       style={[styles.container, { backgroundColor: themeColors.background }]}
       edges={["top"]}
     >
-      <Text style={[styles.title, { color: themeColors.text }]}>Settings</Text>
+      <Text style={[styles.title, { color: themeColors.text }]}>PROFILE</Text>
 
       <View style={styles.section}>
         <Text style={[styles.sectionTitle, { color: themeColors.textMuted }]}>
           APPEARANCE
         </Text>
         <View
-          style={[styles.row, { backgroundColor: themeColors.card, borderColor: themeColors.border }]}
+          style={[
+            styles.row,
+            {
+              backgroundColor: themeColors.card,
+              borderColor: themeColors.border,
+            },
+          ]}
         >
           <Text style={[styles.rowLabel, { color: themeColors.text }]}>
             Dark Mode
@@ -29,7 +35,10 @@ export default function SettingsScreen() {
           <Switch
             value={theme === "dark"}
             onValueChange={toggleTheme}
-            trackColor={{ false: themeColors.border, true: themeColors.accent }}
+            trackColor={{
+              false: themeColors.border,
+              true: themeColors.accent,
+            }}
             thumbColor="#FFFFFF"
           />
         </View>
@@ -40,7 +49,13 @@ export default function SettingsScreen() {
           ABOUT
         </Text>
         <View
-          style={[styles.row, { backgroundColor: themeColors.card, borderColor: themeColors.border }]}
+          style={[
+            styles.row,
+            {
+              backgroundColor: themeColors.card,
+              borderColor: themeColors.border,
+            },
+          ]}
         >
           <Text style={[styles.rowLabel, { color: themeColors.text }]}>
             Version
@@ -59,20 +74,22 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   title: {
-    fontFamily: fonts.serif.bold,
+    fontFamily: fonts.display.regular,
     fontSize: fontSize.xxl,
     paddingHorizontal: 16,
     paddingVertical: 12,
+    textTransform: "uppercase",
   },
   section: {
     marginTop: 24,
     paddingHorizontal: 16,
   },
   sectionTitle: {
-    fontFamily: fonts.sans.bold,
-    fontSize: fontSize.xs,
-    letterSpacing: 1,
+    fontFamily: fonts.mono.bold,
+    fontSize: fontSize.xxs,
+    letterSpacing: letterSpacing.wider,
     marginBottom: 8,
+    textTransform: "uppercase",
   },
   row: {
     flexDirection: "row",
@@ -83,11 +100,11 @@ const styles = StyleSheet.create({
     borderWidth: 0.5,
   },
   rowLabel: {
-    fontFamily: fonts.sans.medium,
+    fontFamily: fonts.body.semiBold,
     fontSize: fontSize.base,
   },
   rowValue: {
-    fontFamily: fonts.sans.regular,
+    fontFamily: fonts.mono.regular,
     fontSize: fontSize.base,
   },
 });

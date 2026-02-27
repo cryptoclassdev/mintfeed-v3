@@ -1,14 +1,13 @@
 import { View, StyleSheet, Pressable, Text } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { SwipeFeed } from "@/components/feed/SwipeFeed";
 import { useAppStore } from "@/lib/store";
 import { colors } from "@/constants/theme";
-import { fonts, fontSize } from "@/constants/typography";
+import { fonts, fontSize, letterSpacing } from "@/constants/typography";
 
 const CATEGORIES = ["all", "crypto", "ai"] as const;
 const CATEGORY_LABELS: Record<string, string> = {
-  all: "All",
-  crypto: "Crypto",
+  all: "ALL",
+  crypto: "CRYPTO",
   ai: "AI",
 };
 
@@ -19,26 +18,24 @@ export default function FeedScreen() {
   const themeColors = colors[theme];
 
   return (
-    <SafeAreaView
-      style={[styles.container, { backgroundColor: themeColors.background }]}
-      edges={["top"]}
-    >
-      <View style={styles.header}>
-        <Text style={[styles.logo, { color: themeColors.accent }]}>
-          MintFeed
-        </Text>
-        <View style={styles.categories}>
-          {CATEGORIES.map((cat) => (
+    <View style={[styles.container, { backgroundColor: themeColors.background }]}>
+      <SwipeFeed />
+      <View style={styles.categoryBar}>
+        {CATEGORIES.map((cat) => {
+          const isActive = selectedCategory === cat;
+          return (
             <Pressable
               key={cat}
               onPress={() => setCategory(cat)}
               style={[
                 styles.chip,
                 {
-                  backgroundColor:
-                    selectedCategory === cat
-                      ? themeColors.accent
-                      : themeColors.card,
+                  borderColor: isActive
+                    ? themeColors.accent
+                    : themeColors.border,
+                  backgroundColor: isActive
+                    ? "rgba(230, 0, 0, 0.15)"
+                    : "rgba(0, 0, 0, 0.6)",
                 },
               ]}
             >
@@ -46,21 +43,17 @@ export default function FeedScreen() {
                 style={[
                   styles.chipText,
                   {
-                    color:
-                      selectedCategory === cat
-                        ? themeColors.background
-                        : themeColors.textMuted,
+                    color: isActive ? themeColors.accent : themeColors.textMuted,
                   },
                 ]}
               >
                 {CATEGORY_LABELS[cat]}
               </Text>
             </Pressable>
-          ))}
-        </View>
+          );
+        })}
       </View>
-      <SwipeFeed />
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -68,28 +61,24 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-  },
-  logo: {
-    fontFamily: fonts.serif.bold,
-    fontSize: fontSize.xl,
-  },
-  categories: {
+  categoryBar: {
+    position: "absolute",
+    top: 56,
+    right: 16,
     flexDirection: "row",
     gap: 8,
+    zIndex: 30,
   },
   chip: {
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 20,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    borderWidth: 1,
   },
   chipText: {
-    fontFamily: fonts.sans.medium,
-    fontSize: fontSize.sm,
+    fontFamily: fonts.mono.regular,
+    fontSize: fontSize.xxs,
+    textTransform: "uppercase",
+    letterSpacing: letterSpacing.wide,
   },
 });

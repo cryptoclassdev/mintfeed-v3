@@ -2,77 +2,194 @@ import { View, Text, StyleSheet, Dimensions, Pressable } from "react-native";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
-import { useAppStore } from "@/lib/store";
-import { colors } from "@/constants/theme";
-import { fonts, fontSize, lineHeight } from "@/constants/typography";
+import { Ionicons } from "@expo/vector-icons";
+import { fonts, fontSize, letterSpacing } from "@/constants/typography";
 import type { Article } from "@mintfeed/shared";
 
-const { width: SCREEN_WIDTH } = Dimensions.get("window");
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
-interface NewsCardProps {
-  article: Article;
+const HEADLINE_WORDS: Record<string, string> = {
+  crash: "CRASH",
+  drop: "DROP",
+  fall: "FALL",
+  dump: "DUMP",
+  panic: "PANIC",
+  surge: "SURGE",
+  rally: "RALLY",
+  rise: "RISE",
+  pump: "PUMP",
+  boom: "BOOM",
+  hack: "HACK",
+  launch: "LAUNCH",
+  update: "UPDATE",
+  ban: "BAN",
+  SEC: "SEC",
+  ETF: "ETF",
+  AI: "AI",
+  fork: "FORK",
+  merge: "MERGE",
+  stake: "STAKE",
+};
+
+function extractHeadlineWord(title: string): string {
+  const lower = title.toLowerCase();
+  for (const [keyword, display] of Object.entries(HEADLINE_WORDS)) {
+    if (lower.includes(keyword.toLowerCase())) return display;
+  }
+  const words = title.split(/\s+/).filter((w) => w.length > 3);
+  return (words[0] ?? "NEWS").toUpperCase();
 }
 
 function timeAgo(dateString: string): string {
   const seconds = Math.floor(
     (Date.now() - new Date(dateString).getTime()) / 1000
   );
-  if (seconds < 60) return "just now";
+  if (seconds < 60) return "JUST NOW";
   const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes}m ago`;
+  if (minutes < 60) return `${minutes}M AGO`;
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
+  if (hours < 24) return `${hours}H AGO`;
   const days = Math.floor(hours / 24);
-  return `${days}d ago`;
+  return `${days}D AGO`;
 }
 
-export function NewsCard({ article }: NewsCardProps) {
-  const theme = useAppStore((s) => s.theme);
-  const themeColors = colors[theme];
+const ACCENT_RED = "#E60000";
+const ACCENT_GREEN = "#00ff66";
+
+interface NewsCardProps {
+  article: Article;
+  variant?: number;
+}
+
+export function NewsCard({ article, variant = 0 }: NewsCardProps) {
   const router = useRouter();
+  const isEvenVariant = variant % 2 === 0;
+  const accentColor = isEvenVariant ? ACCENT_RED : ACCENT_GREEN;
+  const headlineWord = extractHeadlineWord(article.title);
 
   return (
     <Pressable
       style={styles.container}
       onPress={() => router.push(`/article/${article.id}`)}
     >
-      <Image
-        source={{ uri: article.imageUrl! }}
-        placeholder={article.imageBlurhash ?? undefined}
-        style={styles.image}
-        contentFit="cover"
-        transition={300}
-      />
+      {/* Background image layer */}
+      {article.imageUrl && (
+        <Image
+          source={{ uri: article.imageUrl }}
+          placeholder={article.imageBlurhash ?? undefined}
+          style={styles.bgImage}
+          contentFit="cover"
+          transition={300}
+        />
+      )}
 
+      {/* Dark gradient overlay on image */}
       <LinearGradient
-        colors={["transparent", "rgba(0,0,0,0.4)", "rgba(0,0,0,0.92)"]}
-        locations={[0, 0.3, 1]}
-        style={styles.gradient}
+        colors={[
+          "rgba(0,0,0,0.7)",
+          "rgba(0,0,0,0.3)",
+          "rgba(0,0,0,0.85)",
+        ]}
+        locations={[0, 0.35, 1]}
+        style={StyleSheet.absoluteFill}
       />
 
-      <View style={styles.content}>
-        <View
-          style={[styles.badge, { backgroundColor: themeColors.accent }]}
+      {/* Card gradient background (blends with image) */}
+      <LinearGradient
+        colors={
+          isEvenVariant
+            ? ["rgba(0,0,0,0.6)", "rgba(26,5,5,0.4)", "rgba(42,0,0,0.5)"]
+            : ["rgba(0,0,0,0.6)", "rgba(5,5,5,0.3)", "rgba(10,10,10,0.5)"]
+        }
+        style={StyleSheet.absoluteFill}
+      />
+
+      {/* Water line subtle gradient at bottom */}
+      <LinearGradient
+        colors={[
+          "transparent",
+          isEvenVariant ? "rgba(230,0,0,0.05)" : "rgba(0,255,102,0.03)",
+        ]}
+        style={styles.waterLine}
+      />
+
+      {/* Decorative stars */}
+      <Text style={[styles.decoStar, styles.starTL, { color: accentColor }]}>
+        ✶
+      </Text>
+      <Text style={[styles.decoStar, styles.starBR, { color: accentColor }]}>
+        ✶
+      </Text>
+
+      {/* Massive headline overlay */}
+      <View style={styles.headlineLayer} pointerEvents="none">
+        <Text
+          style={[
+            styles.headlineMassive,
+            isEvenVariant
+              ? { color: ACCENT_RED }
+              : {
+                  color: "rgba(20,20,20,0.9)",
+                },
+          ]}
+          numberOfLines={1}
+          adjustsFontSizeToFit
         >
-          <Text style={styles.badgeText}>
+          {headlineWord}
+        </Text>
+      </View>
+
+      {/* Content layer at bottom */}
+      <View style={styles.contentLayer}>
+        {/* Meta tag */}
+        <View style={[styles.metaTag, { borderColor: accentColor }]}>
+          <Text style={[styles.metaTagText, { color: accentColor }]}>
             {article.category}
           </Text>
         </View>
 
-        <Text style={styles.source}>
-          {article.sourceName} · {timeAgo(article.publishedAt)}
-        </Text>
-
-        <Text style={styles.title} numberOfLines={3}>
+        {/* News title */}
+        <Text style={styles.newsTitle} numberOfLines={3}>
           {article.title}
         </Text>
 
-        <Text style={styles.summary}>
-          {article.summary}
-        </Text>
+        {/* News snippet */}
+        <View style={[styles.snippetContainer, { borderLeftColor: accentColor }]}>
+          <Text style={styles.newsSnippet} numberOfLines={3}>
+            {article.summary}
+          </Text>
+        </View>
 
-        <View style={styles.swipeHint}>
-          <Text style={styles.swipeHintText}>Swipe up for more</Text>
+        {/* Tech stat grid */}
+        <View style={styles.statGrid}>
+          <View style={styles.statItem}>
+            <Text style={styles.statLabel}>SOURCE</Text>
+            <Text style={styles.statValue}>{article.sourceName.toUpperCase()}</Text>
+          </View>
+          <View style={styles.statItem}>
+            <Text style={styles.statLabel}>PUBLISHED</Text>
+            <Text style={styles.statValue}>{timeAgo(article.publishedAt)}</Text>
+          </View>
+        </View>
+      </View>
+
+      {/* Action sidebar */}
+      <View style={styles.actionSidebar}>
+        <View style={styles.actionGroup}>
+          <View style={styles.actionBtn}>
+            <Ionicons name="heart-outline" size={20} color="white" />
+          </View>
+        </View>
+        <View style={styles.actionGroup}>
+          <View style={styles.actionBtn}>
+            <Ionicons name="chatbubble-outline" size={20} color="white" />
+          </View>
+        </View>
+        <View style={styles.actionGroup}>
+          <View style={styles.actionBtn}>
+            <Ionicons name="share-outline" size={20} color="white" />
+          </View>
+          <Text style={styles.actionLabel}>SHARE</Text>
         </View>
       </View>
     </Pressable>
@@ -83,63 +200,145 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     width: SCREEN_WIDTH,
+    height: SCREEN_HEIGHT,
+    justifyContent: "flex-end",
+    overflow: "hidden",
   },
-  image: {
+  bgImage: {
     ...StyleSheet.absoluteFillObject,
     width: SCREEN_WIDTH,
     height: "100%",
+    opacity: 0.4,
   },
-  gradient: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  content: {
+  waterLine: {
     position: "absolute",
     bottom: 0,
     left: 0,
-    right: 0,
-    padding: 20,
-    paddingBottom: 40,
+    width: "100%",
+    height: "40%",
   },
-  badge: {
+  decoStar: {
+    position: "absolute",
+    fontSize: 16,
+    zIndex: 5,
+    opacity: 0.6,
+  },
+  starTL: {
+    top: 80,
+    left: 20,
+  },
+  starBR: {
+    bottom: 120,
+    right: 20,
+  },
+  headlineLayer: {
+    position: "absolute",
+    top: "15%",
+    left: 0,
+    width: "100%",
+    alignItems: "center",
+    zIndex: 0,
+    opacity: 0.8,
+  },
+  headlineMassive: {
+    fontFamily: fonts.display.regular,
+    fontSize: SCREEN_WIDTH * 0.28,
+    lineHeight: SCREEN_WIDTH * 0.28,
+    textTransform: "uppercase",
+    letterSpacing: -2,
+    textShadowColor: "rgba(0,0,0,0.8)",
+    textShadowOffset: { width: 0, height: 20 },
+    textShadowRadius: 50,
+  },
+  contentLayer: {
+    position: "relative",
+    zIndex: 5,
+    paddingHorizontal: 24,
+    paddingBottom: 100,
+    maxWidth: "85%",
+  },
+  metaTag: {
     alignSelf: "flex-start",
-    paddingHorizontal: 10,
+    borderWidth: 1,
+    paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
     marginBottom: 12,
+    backgroundColor: "rgba(0,0,0,0.6)",
   },
-  badgeText: {
-    fontFamily: fonts.sans.bold,
-    fontSize: fontSize.xs,
-    color: "#0A0A0A",
+  metaTagText: {
+    fontFamily: fonts.mono.regular,
+    fontSize: fontSize.xxs,
     textTransform: "uppercase",
-    letterSpacing: 0.5,
+    letterSpacing: letterSpacing.wide,
   },
-  source: {
-    fontFamily: fonts.sans.medium,
-    fontSize: fontSize.sm,
-    color: "rgba(255,255,255,0.7)",
-    marginBottom: 8,
-  },
-  title: {
-    fontFamily: fonts.serif.bold,
+  newsTitle: {
+    fontFamily: fonts.body.bold,
     fontSize: fontSize.xl,
-    lineHeight: lineHeight.xl,
-    color: "#FAFAFA",
-    marginBottom: 10,
+    lineHeight: 30,
+    color: "#f0f0f0",
+    textTransform: "uppercase",
+    letterSpacing: letterSpacing.tight,
+    marginBottom: 12,
+    textShadowColor: "rgba(0,0,0,1)",
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 10,
   },
-  summary: {
-    fontFamily: fonts.sans.regular,
+  snippetContainer: {
+    borderLeftWidth: 2,
+    paddingLeft: 12,
+    marginBottom: 16,
+    backgroundColor: "rgba(0,0,0,0.3)",
+  },
+  newsSnippet: {
+    fontFamily: fonts.mono.regular,
     fontSize: fontSize.sm,
-    lineHeight: lineHeight.sm,
-    color: "rgba(255,255,255,0.85)",
+    color: "#cccccc",
+    lineHeight: 18,
   },
-  swipeHint: {
-    alignItems: "center",
-    marginTop: 20,
+  statGrid: {
+    flexDirection: "row",
+    gap: 24,
+    marginTop: 4,
   },
-  swipeHintText: {
-    fontFamily: fonts.sans.regular,
+  statItem: {},
+  statLabel: {
+    fontFamily: fonts.mono.regular,
     fontSize: fontSize.xs,
-    color: "rgba(255,255,255,0.4)",
+    color: "#888888",
+    letterSpacing: letterSpacing.wide,
+  },
+  statValue: {
+    fontFamily: fonts.mono.regular,
+    fontSize: fontSize.xs,
+    color: "#f0f0f0",
+    marginTop: 2,
+  },
+  actionSidebar: {
+    position: "absolute",
+    right: 16,
+    bottom: 110,
+    alignItems: "center",
+    gap: 24,
+    zIndex: 20,
+  },
+  actionGroup: {
+    alignItems: "center",
+  },
+  actionBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.2)",
+    backgroundColor: "rgba(0,0,0,0.4)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  actionLabel: {
+    fontFamily: fonts.mono.regular,
+    fontSize: fontSize.xxs,
+    color: "rgba(255,255,255,0.8)",
+    marginTop: 4,
   },
 });

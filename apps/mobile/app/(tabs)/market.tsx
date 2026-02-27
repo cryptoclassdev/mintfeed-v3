@@ -5,7 +5,7 @@ import { Image } from "expo-image";
 import { useMarket } from "@/hooks/useMarket";
 import { useAppStore } from "@/lib/store";
 import { colors, type ThemeColors } from "@/constants/theme";
-import { fonts, fontSize } from "@/constants/typography";
+import { fonts, fontSize, letterSpacing } from "@/constants/typography";
 import type { MarketCoin } from "@mintfeed/shared";
 
 const priceFormatter = new Intl.NumberFormat("en-US", {
@@ -41,13 +41,17 @@ interface CoinRowProps {
   themeColors: ThemeColors;
 }
 
-const CoinRow = memo(function CoinRow({ item, index, themeColors }: CoinRowProps) {
+const CoinRow = memo(function CoinRow({
+  item,
+  index,
+  themeColors,
+}: CoinRowProps) {
   const isPositive = item.priceChange24h >= 0;
 
   return (
     <View style={[styles.row, { borderBottomColor: themeColors.border }]}>
       <Text style={[styles.rank, { color: themeColors.textMuted }]}>
-        {index + 1}
+        {String(index + 1).padStart(2, "0")}
       </Text>
       {item.imageUrl && (
         <Image source={{ uri: item.imageUrl }} style={styles.coinIcon} />
@@ -56,8 +60,8 @@ const CoinRow = memo(function CoinRow({ item, index, themeColors }: CoinRowProps
         <Text style={[styles.coinName, { color: themeColors.text }]}>
           {item.name}
         </Text>
-        <Text style={[styles.coinSymbol, { color: themeColors.textMuted }]}>
-          {item.symbol.toUpperCase()} · {formatMarketCap(item.marketCap)}
+        <Text style={[styles.coinMeta, { color: themeColors.textMuted }]}>
+          {item.symbol.toUpperCase()} // {formatMarketCap(item.marketCap)}
         </Text>
       </View>
       <View style={styles.priceInfo}>
@@ -67,7 +71,11 @@ const CoinRow = memo(function CoinRow({ item, index, themeColors }: CoinRowProps
         <Text
           style={[
             styles.change,
-            { color: isPositive ? themeColors.positive : themeColors.negative },
+            {
+              color: isPositive
+                ? themeColors.positive
+                : themeColors.negative,
+            },
           ]}
         >
           {isPositive ? "+" : ""}
@@ -88,7 +96,12 @@ export default function MarketScreen() {
       style={[styles.container, { backgroundColor: themeColors.background }]}
       edges={["top"]}
     >
-      <Text style={[styles.title, { color: themeColors.text }]}>Market</Text>
+      <View style={styles.header}>
+        <Text style={[styles.title, { color: themeColors.text }]}>MARKET</Text>
+        <Text style={[styles.subtitle, { color: themeColors.accent }]}>
+          LIVE
+        </Text>
+      </View>
       <FlatList
         data={data?.data ?? []}
         keyExtractor={(item) => item.id}
@@ -107,14 +120,26 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  title: {
-    fontFamily: fonts.serif.bold,
-    fontSize: fontSize.xxl,
+  header: {
+    flexDirection: "row",
+    alignItems: "baseline",
+    gap: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,
   },
+  title: {
+    fontFamily: fonts.display.regular,
+    fontSize: fontSize.xxl,
+    textTransform: "uppercase",
+  },
+  subtitle: {
+    fontFamily: fonts.mono.regular,
+    fontSize: fontSize.xs,
+    letterSpacing: letterSpacing.wider,
+  },
   list: {
     paddingHorizontal: 16,
+    paddingBottom: 100,
   },
   row: {
     flexDirection: "row",
@@ -124,8 +149,8 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   rank: {
-    fontFamily: fonts.sans.medium,
-    fontSize: fontSize.sm,
+    fontFamily: fonts.mono.regular,
+    fontSize: fontSize.xs,
     width: 24,
     textAlign: "center",
   },
@@ -138,23 +163,24 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   coinName: {
-    fontFamily: fonts.sans.bold,
+    fontFamily: fonts.body.semiBold,
     fontSize: fontSize.base,
   },
-  coinSymbol: {
-    fontFamily: fonts.sans.regular,
-    fontSize: fontSize.xs,
+  coinMeta: {
+    fontFamily: fonts.mono.regular,
+    fontSize: fontSize.xxs,
     marginTop: 2,
+    letterSpacing: letterSpacing.wide,
   },
   priceInfo: {
     alignItems: "flex-end",
   },
   price: {
-    fontFamily: fonts.sans.bold,
+    fontFamily: fonts.mono.bold,
     fontSize: fontSize.base,
   },
   change: {
-    fontFamily: fonts.sans.medium,
+    fontFamily: fonts.mono.regular,
     fontSize: fontSize.sm,
     marginTop: 2,
   },
