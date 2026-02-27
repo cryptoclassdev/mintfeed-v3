@@ -97,9 +97,9 @@ export default function MarketScreen() {
       edges={["top"]}
     >
       <View style={styles.header}>
-        <Text style={[styles.title, { color: themeColors.text }]}>MARKET</Text>
+        <Text style={[styles.title, { color: themeColors.text }]}>Market</Text>
         <Text style={[styles.subtitle, { color: themeColors.accent }]}>
-          LIVE
+          Live
         </Text>
       </View>
       <FlatList
@@ -130,7 +130,6 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: fonts.display.regular,
     fontSize: fontSize.xxl,
-    textTransform: "uppercase",
   },
   subtitle: {
     fontFamily: fonts.mono.regular,

@@ -6,8 +6,8 @@ import { fonts, fontSize, letterSpacing } from "@/constants/typography";
 
 const CATEGORIES = ["all", "crypto", "ai"] as const;
 const CATEGORY_LABELS: Record<string, string> = {
-  all: "ALL",
-  crypto: "CRYPTO",
+  all: "All",
+  crypto: "Crypto",
   ai: "AI",
 };
 

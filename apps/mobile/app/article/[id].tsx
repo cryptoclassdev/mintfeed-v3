@@ -14,7 +14,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { api } from "@/lib/api-client";
 import { useAppStore } from "@/lib/store";
 import { colors } from "@/constants/theme";
-import { fonts, fontSize, lineHeight, letterSpacing } from "@/constants/typography";
+import { fonts, fontSize, letterSpacing } from "@/constants/typography";
 import type { Article } from "@mintfeed/shared";
 
 export default function ArticleDetailScreen() {
@@ -61,9 +61,7 @@ export default function ArticleDetailScreen() {
           />
         )}
 
-        <View
-          style={[styles.badge, { borderColor: themeColors.accent }]}
-        >
+        <View style={[styles.badge, { borderColor: themeColors.accent }]}>
           <Text style={[styles.badgeText, { color: themeColors.accent }]}>
             {article.category}
           </Text>
@@ -77,18 +75,16 @@ export default function ArticleDetailScreen() {
           {article.title}
         </Text>
 
-        <View style={[styles.summaryContainer, { borderLeftColor: themeColors.accent }]}>
-          <Text style={[styles.summary, { color: themeColors.textSecondary }]}>
-            {article.summary}
-          </Text>
-        </View>
+        <Text style={[styles.summary, { color: themeColors.textSecondary }]}>
+          {article.summary}
+        </Text>
 
         <Pressable
           style={[styles.readMore, { borderColor: themeColors.accent }]}
           onPress={() => Linking.openURL(article.sourceUrl)}
         >
           <Text style={[styles.readMoreText, { color: themeColors.accent }]}>
-            READ FULL ARTICLE
+            Read full article
           </Text>
           <Ionicons name="arrow-forward" size={16} color={themeColors.accent} />
         </Pressable>
@@ -118,9 +114,8 @@ const styles = StyleSheet.create({
   heroImage: {
     width: "100%",
     height: 240,
-    borderRadius: 4,
+    borderRadius: 8,
     marginBottom: 16,
-    opacity: 0.9,
   },
   badge: {
     alignSelf: "flex-start",
@@ -141,25 +136,19 @@ const styles = StyleSheet.create({
     fontFamily: fonts.mono.regular,
     fontSize: fontSize.xs,
     marginBottom: 8,
-    textTransform: "uppercase",
     letterSpacing: letterSpacing.wide,
   },
   title: {
-    fontFamily: fonts.display.regular,
-    fontSize: fontSize.xxxl,
-    lineHeight: lineHeight.xxxl,
+    fontFamily: fonts.body.bold,
+    fontSize: 24,
+    lineHeight: 32,
     marginBottom: 16,
-    textTransform: "uppercase",
-  },
-  summaryContainer: {
-    borderLeftWidth: 2,
-    paddingLeft: 12,
-    marginBottom: 24,
   },
   summary: {
-    fontFamily: fonts.mono.regular,
-    fontSize: fontSize.sm,
-    lineHeight: lineHeight.lg,
+    fontFamily: fonts.body.regular,
+    fontSize: 16,
+    lineHeight: 26,
+    marginBottom: 24,
   },
   readMore: {
     flexDirection: "row",
@@ -167,13 +156,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 8,
     paddingVertical: 14,
-    borderRadius: 4,
+    borderRadius: 8,
     borderWidth: 1,
   },
   readMoreText: {
-    fontFamily: fonts.mono.bold,
-    fontSize: fontSize.sm,
-    letterSpacing: letterSpacing.wider,
-    textTransform: "uppercase",
+    fontFamily: fonts.body.semiBold,
+    fontSize: fontSize.base,
   },
 });

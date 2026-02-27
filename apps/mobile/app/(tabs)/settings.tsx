@@ -14,7 +14,7 @@ export default function ProfileScreen() {
       style={[styles.container, { backgroundColor: themeColors.background }]}
       edges={["top"]}
     >
-      <Text style={[styles.title, { color: themeColors.text }]}>PROFILE</Text>
+      <Text style={[styles.title, { color: themeColors.text }]}>Profile</Text>
 
       <View style={styles.section}>
         <Text style={[styles.sectionTitle, { color: themeColors.textMuted }]}>
@@ -78,7 +78,6 @@ const styles = StyleSheet.create({
     fontSize: fontSize.xxl,
     paddingHorizontal: 16,
     paddingVertical: 12,
-    textTransform: "uppercase",
   },
   section: {
     marginTop: 24,
