@@ -124,15 +124,15 @@ export function NewsCard({ article }: NewsCardProps) {
         {/* Title — natural case, no emoji */}
         <Text style={styles.title}>{cleanTitle}</Text>
 
-        {/* Summary — clean, readable, full text */}
-        <Text style={styles.summary}>{cleanSummary}</Text>
-
         {/* Source + time */}
         <View style={styles.meta}>
           <Text style={styles.metaText}>{article.sourceName}</Text>
           <Text style={[styles.metaDot, { color: accentColor }]}>·</Text>
           <Text style={styles.metaText}>{timeAgo(article.publishedAt)}</Text>
         </View>
+
+        {/* Summary — clean, readable, full text */}
+        <Text style={styles.summary}>{cleanSummary}</Text>
       </View>
     </Pressable>
   );
@@ -216,7 +216,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
-    marginTop: "auto",
+    marginBottom: 16,
   },
   metaText: {
     fontFamily: fonts.mono.regular,
