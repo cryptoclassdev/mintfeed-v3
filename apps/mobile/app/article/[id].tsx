@@ -5,6 +5,7 @@ import {
   StyleSheet,
   Pressable,
   Linking,
+  ActivityIndicator,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -23,13 +24,21 @@ export default function ArticleDetailScreen() {
   const theme = useAppStore((s) => s.theme);
   const themeColors = colors[theme];
 
-  const { data: article } = useQuery({
+  const { data: article, isLoading } = useQuery({
     queryKey: ["article", id],
     queryFn: () => api.get(`api/v1/feed/${id}`).json<Article>(),
     enabled: !!id,
   });
 
-  if (!article) return null;
+  if (isLoading || !article) {
+    return (
+      <SafeAreaView
+        style={[styles.container, styles.centered, { backgroundColor: themeColors.background }]}
+      >
+        <ActivityIndicator size="large" color={themeColors.accent} />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView
@@ -51,15 +60,16 @@ export default function ArticleDetailScreen() {
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
+        contentInsetAdjustmentBehavior="automatic"
       >
-        {article.imageUrl && (
+        {article.imageUrl ? (
           <Image
             source={{ uri: article.imageUrl }}
             style={styles.heroImage}
             contentFit="cover"
             transition={300}
           />
-        )}
+        ) : null}
 
         <View style={[styles.badge, { borderColor: themeColors.accent }]}>
           <Text style={[styles.badgeText, { color: themeColors.accent }]}>
@@ -96,6 +106,10 @@ export default function ArticleDetailScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  centered: {
+    justifyContent: "center",
+    alignItems: "center",
   },
   header: {
     flexDirection: "row",

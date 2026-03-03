@@ -17,15 +17,15 @@ export function useFeed() {
         searchParams.cursor = pageParam;
       }
 
-      console.log("[useFeed] Fetching feed:", { category, pageParam });
+      if (__DEV__) console.log("[useFeed] Fetching feed:", { category, pageParam });
       try {
         const result = await api
           .get("api/v1/feed", { searchParams })
           .json<PaginatedResponse<Article>>();
-        console.log("[useFeed] Got", result.data?.length, "articles, hasMore:", result.hasMore);
+        if (__DEV__) console.log("[useFeed] Got", result.data?.length, "articles, hasMore:", result.hasMore);
         return result;
       } catch (err: any) {
-        console.error("[useFeed] Fetch failed:", err.message, err.name, err.response?.status);
+        if (__DEV__) console.error("[useFeed] Fetch failed:", err.message, err.name, err.response?.status);
         throw err;
       }
     },

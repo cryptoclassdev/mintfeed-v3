@@ -15,6 +15,7 @@ export interface Article {
   imageBlurhash: string | null;
   publishedAt: string;
   createdAt: string;
+  predictionMarket: PredictionMarket | null;
 }
 
 export interface MarketCoin {
@@ -33,6 +34,13 @@ export interface FeedSource {
   category: Category;
   isActive: boolean;
   lastFetchAt: string | null;
+}
+
+export interface PredictionMarket {
+  id: string;           // Jupiter marketId (UUID)
+  question: string;     // Event title
+  outcomePrices: Record<string, number>;  // { "Yes": 0.73, "No": 0.27 }
+  marketUrl: string;    // Jupiter prediction page URL
 }
 
 export interface PaginatedResponse<T> {

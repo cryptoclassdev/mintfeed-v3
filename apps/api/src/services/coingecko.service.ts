@@ -15,6 +15,26 @@ interface CoinGeckoMarket {
   image: string;
 }
 
+const MAX_RETRIES = 3;
+const RETRY_DELAY_MS = 2_000;
+
+async function withRetry<T>(fn: () => Promise<T>, label: string): Promise<T> {
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      return await fn();
+    } catch (error: any) {
+      const isRetryable = error?.code === "P1001" || error?.code === "P1002";
+      if (isRetryable && attempt < MAX_RETRIES) {
+        console.warn(`[${label}] DB connection failed, retrying (${attempt}/${MAX_RETRIES})...`);
+        await new Promise((r) => setTimeout(r, RETRY_DELAY_MS * attempt));
+        continue;
+      }
+      throw error;
+    }
+  }
+  throw new Error("Unreachable");
+}
+
 export async function fetchMarketData(): Promise<void> {
   console.log("[CoinGecko] Fetching market data...");
 
@@ -33,26 +53,32 @@ export async function fetchMarketData(): Promise<void> {
       })
       .json<CoinGeckoMarket[]>();
 
-    for (const coin of coins) {
-      await prisma.marketCoin.upsert({
-        where: { id: coin.id },
-        update: {
-          currentPrice: coin.current_price,
-          priceChange24h: coin.price_change_percentage_24h ?? 0,
-          marketCap: coin.market_cap,
-          imageUrl: coin.image,
-        },
-        create: {
-          id: coin.id,
-          symbol: coin.symbol,
-          name: coin.name,
-          currentPrice: coin.current_price,
-          priceChange24h: coin.price_change_percentage_24h ?? 0,
-          marketCap: coin.market_cap,
-          imageUrl: coin.image,
-        },
-      });
-    }
+    await withRetry(
+      () =>
+        prisma.$transaction(
+          coins.map((coin) =>
+            prisma.marketCoin.upsert({
+              where: { id: coin.id },
+              update: {
+                currentPrice: coin.current_price,
+                priceChange24h: coin.price_change_percentage_24h ?? 0,
+                marketCap: coin.market_cap,
+                imageUrl: coin.image,
+              },
+              create: {
+                id: coin.id,
+                symbol: coin.symbol,
+                name: coin.name,
+                currentPrice: coin.current_price,
+                priceChange24h: coin.price_change_percentage_24h ?? 0,
+                marketCap: coin.market_cap,
+                imageUrl: coin.image,
+              },
+            }),
+          ),
+        ),
+      "CoinGecko",
+    );
 
     console.log(`[CoinGecko] Updated ${coins.length} coins`);
   } catch (error) {

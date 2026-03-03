@@ -1,12 +1,13 @@
-import { View, Text, StyleSheet, Dimensions, Pressable, Linking } from "react-native";
+import { memo } from "react";
+import { View, Text, StyleSheet, Pressable, Linking, useWindowDimensions } from "react-native";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { fonts, fontSize, letterSpacing } from "@/constants/typography";
+import { PredictionCard } from "./PredictionCard";
 import type { Article } from "@mintfeed/shared";
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
-
-const IMAGE_HEIGHT = SCREEN_HEIGHT * 0.35;
+const IMAGE_HEIGHT_RATIO = 0.28;
+const TAB_BAR_HEIGHT = 80;
 
 const NEGATIVE_KEYWORDS = [
   "crash", "drop", "fall", "dump", "panic", "hack", "ban", "plunge",
@@ -76,19 +77,21 @@ interface NewsCardProps {
   article: Article;
 }
 
-export function NewsCard({ article }: NewsCardProps) {
+export const NewsCard = memo(function NewsCard({ article }: NewsCardProps) {
+  const { width: screenWidth, height: screenHeight } = useWindowDimensions();
+  const imageHeight = screenHeight * IMAGE_HEIGHT_RATIO;
+
   const sentiment = detectSentiment(article.title, article.summary);
   const accentColor = getAccentColor(sentiment);
   const cleanTitle = stripEmoji(article.title);
   const cleanSummary = stripEmoji(article.summary);
 
+  const topMarket = article.predictionMarket;
+
   return (
-    <Pressable
-      style={styles.container}
-      onPress={() => Linking.openURL(article.sourceUrl)}
-    >
+    <View style={[styles.container, { width: screenWidth, height: screenHeight }]}>
       {/* Top: Image zone */}
-      <View style={styles.imageZone}>
+      <View style={[styles.imageZone, { height: imageHeight }]}>
         {article.imageUrl ? (
           <Image
             source={{ uri: article.imageUrl }}
@@ -116,39 +119,48 @@ export function NewsCard({ article }: NewsCardProps) {
         </View>
       </View>
 
-      {/* Bottom: Content zone — solid dark background */}
+      {/* Bottom: Content zone */}
       <View style={styles.contentZone}>
         {/* Decorative accent line */}
         <View style={[styles.accentLine, { backgroundColor: accentColor }]} />
 
-        {/* Title — natural case, no emoji */}
+        {/* Title */}
         <Text style={styles.title}>{cleanTitle}</Text>
 
-        {/* Source + time */}
+        {/* Source + time + read more link */}
         <View style={styles.meta}>
           <Text style={styles.metaText}>{article.sourceName}</Text>
           <Text style={[styles.metaDot, { color: accentColor }]}>·</Text>
           <Text style={styles.metaText}>{timeAgo(article.publishedAt)}</Text>
+          <Text style={[styles.metaDot, { color: accentColor }]}>·</Text>
+          <Pressable
+            onPress={() => Linking.openURL(article.sourceUrl)}
+            hitSlop={8}
+          >
+            <Text style={[styles.sourceLink, { color: accentColor }]}>
+              Read full article
+            </Text>
+          </Pressable>
         </View>
 
-        {/* Summary — clean, readable, full text */}
+        {/* Summary */}
         <Text style={styles.summary}>{cleanSummary}</Text>
+
+        {/* Prediction market */}
+        {topMarket && <PredictionCard market={topMarket} />}
       </View>
-    </Pressable>
+    </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    width: SCREEN_WIDTH,
-    height: SCREEN_HEIGHT,
     backgroundColor: "#030303",
   },
 
   /* Image zone */
   imageZone: {
-    height: IMAGE_HEIGHT,
     width: "100%",
     position: "relative",
   },
@@ -190,7 +202,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 24,
     paddingTop: 8,
-    paddingBottom: 96,
+    paddingBottom: TAB_BAR_HEIGHT + 16,
   },
   accentLine: {
     width: 32,
@@ -228,5 +240,12 @@ const styles = StyleSheet.create({
   metaDot: {
     fontSize: 14,
     fontWeight: "700",
+  },
+  sourceLink: {
+    fontFamily: fonts.mono.regular,
+    fontSize: fontSize.xs,
+    letterSpacing: letterSpacing.wide,
+    textDecorationLine: "underline",
+    textTransform: "uppercase",
   },
 });

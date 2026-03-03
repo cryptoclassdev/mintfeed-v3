@@ -3,6 +3,7 @@ import { prisma } from "@mintfeed/db";
 import { fetchAllFeeds, type ParsedFeedItem } from "./rss-fetcher.service";
 import { rewriteArticle } from "./gemini.service";
 import { generateBlurhash } from "./image.service";
+import { matchMarketForArticle } from "./jupiter-prediction.service";
 
 function hashUrl(url: string): string {
   return createHash("sha256").update(url).digest("hex");
@@ -23,7 +24,7 @@ async function processItem(item: ParsedFeedItem): Promise<void> {
     ? await generateBlurhash(item.imageUrl)
     : null;
 
-  await prisma.article.create({
+  const article = await prisma.article.create({
     data: {
       sourceUrl: item.link,
       sourceUrlHash,
@@ -37,6 +38,11 @@ async function processItem(item: ParsedFeedItem): Promise<void> {
       imageBlurhash,
       publishedAt: new Date(item.pubDate),
     },
+  });
+
+  // Match prediction market in the background — don't block article processing
+  matchMarketForArticle(article.id, item.title, title).catch((err) => {
+    console.error(`[ArticleProcessor] Market matching failed for "${item.title.slice(0, 40)}":`, err);
   });
 }
 

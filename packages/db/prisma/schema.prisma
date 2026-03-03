@@ -14,21 +14,22 @@ enum Category {
 }
 
 model Article {
-  id            String   @id @default(cuid())
-  sourceUrl     String   @unique
-  sourceUrlHash String   @unique
-  sourceName    String
-  category      Category
-  originalTitle String
-  originalBody  String   @db.Text
-  title         String
-  summary       String   @db.Text
-  imageUrl      String?
-  imageBlurhash String?
-  publishedAt   DateTime
-  fetchedAt     DateTime @default(now())
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id                 String                    @id @default(cuid())
+  sourceUrl          String                    @unique
+  sourceUrlHash      String                    @unique
+  sourceName         String
+  category           Category
+  originalTitle      String
+  originalBody       String                    @db.Text
+  title              String
+  summary            String                    @db.Text
+  imageUrl           String?
+  imageBlurhash      String?
+  publishedAt        DateTime
+  fetchedAt          DateTime                  @default(now())
+  createdAt          DateTime                  @default(now())
+  updatedAt          DateTime                  @updatedAt
+  predictionMarkets  ArticlePredictionMarket[]
 
   @@index([category, publishedAt(sort: Desc)])
   @@index([publishedAt(sort: Desc)])
@@ -43,6 +44,39 @@ model MarketCoin {
   marketCap      Float
   imageUrl       String?
   updatedAt      DateTime @updatedAt
+}
+
+model PredictionMarket {
+  id            String                    @id // Jupiter marketId
+  eventId       String                    // Jupiter parent event ID
+  question      String
+  outcomePrices Json                      // {"Yes": 0.73, "No": 0.27}
+  outcomes      Json                      // ["Yes", "No"]
+  liquidity     Float
+  volume        Float
+  endDate       DateTime?
+  imageUrl      String?
+  marketUrl     String                    // Jupiter prediction page URL
+  closed        Boolean                   @default(false)
+  category      String?                   // "crypto", "tech", etc.
+  result        String?                   // null, "yes", "no"
+  updatedAt     DateTime                  @updatedAt
+  createdAt     DateTime                  @default(now())
+  articles      ArticlePredictionMarket[]
+
+  @@index([eventId])
+}
+
+model ArticlePredictionMarket {
+  id                 String           @id @default(cuid())
+  articleId          String
+  predictionMarketId String
+  createdAt          DateTime         @default(now())
+  article            Article          @relation(fields: [articleId], references: [id])
+  predictionMarket   PredictionMarket @relation(fields: [predictionMarketId], references: [id])
+
+  @@unique([articleId, predictionMarketId])
+  @@index([articleId])
 }
 
 model FeedSource {

@@ -1,4 +1,4 @@
-import { useCallback, useRef } from "react";
+import { useCallback, useMemo, useRef } from "react";
 import { View, StyleSheet, ActivityIndicator, Text } from "react-native";
 import PagerView, {
   type PagerViewOnPageSelectedEvent,
@@ -9,8 +9,10 @@ import { useAppStore } from "@/lib/store";
 import { colors } from "@/constants/theme";
 import { fonts, fontSize } from "@/constants/typography";
 import { NewsCard } from "./NewsCard";
+import type { Article } from "@mintfeed/shared";
 
 const PREFETCH_THRESHOLD = 5;
+const EMPTY_ARTICLES: Article[] = [];
 
 export function SwipeFeed() {
   const theme = useAppStore((s) => s.theme);
@@ -22,15 +24,22 @@ export function SwipeFeed() {
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
     query;
 
-  const articles = data?.pages.flatMap((page) => page.data) ?? [];
+  const articles = useMemo(
+    () => data?.pages.flatMap((page) => page.data) ?? EMPTY_ARTICLES,
+    [data?.pages]
+  );
+
+  const articlesRef = useRef(articles);
+  articlesRef.current = articles;
 
   const onPageSelected = useCallback(
     (e: PagerViewOnPageSelectedEvent) => {
       const index = e.nativeEvent.position;
+      const currentArticles = articlesRef.current;
 
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 
-      const article = articles[index];
+      const article = currentArticles[index];
       if (article) {
         markAsRead(article.id);
       }
@@ -38,12 +47,12 @@ export function SwipeFeed() {
       if (
         hasNextPage &&
         !isFetchingNextPage &&
-        index >= articles.length - PREFETCH_THRESHOLD
+        index >= currentArticles.length - PREFETCH_THRESHOLD
       ) {
         fetchNextPage();
       }
     },
-    [articles, hasNextPage, isFetchingNextPage, fetchNextPage, markAsRead]
+    [hasNextPage, isFetchingNextPage, fetchNextPage, markAsRead]
   );
 
   if (isLoading) {

@@ -1,10 +1,10 @@
-import { memo } from "react";
+import { memo, useCallback } from "react";
 import { View, Text, FlatList, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Image } from "expo-image";
 import { useMarket } from "@/hooks/useMarket";
 import { useAppStore } from "@/lib/store";
-import { colors, type ThemeColors } from "@/constants/theme";
+import { colors } from "@/constants/theme";
 import { fonts, fontSize, letterSpacing } from "@/constants/typography";
 import type { MarketCoin } from "@mintfeed/shared";
 
@@ -38,43 +38,49 @@ function formatMarketCap(cap: number): string {
 interface CoinRowProps {
   item: MarketCoin;
   index: number;
-  themeColors: ThemeColors;
+  borderColor: string;
+  textColor: string;
+  mutedColor: string;
+  positiveColor: string;
+  negativeColor: string;
 }
 
 const CoinRow = memo(function CoinRow({
   item,
   index,
-  themeColors,
+  borderColor,
+  textColor,
+  mutedColor,
+  positiveColor,
+  negativeColor,
 }: CoinRowProps) {
   const isPositive = item.priceChange24h >= 0;
 
   return (
-    <View style={[styles.row, { borderBottomColor: themeColors.border }]}>
-      <Text style={[styles.rank, { color: themeColors.textMuted }]}>
+    <View style={[styles.row, { borderBottomColor: borderColor }]}>
+      <Text style={[styles.rank, { color: mutedColor }]}>
         {String(index + 1).padStart(2, "0")}
       </Text>
-      {item.imageUrl && (
+      {item.imageUrl ? (
         <Image source={{ uri: item.imageUrl }} style={styles.coinIcon} />
-      )}
+      ) : null}
       <View style={styles.coinInfo}>
-        <Text style={[styles.coinName, { color: themeColors.text }]}>
+        <Text style={[styles.coinName, { color: textColor }]}>
           {item.name}
         </Text>
-        <Text style={[styles.coinMeta, { color: themeColors.textMuted }]}>
+        <Text style={[styles.coinMeta, { color: mutedColor }]}>
           {item.symbol.toUpperCase()} // {formatMarketCap(item.marketCap)}
         </Text>
       </View>
       <View style={styles.priceInfo}>
-        <Text style={[styles.price, { color: themeColors.text }]}>
+        <Text style={[styles.price, { color: textColor }]}>
           {formatPrice(item.currentPrice)}
         </Text>
         <Text
           style={[
             styles.change,
             {
-              color: isPositive
-                ? themeColors.positive
-                : themeColors.negative,
+              color: isPositive ? positiveColor : negativeColor,
             },
           ]}
         >
@@ -86,10 +92,29 @@ const CoinRow = memo(function CoinRow({
   );
 });
 
+const EMPTY_COINS: MarketCoin[] = [];
+
+const keyExtractor = (item: MarketCoin) => item.id;
+
 export default function MarketScreen() {
   const theme = useAppStore((s) => s.theme);
   const themeColors = colors[theme];
   const { data, isLoading, refetch } = useMarket();
+
+  const renderItem = useCallback(
+    ({ item, index }: { item: MarketCoin; index: number }) => (
+      <CoinRow
+        item={item}
+        index={index}
+        borderColor={themeColors.border}
+        textColor={themeColors.text}
+        mutedColor={themeColors.textMuted}
+        positiveColor={themeColors.positive}
+        negativeColor={themeColors.negative}
+      />
+    ),
+    [themeColors.border, themeColors.text, themeColors.textMuted, themeColors.positive, themeColors.negative]
+  );
 
   return (
     <SafeAreaView
@@ -103,11 +128,9 @@ export default function MarketScreen() {
         </Text>
       </View>
       <FlatList
-        data={data?.data ?? []}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item, index }) => (
-          <CoinRow item={item} index={index} themeColors={themeColors} />
-        )}
+        data={data?.data ?? EMPTY_COINS}
+        keyExtractor={keyExtractor}
+        renderItem={renderItem}
         onRefresh={refetch}
         refreshing={isLoading}
         contentContainerStyle={styles.list}
