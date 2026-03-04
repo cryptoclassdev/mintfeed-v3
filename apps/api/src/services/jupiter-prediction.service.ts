@@ -88,9 +88,10 @@ export async function matchMarketForArticle(
     // Check how many markets already linked — skip if already at cap
     const existingLinks = await prisma.articlePredictionMarket.findMany({
       where: { articleId },
-      select: { predictionMarketId: true },
+      include: { predictionMarket: { select: { id: true, question: true } } },
     });
     const existingIds = new Set(existingLinks.map((l) => l.predictionMarketId));
+    const existingQuestions = new Set(existingLinks.map((l) => l.predictionMarket.question));
     const slotsRemaining = MAX_MARKETS_PER_ARTICLE - existingIds.size;
 
     if (slotsRemaining <= 0) return;
@@ -111,6 +112,7 @@ export async function matchMarketForArticle(
 
     // Collect valid markets across all events, excluding already-linked ones
     const candidates: Array<{ market: JupiterMarket; event: JupiterEvent }> = [];
+    const seenQuestions = new Set(existingQuestions);
 
     for (const searchEvent of events) {
       if (!searchEvent.isActive) continue;
@@ -128,6 +130,10 @@ export async function matchMarketForArticle(
         if (market.status !== "open") continue;
         if (existingIds.has(market.marketId)) continue;
 
+        // Deduplicate by event title — no repeated questions per article
+        const question = fullEvent.metadata.title;
+        if (seenQuestions.has(question)) continue;
+
         const pricing = market.pricing;
         if (!pricing || pricing.volume < MIN_VOLUME_USD) continue;
 
@@ -135,6 +141,7 @@ export async function matchMarketForArticle(
         const hasValidPrices = Object.values(outcomePrices).some((v) => v > 0);
         if (!hasValidPrices) continue;
 
+        seenQuestions.add(question);
         candidates.push({ market, event: fullEvent });
       }
     }

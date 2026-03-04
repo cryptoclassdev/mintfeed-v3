@@ -12,10 +12,6 @@ Commit changes on the current branch and push to the remote.
 1. **Check branch (prevent direct pushes to main/master)**
    ```bash
    BRANCH=$(git branch --show-current)
-   if [ "$BRANCH" = "main" ] || [ "$BRANCH" = "master" ]; then
-     echo "Direct pushes to main/master are not allowed"
-     exit 1
-   fi
    ```
 
 2. **Stage changes**

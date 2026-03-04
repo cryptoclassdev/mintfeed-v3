@@ -42,9 +42,15 @@ type ArticleWithPredictions = Awaited<
 
 function mapArticle(article: ArticleWithPredictions) {
   const { predictionMarkets, ...rest } = article;
+  const seen = new Set<string>();
   const markets = predictionMarkets
     .map((link) => link.predictionMarket)
     .sort((a, b) => b.volume - a.volume)
+    .filter((m) => {
+      if (seen.has(m.question)) return false;
+      seen.add(m.question);
+      return true;
+    })
     .map(({ volume: _v, ...m }) => m);
   return {
     ...rest,
@@ -134,9 +140,15 @@ feedRoutes.get("/feed/:id", async (c) => {
     }
 
     const { predictionMarkets, ...rest } = article;
+    const seen = new Set<string>();
     const markets = predictionMarkets
       .map((link) => link.predictionMarket)
       .sort((a, b) => b.volume - a.volume)
+      .filter((m) => {
+        if (seen.has(m.question)) return false;
+        seen.add(m.question);
+        return true;
+      })
       .map(({ volume: _v, ...m }) => m);
     return c.json({
       ...rest,
