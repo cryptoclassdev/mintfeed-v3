@@ -86,7 +86,11 @@ export const NewsCard = memo(function NewsCard({ article }: NewsCardProps) {
   const cleanTitle = stripEmoji(article.title);
   const cleanSummary = stripEmoji(article.summary);
 
-  const markets = article.predictionMarkets ?? [];
+  const markets = (article.predictionMarkets ?? []).filter((m, i, arr) => {
+    const firstById = arr.findIndex((x) => x.id === m.id);
+    const firstByQuestion = arr.findIndex((x) => x.question === m.question);
+    return firstById === i && firstByQuestion === i;
+  });
 
   return (
     <View style={[styles.container, { width: screenWidth, height: screenHeight }]}>
@@ -150,7 +154,7 @@ export const NewsCard = memo(function NewsCard({ article }: NewsCardProps) {
         {markets.length > 0 && (
           <View style={styles.marketsContainer}>
             {markets.map((market) => (
-              <PredictionCard key={market.id} market={market} compact={markets.length > 1} />
+              <PredictionCard key={market.id} market={market} />
             ))}
           </View>
         )}
@@ -194,6 +198,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 10,
+    borderCurve: "continuous",
     backgroundColor: "rgba(0,0,0,0.7)",
   },
   badgeText: {
@@ -228,7 +233,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 24,
     color: "#b0b0b0",
-    marginBottom: 20,
+    marginBottom: 12,
   },
   meta: {
     flexDirection: "row",
@@ -255,6 +260,6 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
   },
   marketsContainer: {
-    gap: 6,
+    gap: 4,
   },
 });

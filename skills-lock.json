@@ -11,6 +11,11 @@
       "sourceType": "github",
       "computedHash": "39569d63ffcc0c880490aae660e413419fa20800d7cc9fb740f74d1ec961f3f2"
     },
+    "privy-skill": {
+      "source": "drivespark/ai-coding",
+      "sourceType": "github",
+      "computedHash": "bc05817fe46d41fd57eec0c5d87d3808038b29557dae542c86f7ac3272dd1805"
+    },
     "upgrading-expo": {
       "source": "expo/skills",
       "sourceType": "github",

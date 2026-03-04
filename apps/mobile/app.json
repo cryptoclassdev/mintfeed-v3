@@ -18,11 +18,21 @@
       "adaptiveIcon": {
         "backgroundColor": "#030303"
       },
-      "package": "com.mintfeed.app"
+      "package": "com.mintfeed.app",
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [{ "scheme": "mintfeed" }],
+          "category": ["DEFAULT", "BROWSABLE"]
+        }
+      ]
     },
     "plugins": [
       "expo-router",
-      "expo-font"
+      "expo-font",
+      "expo-secure-store",
+      "expo-web-browser"
     ],
     "experiments": {
       "reactCompiler": true

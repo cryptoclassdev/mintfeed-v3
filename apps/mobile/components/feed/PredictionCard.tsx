@@ -5,10 +5,10 @@ import { useLiveMarketPrice } from "@/hooks/useLiveMarketPrice";
 import type { PredictionMarket } from "@mintfeed/shared";
 
 const ACCENT = "#00D4AA";
+const TRACK_COLOR = "#1a1a1a";
 
 interface PredictionCardProps {
   market: PredictionMarket;
-  compact?: boolean;
 }
 
 function parsePrices(raw: unknown): Record<string, number> {
@@ -21,10 +21,9 @@ function parsePrices(raw: unknown): Record<string, number> {
   return result;
 }
 
-export function PredictionCard({ market, compact = false }: PredictionCardProps) {
+export function PredictionCard({ market }: PredictionCardProps) {
   const { data: livePrices } = useLiveMarketPrice(market.id);
 
-  // Use live prices when available, fall back to pre-fetched prices
   const prices = parsePrices(
     livePrices && Object.keys(livePrices).length > 0
       ? livePrices
@@ -41,65 +40,76 @@ export function PredictionCard({ market, compact = false }: PredictionCardProps)
 
   return (
     <Pressable
-      style={[styles.container, compact && styles.containerCompact]}
+      style={styles.container}
       onPress={() => Linking.openURL(market.marketUrl)}
     >
-      <View style={styles.left}>
-        {!compact && <Text style={styles.label}>JUPITER</Text>}
-        <Text style={styles.question} numberOfLines={1}>
-          {market.question}
-        </Text>
+      {/* Question + link icon */}
+      <View style={styles.questionRow}>
+        <Text style={styles.question}>{market.question}</Text>
+        <Ionicons name="open-outline" size={10} color="#444" style={styles.linkIcon} />
       </View>
-      <View style={styles.right}>
-        <Text style={styles.odds}>
-          {hasValidOdds ? `${leadingOutcome.outcome} ${percentage}%` : "—"}
-        </Text>
-        <Ionicons name="open-outline" size={10} color="#555" />
-      </View>
+
+      {/* Probability bar + outcome label */}
+      {hasValidOdds && (
+        <View style={styles.barRow}>
+          <View style={styles.barTrack}>
+            <View style={[styles.barFill, { width: `${percentage}%` }]} />
+          </View>
+          <Text style={styles.odds}>
+            {leadingOutcome.outcome} {percentage}%
+          </Text>
+        </View>
+      )}
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: "column",
     backgroundColor: "#111111",
     borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    marginTop: 8,
-    gap: 12,
-  },
-  containerCompact: {
-    marginTop: 0,
+    borderCurve: "continuous",
+    paddingHorizontal: 10,
     paddingVertical: 8,
+    marginTop: 6,
+    gap: 6,
   },
-  left: {
-    flex: 1,
-    gap: 2,
-  },
-  label: {
-    fontFamily: fonts.mono.regular,
-    fontSize: 9,
-    color: ACCENT,
-    letterSpacing: letterSpacing.wider,
-    textTransform: "uppercase",
+  questionRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 6,
   },
   question: {
+    flex: 1,
     fontFamily: fonts.body.regular,
-    fontSize: 13,
+    fontSize: 12.5,
     lineHeight: 17,
     color: "#d0d0d0",
   },
-  right: {
+  linkIcon: {
+    marginTop: 3,
+  },
+  barRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
+    gap: 8,
+  },
+  barTrack: {
+    flex: 1,
+    height: 3,
+    backgroundColor: TRACK_COLOR,
+    borderRadius: 2,
+    overflow: "hidden",
+  },
+  barFill: {
+    height: "100%",
+    backgroundColor: ACCENT,
+    borderRadius: 2,
   },
   odds: {
     fontFamily: fonts.mono.regular,
-    fontSize: fontSize.sm,
+    fontSize: fontSize.xs,
     color: ACCENT,
     letterSpacing: letterSpacing.wide,
   },

@@ -1,0 +1,454 @@
+# Privy Docs
+
+## Docs
+
+- [Authorization signatures](https://docs.privy.io/api-reference/authorization-signatures.md): Securing Privy API requests with authorization signatures
+- [Add items to a condition set](https://docs.privy.io/api-reference/condition-sets/condition-set-items/create.md): Add new items to a condition set. Can add up to 100 items at once.
+- [Delete an item from a condition set](https://docs.privy.io/api-reference/condition-sets/condition-set-items/delete.md): Delete an item from a condition set by condition set ID and item ID.
+- [Get an item from a condition set](https://docs.privy.io/api-reference/condition-sets/condition-set-items/get.md): Get an item from a condition set by condition set ID and item ID.
+- [Get all items from a condition set](https://docs.privy.io/api-reference/condition-sets/condition-set-items/get-all.md): Get all items in a condition set with pagination support.
+- [Update items in a condition set](https://docs.privy.io/api-reference/condition-sets/condition-set-items/update.md): Replace all items in a condition set by condition set ID. Can add up to 100 items at once.
+- [Create condition set](https://docs.privy.io/api-reference/condition-sets/create.md): Create a new condition set. You must provide either "owner" or "owner_id" (but not both) to specify ownership.
+- [Delete condition set](https://docs.privy.io/api-reference/condition-sets/delete.md): Delete a condition set by condition set ID.
+- [Get condition set](https://docs.privy.io/api-reference/condition-sets/get.md): Get a condition set by condition set ID.
+- [Update condition set](https://docs.privy.io/api-reference/condition-sets/update.md): Update a condition set by condition set ID.
+- [Create fiat account](https://docs.privy.io/api-reference/fiat/accounts/create.md): Sets up external bank account object for the user through the configured default provider. Requires the user to already be KYC'ed.
+- [Get fiat accounts](https://docs.privy.io/api-reference/fiat/accounts/get.md): Returns the IDs of all external fiat accounts (used for offramping) for the user
+- [Configure app for native onramp](https://docs.privy.io/api-reference/fiat/configure-app.md): Updates the app configuration for the specified onramp provider. This is used to set up the app for fiat onramping and offramping.
+- [Start KYC process](https://docs.privy.io/api-reference/fiat/kyc/create.md): Initiates KYC verification process for a user with the configured provider
+- [Get KYC process status](https://docs.privy.io/api-reference/fiat/kyc/get.md): Get the current KYC verification status for a user from the configured provider
+- [Update KYC details](https://docs.privy.io/api-reference/fiat/kyc/update.md): Update the KYC verification status for a user from the configured provider
+- [Initiate offramp](https://docs.privy.io/api-reference/fiat/offramp/create.md): Triggers the offramp flow and gets the on-chain address to send funds to
+- [Initiate onramp](https://docs.privy.io/api-reference/fiat/onramp/create.md): Triggers an onramp to the specified recipient blockchain address, returns the bank deposit instructions
+- [Get transactions](https://docs.privy.io/api-reference/fiat/status.md): Returns a list of fiat transactions and their statuses
+- [Create a terms of service agreement](https://docs.privy.io/api-reference/fiat/tos/create.md): Creates a terms of service agreement for a user
+- [Idempotency keys](https://docs.privy.io/api-reference/idempotency-keys.md): Making Privy API requests idempotent with idempotency keys
+- [Introduction](https://docs.privy.io/api-reference/introduction.md): Getting started with the Privy REST API
+- [Create key quorum](https://docs.privy.io/api-reference/key-quorums/create.md): Create a new key quorum.
+- [Delete key quorum](https://docs.privy.io/api-reference/key-quorums/delete.md): Delete a key quorum by key quorum ID.
+- [Get key quorum](https://docs.privy.io/api-reference/key-quorums/get.md): Get a key quorum by ID.
+- [Update key quorum](https://docs.privy.io/api-reference/key-quorums/update.md): Update a key quorum by key quorum ID.
+- [Create policy](https://docs.privy.io/api-reference/policies/create.md): Create a new policy.
+- [Delete policy](https://docs.privy.io/api-reference/policies/delete.md): Delete a policy by policy ID.
+- [Get policy](https://docs.privy.io/api-reference/policies/get.md): Get a policy by policy ID.
+- [Add a rule to a policy](https://docs.privy.io/api-reference/policies/rules/create.md): Create a new rule for a policy.
+- [Delete a rule from a policy](https://docs.privy.io/api-reference/policies/rules/delete.md): Delete a rule by policy ID and rule ID.
+- [Get a rule from a policy](https://docs.privy.io/api-reference/policies/rules/get.md): Get a rule by policy ID and rule ID.
+- [Update a rule in a policy](https://docs.privy.io/api-reference/policies/rules/update.md): Update a rule by policy ID and rule ID.
+- [Update policy](https://docs.privy.io/api-reference/policies/update.md): Update a policy by policy ID.
+- [Get transaction](https://docs.privy.io/api-reference/transactions/get.md): Get a transaction by transaction ID.
+- [Create user](https://docs.privy.io/api-reference/users/create.md): Create a new user with linked accounts. Optionally pre-generate embedded wallets for the user.
+- [Add custom metadata](https://docs.privy.io/api-reference/users/custom-metadata/create.md): Adds custom metadata to a user by user ID.
+- [Delete user](https://docs.privy.io/api-reference/users/delete.md): Delete a user by user ID.
+- [Get user by ID](https://docs.privy.io/api-reference/users/get.md): Get a user by user ID.
+- [Get users](https://docs.privy.io/api-reference/users/get-all.md): Get all users in your app.
+- [Get user by custom auth ID](https://docs.privy.io/api-reference/users/get-by-custom-auth.md): Looks up a user by their custom auth ID.
+- [Get user by Discord username](https://docs.privy.io/api-reference/users/get-by-discord-username.md): Looks up a user by their Discord username.
+- [Get user by email address](https://docs.privy.io/api-reference/users/get-by-email-address.md): Looks up a user by their email address.
+- [Get user by Farcaster ID](https://docs.privy.io/api-reference/users/get-by-farcaster-id.md): Looks up a user by their Farcaster ID.
+- [Get user by GitHub username](https://docs.privy.io/api-reference/users/get-by-github-username.md): Looks up a user by their Github username.
+- [Get user by Instagram username](https://docs.privy.io/api-reference/users/get-by-instagram-username.md): Looks up a user by their Instagram username.
+- [Get user by phone number](https://docs.privy.io/api-reference/users/get-by-phone-number.md): Looks up a user by their phone number.
+- [Get user by smart wallet address](https://docs.privy.io/api-reference/users/get-by-smart-wallet-address.md): Looks up a user by their smart wallet address.
+- [Get user by Spotify subject](https://docs.privy.io/api-reference/users/get-by-spotify-subject.md): Looks up a user by their Spotify subject (user ID).
+- [Get user by Telegram user ID](https://docs.privy.io/api-reference/users/get-by-telegram-user-id.md): Looks up a user by their Telegram user ID.
+- [Get user by Telegram username](https://docs.privy.io/api-reference/users/get-by-telegram-username.md): Looks up a user by their Telegram username.
+- [Get user by Twitch username](https://docs.privy.io/api-reference/users/get-by-twitch-username.md): Looks up a user by their Twitch username.
+- [Get user by Twitter subject](https://docs.privy.io/api-reference/users/get-by-twitter-subject.md): Looks up a user by their Twitter subject.
+- [Get user by Twitter username](https://docs.privy.io/api-reference/users/get-by-twitter-username.md): Looks up a user by their Twitter username.
+- [Get user by wallet address](https://docs.privy.io/api-reference/users/get-by-wallet-address.md): Looks up a user by their wallet address.
+- [Pregenerate wallets](https://docs.privy.io/api-reference/users/pregenerate-wallets.md): Creates an embedded wallet for an existing user.
+- [Search users](https://docs.privy.io/api-reference/users/search.md): Search users by search term, emails, phone numbers, or wallet addresses.
+- [Authenticate](https://docs.privy.io/api-reference/wallets/authenticate.md): Obtain a session key to enable wallet access.
+- [Create wallet](https://docs.privy.io/api-reference/wallets/create.md): Creates a new wallet on the requested chain and for the requested owner.
+- [eth_sendTransaction](https://docs.privy.io/api-reference/wallets/ethereum/eth-send-transaction.md): Sign and send a transaction using the eth_sendTransaction method.
+- [eth_sign7702Authorization](https://docs.privy.io/api-reference/wallets/ethereum/eth-sign-7702-authorization.md): Signs an EIP-7702 authorization struct using the wallet's private key.
+- [eth_signTransaction](https://docs.privy.io/api-reference/wallets/ethereum/eth-sign-transaction.md): Sign a transaction using the eth_signTransaction method.
+- [eth_signUserOperation](https://docs.privy.io/api-reference/wallets/ethereum/eth-sign-user-operation.md): Sign a user operation using the eth_signUserOperation method.
+- [eth_signTypedData_v4](https://docs.privy.io/api-reference/wallets/ethereum/eth-signtypeddata-v4.md): Sign a message using the eth_signTypedData_v4 method.
+- [personal_sign](https://docs.privy.io/api-reference/wallets/ethereum/personal-sign.md): Sign a message using the personal_sign method.
+- [secp256k1_sign](https://docs.privy.io/api-reference/wallets/ethereum/secp256k1-sign.md): Sign a hash using the secp256k1 method.
+- [Export wallet](https://docs.privy.io/api-reference/wallets/export.md): Export a wallet's private key.
+- [Get wallet](https://docs.privy.io/api-reference/wallets/get.md): Get a wallet by wallet ID.
+- [Get wallets](https://docs.privy.io/api-reference/wallets/get-all.md): Get all wallets in your app.
+- [Get balance](https://docs.privy.io/api-reference/wallets/get-balance.md): Get the balance of a wallet by wallet ID.
+- [Get transactions](https://docs.privy.io/api-reference/wallets/get-transactions.md): Get incoming and outgoing transactions of a wallet by wallet ID.
+- [Initialize import](https://docs.privy.io/api-reference/wallets/import/init.md): Initialize a wallet import. Complete by submitting the import.
+- [Submit import](https://docs.privy.io/api-reference/wallets/import/submit.md): Submit a wallet import request.
+- [Raw sign](https://docs.privy.io/api-reference/wallets/raw-sign.md): Sign a raw hash along the blockchain's cryptographic curve using the wallet's private key.
+- [signAndSendTransaction](https://docs.privy.io/api-reference/wallets/solana/sign-and-send-transaction.md): Sign and send transaction with a Solana wallet using the signAndSendTransaction method.
+- [signMessage](https://docs.privy.io/api-reference/wallets/solana/sign-message.md): Sign a message with a Solana wallet using the signMessage method.
+- [signTransaction](https://docs.privy.io/api-reference/wallets/solana/sign-transaction.md): Sign a transaction with a Solana wallet using the signTransaction method.
+- [claimStaticDeposit](https://docs.privy.io/api-reference/wallets/spark/claim-static-deposit.md): Claims funds sent to the static BTC deposit address.
+- [createLightningInvoice](https://docs.privy.io/api-reference/wallets/spark/create-lightning-invoice.md): Creates a Lightning invoice for the given wallet, allowing funds to be received via the Lightning Network.
+- [getBalance](https://docs.privy.io/api-reference/wallets/spark/get-balance.md): Retrieve the balance and token holdings of a Spark wallet. Claims any pending transfers.
+- [getStaticDepositAddress](https://docs.privy.io/api-reference/wallets/spark/get-static-deposit-address.md): Returns a static deposit address that can be used to deposit tokens from BTC into Spark.
+- [getClaimStaticDepositQuote](https://docs.privy.io/api-reference/wallets/spark/get-static-deposit-quote.md): Retrieve the quote needed to claim BTC sent to a static deposit address.
+- [payLightningInvoice](https://docs.privy.io/api-reference/wallets/spark/pay-lightning-invoice.md): Pay a Lightning Network invoice from a Spark wallet.
+- [signMessageWithIdentityKey](https://docs.privy.io/api-reference/wallets/spark/sign-message-with-identity-key.md): Sign a message using the Spark wallet's identity key.
+- [transfer](https://docs.privy.io/api-reference/wallets/spark/transfer.md): Transfer satoshis from a Spark wallet to another Spark address.
+- [transferTokens](https://docs.privy.io/api-reference/wallets/spark/transfer-tokens.md): Transfer a specified amount of Spark tokens to another Spark address.
+- [Update wallet](https://docs.privy.io/api-reference/wallets/update.md): Update a wallet's policies or authorization key configuration.
+- [Overview](https://docs.privy.io/authentication/overview.md)
+- [Access tokens](https://docs.privy.io/authentication/user-authentication/access-tokens.md)
+- [Authentication state](https://docs.privy.io/authentication/user-authentication/authentication-state.md)
+- [CAPTCHA on login](https://docs.privy.io/authentication/user-authentication/captcha.md)
+- [Using your own authentication provider](https://docs.privy.io/authentication/user-authentication/jwt-based-auth/overview.md)
+- [Configuring your authentication provider](https://docs.privy.io/authentication/user-authentication/jwt-based-auth/setup.md)
+- [Integrating your authentication provider with Privy](https://docs.privy.io/authentication/user-authentication/jwt-based-auth/usage.md)
+- [Additional OAuth providers](https://docs.privy.io/authentication/user-authentication/login-methods/custom-oauth.md)
+- [Email](https://docs.privy.io/authentication/user-authentication/login-methods/email.md)
+- [Farcaster](https://docs.privy.io/authentication/user-authentication/login-methods/farcaster.md)
+- [Guest accounts](https://docs.privy.io/authentication/user-authentication/login-methods/guest.md)
+- [OAuth](https://docs.privy.io/authentication/user-authentication/login-methods/oauth.md)
+- [Passkey](https://docs.privy.io/authentication/user-authentication/login-methods/passkey.md)
+- [SMS and WhatsApp](https://docs.privy.io/authentication/user-authentication/login-methods/sms-whatsapp.md)
+- [Telegram](https://docs.privy.io/authentication/user-authentication/login-methods/telegram.md)
+- [Wallet](https://docs.privy.io/authentication/user-authentication/login-methods/wallet.md)
+- [Logging users out](https://docs.privy.io/authentication/user-authentication/logout.md)
+- [Overview](https://docs.privy.io/authentication/user-authentication/mfa/custom-ui/overview.md)
+- [Using default Privy UIs](https://docs.privy.io/authentication/user-authentication/mfa/default-ui.md)
+- [Overview](https://docs.privy.io/authentication/user-authentication/mfa/enrollment/overview.md)
+- [Passkey enrollment](https://docs.privy.io/authentication/user-authentication/mfa/enrollment/passkeys.md)
+- [SMS enrollment](https://docs.privy.io/authentication/user-authentication/mfa/enrollment/sms.md)
+- [TOTP enrollment](https://docs.privy.io/authentication/user-authentication/mfa/enrollment/totp.md)
+- [Error handling](https://docs.privy.io/authentication/user-authentication/mfa/errors.md)
+- [MFA required listener](https://docs.privy.io/authentication/user-authentication/mfa/listener.md)
+- [Overview](https://docs.privy.io/authentication/user-authentication/mfa/overview.md)
+- [Setting up wallet MFA for your app](https://docs.privy.io/authentication/user-authentication/mfa/setup.md)
+- [Unenrolling MFA methods](https://docs.privy.io/authentication/user-authentication/mfa/unenroll.md)
+- [Overview](https://docs.privy.io/authentication/user-authentication/mfa/verify/overview.md)
+- [Passkey verification](https://docs.privy.io/authentication/user-authentication/mfa/verify/passkeys.md)
+- [SMS verification](https://docs.privy.io/authentication/user-authentication/mfa/verify/sms.md)
+- [TOTP verification](https://docs.privy.io/authentication/user-authentication/mfa/verify/totp.md)
+- [Using Privy as your authentication provider](https://docs.privy.io/authentication/user-authentication/privy-auth.md)
+- [Tokens](https://docs.privy.io/authentication/user-authentication/tokens.md): Understanding the core tokens in Privy's authentication system
+- [UI components](https://docs.privy.io/authentication/user-authentication/ui-component.md)
+- [Whitelabel](https://docs.privy.io/authentication/user-authentication/whitelabel.md)
+- [null](https://docs.privy.io/basics/android/advanced/setup-passkeys.md)
+- [Features](https://docs.privy.io/basics/android/features.md): Learn about the features supported by the Android SDK
+- [null](https://docs.privy.io/basics/android/installation.md)
+- [Quickstart](https://docs.privy.io/basics/android/quickstart.md): Learn how to authenticate users, create embedded wallets, and send transactions in your Android app
+- [null](https://docs.privy.io/basics/android/setup.md)
+- [Features](https://docs.privy.io/basics/flutter/features.md): Learn about the features supported by the Flutter SDK
+- [null](https://docs.privy.io/basics/flutter/installation.md)
+- [Quickstart](https://docs.privy.io/basics/flutter/quickstart.md): Learn how to authenticate users, create embedded wallets, and send transactions in your Flutter app
+- [null](https://docs.privy.io/basics/flutter/setup.md)
+- [About Privy](https://docs.privy.io/basics/get-started/about.md)
+- [Create an account](https://docs.privy.io/basics/get-started/account.md)
+- [null](https://docs.privy.io/basics/get-started/dashboard/app-clients.md)
+- [Configure login methods](https://docs.privy.io/basics/get-started/dashboard/configure-login-methods.md)
+- [Configuring appearance](https://docs.privy.io/basics/get-started/dashboard/configuring-appearance.md)
+- [null](https://docs.privy.io/basics/get-started/dashboard/create-new-app.md)
+- [Dashboard MFA](https://docs.privy.io/basics/get-started/dashboard/multi-factor.md)
+- [Overview](https://docs.privy.io/basics/get-started/dashboard/overview.md)
+- [Single sign-on](https://docs.privy.io/basics/get-started/dashboard/sso.md): Configure SSO authentication for your team using Okta, Microsoft Entra ID, Google Workspace, or any SAML 2.0 provider
+- [null](https://docs.privy.io/basics/get-started/dashboard/teammate-roles.md)
+- [Choose your platform](https://docs.privy.io/basics/get-started/platforms.md)
+- [Build with AI tools](https://docs.privy.io/basics/get-started/using-llms.md): Build with Privy faster using AI tools like Cursor, Claude, and other LLM powered coding assistants
+- [null](https://docs.privy.io/basics/java/installation.md)
+- [Quickstart](https://docs.privy.io/basics/java/quickstart.md): Learn how to create users, embedded wallets, and send transactions in your Java app
+- [null](https://docs.privy.io/basics/java/setup.md)
+- [Key concepts](https://docs.privy.io/basics/key-concepts.md)
+- [Migrating from server-auth](https://docs.privy.io/basics/nodeJS/advanced/migrating-from-server-auth.md)
+- [null](https://docs.privy.io/basics/nodeJS/installation.md)
+- [Quickstart](https://docs.privy.io/basics/nodeJS/quickstart.md): Learn how to create users, embedded wallets, and send transactions in your NodeJS app
+- [null](https://docs.privy.io/basics/nodeJS/setup.md)
+- [null](https://docs.privy.io/basics/python/installation.md)
+- [Quickstart](https://docs.privy.io/basics/python/quickstart.md): Learn how to authenticate users, create embedded wallets, and send transactions in your Python app
+- [null](https://docs.privy.io/basics/python/setup.md)
+- [null](https://docs.privy.io/basics/react-native/advanced/automatic-wallet-creation.md)
+- [Configuring EVM networks](https://docs.privy.io/basics/react-native/advanced/configure-evm-networks.md)
+- [null](https://docs.privy.io/basics/react-native/advanced/configuring-appearance.md)
+- [null](https://docs.privy.io/basics/react-native/advanced/customizing-session-persistence.md)
+- [null](https://docs.privy.io/basics/react-native/advanced/setup-apple-login.md)
+- [null](https://docs.privy.io/basics/react-native/advanced/setup-passkeys.md)
+- [Setting up Privy UIs](https://docs.privy.io/basics/react-native/advanced/setup-privyelements.md)
+- [Features](https://docs.privy.io/basics/react-native/features.md): Learn about the features supported by the React Native SDK
+- [null](https://docs.privy.io/basics/react-native/installation.md)
+- [Quickstart](https://docs.privy.io/basics/react-native/quickstart.md): Learn how to authenticate users, create embedded wallets, and send transactions in your React Native app
+- [null](https://docs.privy.io/basics/react-native/setup.md)
+- [null](https://docs.privy.io/basics/react/advanced/automatic-wallet-creation.md)
+- [Configuring EVM networks](https://docs.privy.io/basics/react/advanced/configuring-evm-networks.md)
+- [Configuring Solana networks](https://docs.privy.io/basics/react/advanced/configuring-solana-networks.md)
+- [Migrating to 2.0](https://docs.privy.io/basics/react/advanced/migrating-to-2.0.md)
+- [Migrating to 3.0](https://docs.privy.io/basics/react/advanced/migrating-to-3.0.md)
+- [Features](https://docs.privy.io/basics/react/features.md): Learn about the features supported by the React SDK
+- [null](https://docs.privy.io/basics/react/installation.md)
+- [Quickstart](https://docs.privy.io/basics/react/quickstart.md): Learn how to authenticate users, create embedded wallets, and send transactions in your React app
+- [null](https://docs.privy.io/basics/react/setup.md)
+- [Quickstart](https://docs.privy.io/basics/rest-api/quickstart.md): Creating a wallet and sending a transaction with Privy's REST API
+- [Setup](https://docs.privy.io/basics/rest-api/setup.md)
+- [null](https://docs.privy.io/basics/rust/installation.md)
+- [Quickstart](https://docs.privy.io/basics/rust/quickstart.md): Learn how to create users, embedded wallets, and send transactions in your Rust app
+- [null](https://docs.privy.io/basics/rust/setup.md)
+- [Migrating to 2.0](https://docs.privy.io/basics/swift/advanced/migrating-to-2.0.md)
+- [Features](https://docs.privy.io/basics/swift/features.md): Learn about the features supported by the Swift SDK
+- [null](https://docs.privy.io/basics/swift/installation.md)
+- [Quickstart](https://docs.privy.io/basics/swift/quickstart.md): Learn how to authenticate users, create embedded wallets, and send transactions in your Swift app.
+- [null](https://docs.privy.io/basics/swift/setup.md)
+- [Analytics CORS Errors](https://docs.privy.io/basics/troubleshooting/analytics-cors.md)
+- [API error codes](https://docs.privy.io/basics/troubleshooting/error-handling/api-errors.md)
+- [Client-side error codes](https://docs.privy.io/basics/troubleshooting/error-handling/client-errors.md)
+- [Multiple dialogs](https://docs.privy.io/basics/troubleshooting/multiple-dialogs.md)
+- [Common framework errors](https://docs.privy.io/basics/troubleshooting/react-frameworks.md)
+- [Styles](https://docs.privy.io/basics/troubleshooting/styles.md)
+- [Embedded wallets](https://docs.privy.io/basics/troubleshooting/troubleshooting-embedded-wallets.md)
+- [Features](https://docs.privy.io/basics/unity/features.md): Learn about the features supported by the Unity SDK
+- [null](https://docs.privy.io/basics/unity/installation.md)
+- [Quickstart](https://docs.privy.io/basics/unity/quickstart.md): Learn how to authenticate users, create embedded wallets, and send transactions in your Unity app
+- [null](https://docs.privy.io/basics/unity/setup.md)
+- [Authorization keys](https://docs.privy.io/controls/authorization-keys/keys/create/key.md)
+- [Key quorums](https://docs.privy.io/controls/authorization-keys/keys/create/key-quorum.md)
+- [Configure authentication settings](https://docs.privy.io/controls/authorization-keys/keys/create/user/authentication.md)
+- [Users](https://docs.privy.io/controls/authorization-keys/keys/create/user/overview.md)
+- [Using user owners & signers](https://docs.privy.io/controls/authorization-keys/keys/create/user/request.md)
+- [null](https://docs.privy.io/controls/authorization-keys/owners/configuration/overview.md)
+- [Programmable controls](https://docs.privy.io/controls/authorization-keys/owners/configuration/programmable.md)
+- [Requiring user and server approvals](https://docs.privy.io/controls/authorization-keys/owners/configuration/user/dual-approval.md)
+- [Enabling offline actions](https://docs.privy.io/controls/authorization-keys/owners/configuration/user/offline.md)
+- [Overview](https://docs.privy.io/controls/authorization-keys/owners/configuration/user/overview.md)
+- [Exporting wallets from your server](https://docs.privy.io/controls/authorization-keys/owners/configuration/user/server-export.md)
+- [Sending transactions from your server](https://docs.privy.io/controls/authorization-keys/owners/configuration/user/server-transactions.md)
+- [Updating wallets from your server](https://docs.privy.io/controls/authorization-keys/owners/configuration/user/server-updates.md)
+- [Overview](https://docs.privy.io/controls/authorization-keys/owners/overview.md)
+- [Types of owners & signers](https://docs.privy.io/controls/authorization-keys/owners/types.md)
+- [Owning resources with owners](https://docs.privy.io/controls/authorization-keys/using-owners/assign.md)
+- [Using owners](https://docs.privy.io/controls/authorization-keys/using-owners/overview.md)
+- [Implementing signing directly](https://docs.privy.io/controls/authorization-keys/using-owners/sign/direct-implementation.md)
+- [Signing requests](https://docs.privy.io/controls/authorization-keys/using-owners/sign/overview.md)
+- [Signing on the client](https://docs.privy.io/controls/authorization-keys/using-owners/sign/signing-on-the-client.md)
+- [Signing on the server](https://docs.privy.io/controls/authorization-keys/using-owners/sign/signing-on-the-server.md)
+- [Signing with utility functions](https://docs.privy.io/controls/authorization-keys/using-owners/sign/utility-functions.md)
+- [Approve intents for execution](https://docs.privy.io/controls/dashboard/approvals.md)
+- [Get intent status and execution results](https://docs.privy.io/controls/dashboard/intent-status.md)
+- [Create intents to execute actions](https://docs.privy.io/controls/dashboard/intents.md)
+- [Create a key quorum](https://docs.privy.io/controls/dashboard/key-quorum.md)
+- [Dashboard controls](https://docs.privy.io/controls/dashboard/overview.md)
+- [Creating key quorums](https://docs.privy.io/controls/key-quorum/create.md)
+- [Overview](https://docs.privy.io/controls/key-quorum/overview.md)
+- [Signing requests with key quorums](https://docs.privy.io/controls/key-quorum/sign.md)
+- [Policies & controls](https://docs.privy.io/controls/overview.md)
+- [Condition sets](https://docs.privy.io/controls/policies/condition-sets.md)
+- [null](https://docs.privy.io/controls/policies/create-a-policy.md)
+- [Ethereum examples](https://docs.privy.io/controls/policies/example-policies/ethereum.md)
+- [Solana examples](https://docs.privy.io/controls/policies/example-policies/solana.md)
+- [Sui examples](https://docs.privy.io/controls/policies/example-policies/sui.md)
+- [Time-bound examples](https://docs.privy.io/controls/policies/example-policies/timebound.md)
+- [Tron examples](https://docs.privy.io/controls/policies/example-policies/tron.md)
+- [null](https://docs.privy.io/controls/policies/get-a-policy.md)
+- [Overview](https://docs.privy.io/controls/policies/overview.md)
+- [Update a policy](https://docs.privy.io/controls/policies/update-a-policy.md)
+- [Integrate Aave with Privy](https://docs.privy.io/recipes/aave-guide.md)
+- [Storing smart account addresses](https://docs.privy.io/recipes/account-abstraction/address.md)
+- [Custom account abstraction implementation](https://docs.privy.io/recipes/account-abstraction/custom-implementation.md)
+- [Integrating smart accounts with wagmi](https://docs.privy.io/recipes/account-abstraction/wagmi.md)
+- [OpenClaw Agentic Wallets](https://docs.privy.io/recipes/agent-integrations/openclaw-agentic-wallets.md)
+- [Using Supabase as an authentication provider](https://docs.privy.io/recipes/authentication/using-supabase-for-custom-auth.md)
+- [Bankr Twitter bot guide](https://docs.privy.io/recipes/bankr-bot-guide.md)
+- [OAuth with Capacitor](https://docs.privy.io/recipes/capacitor-oauth.md)
+- [Funding wallets with Apple Pay and Google Pay](https://docs.privy.io/recipes/card-based-funding.md)
+- [Swapping crypto using Privy and Omniston](https://docs.privy.io/recipes/community/ton-omniston-swap.md)
+- [Getting started with Privy and TON (Vite + React)](https://docs.privy.io/recipes/community/ton-vite-react.md)
+- [Using the vanilla JavaScript SDK](https://docs.privy.io/recipes/core-js.md)
+- [Configure account transfer](https://docs.privy.io/recipes/dashboard/account-transfer.md)
+- [Managing your allowlist with Airtable](https://docs.privy.io/recipes/dashboard/airtable.md)
+- [Configure allowed URLs](https://docs.privy.io/recipes/dashboard/allowed-domains.md)
+- [Customize your application](https://docs.privy.io/recipes/dashboard/customization.md)
+- [Setting up SMS or WhatsApp login](https://docs.privy.io/recipes/dashboard/login-methods/sms-whatsapp.md)
+- [Using Privy and Due for on/off ramping](https://docs.privy.io/recipes/due-on-off-ramp.md)
+- [null](https://docs.privy.io/recipes/ecosystem/abstract-global-wallet.md)
+- [Swapping crypto using Privy and Bebop](https://docs.privy.io/recipes/evm/bebop-swap-guide.md): Learn how to integrate Bebop's swap functionality with Privy embedded wallets
+- [Using Flashblocks with Privy](https://docs.privy.io/recipes/evm/flashblocks.md)
+- [Login with Farcaster](https://docs.privy.io/recipes/farcaster/login.md)
+- [Building a Farcaster Mini App](https://docs.privy.io/recipes/farcaster/mini-apps.md)
+- [Writing to Farcaster](https://docs.privy.io/recipes/farcaster/writes.md)
+- [Integrating Flashbots Protect](https://docs.privy.io/recipes/flashbots-protect.md)
+- [Custom gas sponsorship rate limits](https://docs.privy.io/recipes/gas-sponsorship-rate-limits.md): Implement spending controls for gas-sponsored transactions
+- [Hierarchical deterministic (HD) wallets](https://docs.privy.io/recipes/hd-wallets.md)
+- [Quickstart](https://docs.privy.io/recipes/hyperliquid-guide.md)
+- [Agent wallets](https://docs.privy.io/recipes/hyperliquid/agents-and-subaccounts.md)
+- [Builder Codes](https://docs.privy.io/recipes/hyperliquid/builder-codes.md)
+- [Client-side SDKs](https://docs.privy.io/recipes/hyperliquid/client-side-usage.md)
+- [HyperEVM](https://docs.privy.io/recipes/hyperliquid/hyperevm.md)
+- [Policies](https://docs.privy.io/recipes/hyperliquid/policies-and-offline-actions.md)
+- [Subaccounts](https://docs.privy.io/recipes/hyperliquid/subaccounts.md)
+- [Executing trades](https://docs.privy.io/recipes/hyperliquid/trading-patterns.md)
+- [Integrating Kamino Earn](https://docs.privy.io/recipes/kamino-guide.md)
+- [Login with Lens](https://docs.privy.io/recipes/lens.md)
+- [Mocking tokens for testing](https://docs.privy.io/recipes/mock-jwt.md)
+- [Building on Morpho with Privy](https://docs.privy.io/recipes/morpho-guide.md)
+- [Off-ramping with Privy](https://docs.privy.io/recipes/off-ramp-guide.md)
+- [Integrating OneBalance](https://docs.privy.io/recipes/one-balance.md)
+- [null](https://docs.privy.io/recipes/overview.md)
+- [Using passkeys with wallets](https://docs.privy.io/recipes/passkey-server-wallets.md)
+- [Granular MFA](https://docs.privy.io/recipes/policy-based-mfa.md)
+- [Polymarket Builder codes](https://docs.privy.io/recipes/polymarket-guide.md)
+- [Pregenerating wallets](https://docs.privy.io/recipes/pregenerate-wallets.md)
+- [null](https://docs.privy.io/recipes/react-native/clearing-state-on-fresh-installs.md)
+- [Deeplinking Solana wallets in React Native applications](https://docs.privy.io/recipes/react-native/deeplinking-wallets.md)
+- [Configure allowed OAuth redirect URLs](https://docs.privy.io/recipes/react/allowed-oauth-redirects.md)
+- [Chrome extension authentication](https://docs.privy.io/recipes/react/chrome-extension.md)
+- [Configuring external connectors](https://docs.privy.io/recipes/react/configuring-external-connectors.md)
+- [Configure cookies](https://docs.privy.io/recipes/react/cookies.md)
+- [null](https://docs.privy.io/recipes/react/custom-fiat-onramp.md)
+- [Integrating with EIP-7702](https://docs.privy.io/recipes/react/eip-7702.md)
+- [Integrating the Base App](https://docs.privy.io/recipes/react/external-wallets/base-app.md)
+- [Using Base Sub Accounts](https://docs.privy.io/recipes/react/external-wallets/base-sub-accounts.md)
+- [Guest accounts](https://docs.privy.io/recipes/react/guest-accounts.md)
+- [Configuring wallet confirmation modals](https://docs.privy.io/recipes/react/manage-wallet-UIs.md)
+- [Use tokens from OAuth providers](https://docs.privy.io/recipes/react/oauth-tokens.md)
+- [Seamless Telegram login](https://docs.privy.io/recipes/react/seamless-telegram.md)
+- [Wallet List Configuration Recipes](https://docs.privy.io/recipes/react/wallet-list-configurations.md): Common wallet list configurations with examples and screenshots
+- [Whitelabel](https://docs.privy.io/recipes/react/whitelabel.md)
+- [Worldcoin Mini App SIWE with Privy](https://docs.privy.io/recipes/react/worldcoin-siwe-guide.md)
+- [Funding wallets with Relay deposit addresses](https://docs.privy.io/recipes/relay-deposit-addresses.md)
+- [Sending USDC (or other ERC-20s)](https://docs.privy.io/recipes/send-usdc.md)
+- [Integrating Solana Mobile Wallet Adapter](https://docs.privy.io/recipes/solana/adding-solana-mwa.md)
+- [Getting started with Privy and Solana](https://docs.privy.io/recipes/solana/getting-started-with-privy-and-solana.md)
+- [Sending a SOL transaction](https://docs.privy.io/recipes/solana/send-sol.md)
+- [Sending SPL tokens](https://docs.privy.io/recipes/solana/send-spl-tokens.md)
+- [Using Solana Standard Wallets](https://docs.privy.io/recipes/solana/standard-wallets.md): A comprehensive guide to integrating and using Solana standard wallets in your application
+- [Using Spark BTC with Privy wallets](https://docs.privy.io/recipes/spark-btc-guide.md)
+- [Speeding up transactions on EVM chains](https://docs.privy.io/recipes/speeding-up-transactions.md): Learn how to use webhooks to trigger replacement transactions to speed up transaction confirmation.
+- [Stripe Embedded Components crypto onramp](https://docs.privy.io/recipes/stripe-headless-onramp.md): Build a fully customized crypto stablecoin onramp experience using Privy embedded wallets and Stripe Embedded Components for the Crypto Onramp SDK
+- [Swapping crypto using Privy and 0x](https://docs.privy.io/recipes/swap-with-0x.md)
+- [Login with Apple](https://docs.privy.io/recipes/swift/apple.md)
+- [Setting a system theme for the Privy modal](https://docs.privy.io/recipes/system-theme.md)
+- [Migrating wallets from on-device to TEEs](https://docs.privy.io/recipes/tee-wallet-migration-guide.md)
+- [Building a Telegram trading bot](https://docs.privy.io/recipes/telegram-bot.md)
+- [Trading apps resource page](https://docs.privy.io/recipes/trading-apps-homepage.md)
+- [Integrating with tRPC](https://docs.privy.io/recipes/trpc.md)
+- [Using chains with Tier 2 support](https://docs.privy.io/recipes/use-tier-2.md): Build an integration with Privy wallets on chains such as Tron, Sui, etc.
+- [null](https://docs.privy.io/recipes/using-test-accounts.md)
+- [Agentic wallets](https://docs.privy.io/recipes/wallets/agentic-wallets.md)
+- [Server-side user wallets](https://docs.privy.io/recipes/wallets/server-side-user-wallets.md)
+- [Using signers to execute limit orders with wallets](https://docs.privy.io/recipes/wallets/session-signer-use-cases/limit-orders.md)
+- [Enabling server-side access to user wallets](https://docs.privy.io/recipes/wallets/session-signer-use-cases/server-side-access.md)
+- [Using signers to create Telegram trading bots for users](https://docs.privy.io/recipes/wallets/session-signer-use-cases/telegram-bot.md)
+- [Treasury wallets](https://docs.privy.io/recipes/wallets/treasury-wallets.md)
+- [Enabling users or servers to execute transactions](https://docs.privy.io/recipes/wallets/user-and-server-signers.md)
+- [Build World Mini Apps with Privy](https://docs.privy.io/recipes/world/mini-apps.md)
+- [x402](https://docs.privy.io/recipes/x402.md)
+- [User authorization keys](https://docs.privy.io/security/authentication/authenticated-signers.md)
+- [User authentication](https://docs.privy.io/security/authentication/user-authentication.md)
+- [Guidance for Content Security Policies (CSPs)](https://docs.privy.io/security/implementation-guide/content-security-policy.md)
+- [IP allowlist](https://docs.privy.io/security/implementation-guide/ip-allowlist.md)
+- [Security checklist](https://docs.privy.io/security/implementation-guide/security-checklist.md)
+- [Security](https://docs.privy.io/security/overview.md)
+- [Threat models & security FAQ](https://docs.privy.io/security/security-faqs.md)
+- [On device execution environment](https://docs.privy.io/security/wallet-infrastructure/advanced/user-device.md)
+- [Security architecture](https://docs.privy.io/security/wallet-infrastructure/architecture.md)
+- [Wallet policies and controls](https://docs.privy.io/security/wallet-infrastructure/policy-and-controls.md)
+- [Secure enclaves](https://docs.privy.io/security/wallet-infrastructure/secure-enclaves.md)
+- [Chain support](https://docs.privy.io/transaction-management/chain-support.md)
+- [Gas management](https://docs.privy.io/transaction-management/gas-management.md)
+- [Permissions](https://docs.privy.io/transaction-management/models/permissions.md)
+- [Policies](https://docs.privy.io/transaction-management/models/policies.md)
+- [Transaction management](https://docs.privy.io/transaction-management/overview.md)
+- [Delegating permissions](https://docs.privy.io/transaction-management/setups/delegation.md)
+- [Quorum approvals](https://docs.privy.io/transaction-management/setups/quorum-approval.md)
+- [Single-party approvals](https://docs.privy.io/transaction-management/setups/single-party-approval.md)
+- [Webhooks](https://docs.privy.io/transaction-management/webhooks.md)
+- [Create or import a batch of users](https://docs.privy.io/user-management/migrating-users-to-privy/create-or-import-a-batch-of-users.md)
+- [Create or import a user](https://docs.privy.io/user-management/migrating-users-to-privy/create-or-import-a-user.md)
+- [Migrating existing users to Privy](https://docs.privy.io/user-management/migrating-users-to-privy/overview.md)
+- [null](https://docs.privy.io/user-management/overview.md)
+- [null](https://docs.privy.io/user-management/users/custom-metadata.md)
+- [Identity tokens](https://docs.privy.io/user-management/users/identity-tokens.md): Access user data securely with Privy identity tokens
+- [Linking accounts to users](https://docs.privy.io/user-management/users/linking-accounts.md)
+- [Allowlist](https://docs.privy.io/user-management/users/managing-users/allowlist.md)
+- [Deleting users](https://docs.privy.io/user-management/users/managing-users/deleting-users.md)
+- [Denylist](https://docs.privy.io/user-management/users/managing-users/denylist.md)
+- [null](https://docs.privy.io/user-management/users/managing-users/querying-users.md)
+- [Overview](https://docs.privy.io/user-management/users/overview.md)
+- [Handling the user object](https://docs.privy.io/user-management/users/the-user-object.md)
+- [UI components](https://docs.privy.io/user-management/users/ui-components.md)
+- [Unlinking accounts from users](https://docs.privy.io/user-management/users/unlinking-accounts.md)
+- [Updating user accounts](https://docs.privy.io/user-management/users/updating-accounts.md)
+- [Handling events](https://docs.privy.io/user-management/users/webhooks/handling-events.md)
+- [null](https://docs.privy.io/user-management/users/webhooks/overview.md)
+- [Whitelabel](https://docs.privy.io/user-management/users/whitelabel.md)
+- [Integrating with ethers](https://docs.privy.io/wallets/connectors/ethereum/integrations/ethers.md)
+- [Integrating with viem](https://docs.privy.io/wallets/connectors/ethereum/integrations/viem.md)
+- [Integrating with wagmi](https://docs.privy.io/wallets/connectors/ethereum/integrations/wagmi.md)
+- [Overview](https://docs.privy.io/wallets/connectors/overview.md)
+- [Configure external connector chains](https://docs.privy.io/wallets/connectors/setup/configuring-external-connector-chains.md)
+- [Configure wallet options](https://docs.privy.io/wallets/connectors/setup/configuring-external-connector-wallets.md)
+- [Integrating with @solana/kit](https://docs.privy.io/wallets/connectors/solana/kit-integrations.md)
+- [Integrating with @solana/web3.js](https://docs.privy.io/wallets/connectors/solana/web3-integrations.md)
+- [Authenticate a connected wallet](https://docs.privy.io/wallets/connectors/usage/authenticate.md)
+- [Connect or create a wallet](https://docs.privy.io/wallets/connectors/usage/connect-or-create.md)
+- [Connect an external wallet](https://docs.privy.io/wallets/connectors/usage/connecting-external-wallets.md)
+- [Configuring funding methods](https://docs.privy.io/wallets/funding/configuration.md)
+- [Funding via bank account](https://docs.privy.io/wallets/funding/methods/bank-account.md)
+- [Funding via card, Apple Pay, and Google Pay](https://docs.privy.io/wallets/funding/methods/card.md)
+- [Funding via exchange](https://docs.privy.io/wallets/funding/methods/exchange.md)
+- [Funding via wallet](https://docs.privy.io/wallets/funding/methods/wallet.md)
+- [null](https://docs.privy.io/wallets/funding/overview.md)
+- [EVM](https://docs.privy.io/wallets/funding/prompting-users-to-fund/evm.md)
+- [Solana](https://docs.privy.io/wallets/funding/prompting-users-to-fund/solana.md)
+- [Fetch deposits and withdrawals via webhook](https://docs.privy.io/wallets/gas-and-asset-management/assets/balance-event-webhooks.md)
+- [Fetch transaction via API](https://docs.privy.io/wallets/gas-and-asset-management/assets/fetch-a-transaction.md)
+- [Fetch balance via API](https://docs.privy.io/wallets/gas-and-asset-management/assets/fetch-balance.md)
+- [Wallet webhooks](https://docs.privy.io/wallets/gas-and-asset-management/assets/overview.md)
+- [Fetch transaction via webhook](https://docs.privy.io/wallets/gas-and-asset-management/assets/transaction-event-webhooks.md)
+- [Webhook events reference](https://docs.privy.io/wallets/gas-and-asset-management/assets/webhook-events-reference.md): Comprehensive reference for all webhook event types with example payloads
+- [Sponsoring transactions on Ethereum](https://docs.privy.io/wallets/gas-and-asset-management/gas/ethereum.md)
+- [Overview](https://docs.privy.io/wallets/gas-and-asset-management/gas/overview.md)
+- [Security best practices](https://docs.privy.io/wallets/gas-and-asset-management/gas/security.md): Protecting your application from gas sponsorship abuse
+- [Setting up sponsorship](https://docs.privy.io/wallets/gas-and-asset-management/gas/setup.md)
+- [Sponsoring transactions on Solana](https://docs.privy.io/wallets/gas-and-asset-management/gas/solana.md)
+- [Transaction management](https://docs.privy.io/wallets/gas-and-asset-management/gas/transaction-handling.md): Understanding how gas-sponsored transactions work and tracking their status
+- [null](https://docs.privy.io/wallets/global-wallets/integrate-a-global-wallet/connectkit-connector.md)
+- [null](https://docs.privy.io/wallets/global-wallets/integrate-a-global-wallet/getting-global-wallets.md)
+- [null](https://docs.privy.io/wallets/global-wallets/integrate-a-global-wallet/linking-a-global-wallet.md)
+- [null](https://docs.privy.io/wallets/global-wallets/integrate-a-global-wallet/login-with-a-global-wallet.md)
+- [null](https://docs.privy.io/wallets/global-wallets/integrate-a-global-wallet/overview.md)
+- [null](https://docs.privy.io/wallets/global-wallets/integrate-a-global-wallet/rainbowkit-connector.md)
+- [null](https://docs.privy.io/wallets/global-wallets/integrate-a-global-wallet/using-global-wallets.md)
+- [null](https://docs.privy.io/wallets/global-wallets/launch-your-wallet/custom-experience.md)
+- [Overview](https://docs.privy.io/wallets/global-wallets/launch-your-wallet/overview.md)
+- [null](https://docs.privy.io/wallets/global-wallets/overview.md)
+- [Overview](https://docs.privy.io/wallets/overview.md)
+- [Chain support](https://docs.privy.io/wallets/overview/chains.md)
+- [Sign transaction inputs](https://docs.privy.io/wallets/using-wallets/bitcoin/sign-transaction-inputs.md)
+- [null](https://docs.privy.io/wallets/using-wallets/ethereum/ethereum-provider.md)
+- [null](https://docs.privy.io/wallets/using-wallets/ethereum/send-a-transaction.md)
+- [Sign EIP-7702 authorization](https://docs.privy.io/wallets/using-wallets/ethereum/sign-7702-authorization.md)
+- [null](https://docs.privy.io/wallets/using-wallets/ethereum/sign-a-message.md)
+- [null](https://docs.privy.io/wallets/using-wallets/ethereum/sign-a-raw-hash.md)
+- [null](https://docs.privy.io/wallets/using-wallets/ethereum/sign-a-transaction.md)
+- [Sign typed data (EIP-712)](https://docs.privy.io/wallets/using-wallets/ethereum/sign-typed-data.md)
+- [Switch chains](https://docs.privy.io/wallets/using-wallets/ethereum/switch-chain.md)
+- [Interfacing with common libraries](https://docs.privy.io/wallets/using-wallets/ethereum/web3-integrations.md)
+- [Smart wallets](https://docs.privy.io/wallets/using-wallets/evm-smart-wallets/overview.md)
+- [Configure smart wallets in the dashboard](https://docs.privy.io/wallets/using-wallets/evm-smart-wallets/setup/configuring-dashboard.md)
+- [Configure smart wallets in the SDK](https://docs.privy.io/wallets/using-wallets/evm-smart-wallets/setup/configuring-sdk.md)
+- [Using smart wallets](https://docs.privy.io/wallets/using-wallets/evm-smart-wallets/usage.md)
+- [Other chains](https://docs.privy.io/wallets/using-wallets/other-chains/index.md)
+- [Add signers](https://docs.privy.io/wallets/using-wallets/signers/add-signers.md)
+- [Configure signers](https://docs.privy.io/wallets/using-wallets/signers/configure-signers.md)
+- [null](https://docs.privy.io/wallets/using-wallets/signers/overview.md)
+- [Enabling users or servers to execute transactions](https://docs.privy.io/wallets/using-wallets/signers/quickstart.md)
+- [Remove signers](https://docs.privy.io/wallets/using-wallets/signers/remove-signers.md)
+- [Use signers](https://docs.privy.io/wallets/using-wallets/signers/use-signers.md)
+- [Integrating with @solana/kit](https://docs.privy.io/wallets/using-wallets/solana/kit-integrations.md)
+- [null](https://docs.privy.io/wallets/using-wallets/solana/send-a-transaction.md)
+- [null](https://docs.privy.io/wallets/using-wallets/solana/sign-a-message.md)
+- [null](https://docs.privy.io/wallets/using-wallets/solana/sign-a-transaction.md)
+- [Integrating with @solana/web3.js](https://docs.privy.io/wallets/using-wallets/solana/web3-integrations.md)
+- [UI components](https://docs.privy.io/wallets/using-wallets/ui-components.md)
+- [Whitelabel](https://docs.privy.io/wallets/using-wallets/whitelabel.md)
+- [Create a wallet](https://docs.privy.io/wallets/wallets/create/create-a-wallet.md)
+- [Export a wallet](https://docs.privy.io/wallets/wallets/export.md)
+- [Get all wallets](https://docs.privy.io/wallets/wallets/get-a-wallet/get-all-wallets.md)
+- [Get user connected wallets](https://docs.privy.io/wallets/wallets/get-a-wallet/get-connected-wallet.md)
+- [Get wallet by ID](https://docs.privy.io/wallets/wallets/get-a-wallet/get-wallet-by-id.md)
+- [Architecture](https://docs.privy.io/wallets/wallets/import-a-wallet/architecture.md)
+- [HD wallets](https://docs.privy.io/wallets/wallets/import-a-wallet/hd-wallets.md)
+- [Private keys](https://docs.privy.io/wallets/wallets/import-a-wallet/private-key.md)
+- [Enabling offline actions with user wallets](https://docs.privy.io/wallets/wallets/offline-actions.md)
+- [Enabling server-side access to user wallets](https://docs.privy.io/wallets/wallets/server-side-access.md)
+- [Update a wallet](https://docs.privy.io/wallets/wallets/update-a-wallet.md)
+- [Welcome](https://docs.privy.io/welcome.md)

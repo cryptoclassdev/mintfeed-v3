@@ -12,4 +12,12 @@ config.resolver.nodeModulesPaths = [
   path.resolve(monorepoRoot, "node_modules"),
 ];
 
+// Fix broken ESM package exports that crash Metro on RN 0.83+
+config.resolver.unstable_enablePackageExports = true;
+config.resolver.unstable_conditionNames = [
+  "react-native",
+  "browser",
+  "require",
+];
+
 module.exports = config;
