@@ -1,6 +1,7 @@
 import { Connection, clusterApiUrl } from "@solana/web3.js";
 
-const SOLANA_CLUSTER = __DEV__ ? "devnet" : "mainnet-beta";
+export const SOLANA_CLUSTER = __DEV__ ? "devnet" : "mainnet-beta";
+export const SOLANA_MWA_CHAIN = __DEV__ ? "solana:devnet" : "solana:mainnet";
 
 export const solanaConnection = new Connection(
   clusterApiUrl(SOLANA_CLUSTER),
