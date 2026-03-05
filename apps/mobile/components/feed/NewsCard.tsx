@@ -1,5 +1,6 @@
 import { memo } from "react";
 import { View, Text, StyleSheet, Pressable, Linking, useWindowDimensions } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { useAppStore } from "@/lib/store";
@@ -9,7 +10,7 @@ import { PredictionCard } from "./PredictionCard";
 import type { Article } from "@mintfeed/shared";
 
 const IMAGE_HEIGHT_RATIO = 0.28;
-const TAB_BAR_HEIGHT = 80;
+const TAB_BAR_ESTIMATED_HEIGHT = 50;
 
 const NEGATIVE_KEYWORDS = [
   "crash", "drop", "fall", "dump", "panic", "hack", "ban", "plunge",
@@ -78,9 +79,11 @@ interface NewsCardProps {
 
 export const NewsCard = memo(function NewsCard({ article }: NewsCardProps) {
   const { height: screenHeight } = useWindowDimensions();
+  const { bottom: safeBottom } = useSafeAreaInsets();
   const theme = useAppStore((s) => s.theme);
   const themeColors = colors[theme];
   const imageHeight = screenHeight * IMAGE_HEIGHT_RATIO;
+  const bottomPadding = TAB_BAR_ESTIMATED_HEIGHT + safeBottom + 16;
 
   const sentiment = detectSentiment(article.title, article.summary);
   const accentColor = getAccentColor(sentiment, themeColors);
@@ -126,7 +129,7 @@ export const NewsCard = memo(function NewsCard({ article }: NewsCardProps) {
       </View>
 
       {/* Bottom: Content zone */}
-      <View style={styles.contentZone}>
+      <View style={[styles.contentZone, { paddingBottom: bottomPadding }]}>
         {/* Decorative accent line */}
         <View style={[styles.accentLine, { backgroundColor: accentColor }]} />
 
@@ -229,7 +232,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 24,
     paddingTop: 8,
-    paddingBottom: TAB_BAR_HEIGHT + 16,
+    // paddingBottom set dynamically via safeAreaInsets
   },
   accentLine: {
     width: 32,
