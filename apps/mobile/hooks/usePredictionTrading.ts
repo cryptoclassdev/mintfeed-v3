@@ -37,22 +37,23 @@ export function useCreateOrder() {
         throw new Error("Wallet not connected");
       }
 
-      console.log("[createOrder] Request:", JSON.stringify(request));
+      if (__DEV__) console.log("[createOrder] Request:", JSON.stringify(request));
 
       let response: CreateOrderResponse;
       try {
         response = await createOrder(request);
-      } catch (err: any) {
-        const body = await err?.response?.json?.().catch(() => null);
-        console.error("[createOrder] API error:", err?.response?.status, JSON.stringify(body), err?.message);
+      } catch (err: unknown) {
+        const httpErr = err as { response?: { json?: () => Promise<Record<string, string>>; status?: number }; message?: string };
+        const body = await httpErr?.response?.json?.().catch(() => null);
+        if (__DEV__) console.error("[createOrder] API error:", httpErr?.response?.status, JSON.stringify(body), httpErr?.message);
         const code = body?.code ?? "";
         if (code === "transaction_simulation_failed" || code === "ANCHOR_6025" || code === "INSUFFICIENT_FUNDS") {
           throw new Error("Insufficient balance. You need both USDC (for the bet) and SOL (≈0.03 for fees/rent).");
         }
-        throw new Error(body?.message ?? err?.message ?? "Failed to create order");
+        throw new Error(body?.message ?? httpErr?.message ?? "Failed to create order");
       }
 
-      console.log("[createOrder] Response:", JSON.stringify({
+      if (__DEV__) console.log("[createOrder] Response:", JSON.stringify({
         transaction: response.transaction ? `${response.transaction.slice(0, 40)}...` : null,
         order: response.order,
       }));
@@ -62,11 +63,12 @@ export function useCreateOrder() {
         if (result.authToken !== walletAuthToken) {
           connectWallet(walletAddress, result.authToken);
         }
-        console.log("[createOrder] TX signature:", result.signature);
+        if (__DEV__) console.log("[createOrder] TX signature:", result.signature);
         return result.signature;
-      } catch (err: any) {
-        console.error("[createOrder] MWA sign/send failed:", err?.message, String(err));
-        throw new Error(`Wallet signing failed: ${err?.message ?? String(err)}`);
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : String(err);
+        if (__DEV__) console.error("[createOrder] MWA sign/send failed:", msg);
+        throw new Error(`Wallet signing failed: ${msg}`);
       }
     },
     onSuccess: () => {

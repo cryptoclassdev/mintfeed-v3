@@ -16,7 +16,7 @@ export default function ProfileView() {
 
   return (
     <View style={styles.container}>
-      <Text style={[styles.heading, { color: themeColors.text }]}>
+      <Text style={[styles.heading, { color: themeColors.text }]} accessibilityRole="header">
         Account
       </Text>
 
@@ -78,6 +78,8 @@ export default function ProfileView() {
             },
           ]}
           onPress={disconnectWallet}
+          accessibilityRole="button"
+          accessibilityLabel="Disconnect wallet"
         >
           <Text style={[styles.signOutText, { color: themeColors.negative }]}>
             Disconnect

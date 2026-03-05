@@ -48,6 +48,9 @@ export function PredictionCard({ market }: PredictionCardProps) {
         pressed && { opacity: 0.7 },
       ]}
       onPress={() => router.push(`/market-sheet/${market.id}`)}
+      accessibilityRole="button"
+      accessibilityLabel={`${market.question}, ${hasValidOdds ? `${leadingOutcome.outcome} at ${percentage} percent` : "no odds yet"}`}
+      accessibilityHint="Opens prediction market details"
     >
       {/* Question */}
       <Text style={[styles.question, { color: themeColors.textSecondary }]} numberOfLines={2}>

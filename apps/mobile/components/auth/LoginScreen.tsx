@@ -40,7 +40,7 @@ export default function LoginScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={[styles.heading, { color: themeColors.text }]}>
+      <Text style={[styles.heading, { color: themeColors.text }]} accessibilityRole="header">
         Connect your wallet
       </Text>
       <Text style={[styles.subheading, { color: themeColors.textMuted }]}>
@@ -52,6 +52,9 @@ export default function LoginScreen() {
           style={[styles.button, { backgroundColor: themeColors.accent }]}
           onPress={handleConnect}
           disabled={loading}
+          accessibilityRole="button"
+          accessibilityLabel="Connect Solana wallet"
+          accessibilityState={{ busy: loading }}
         >
           {loading ? (
             <ActivityIndicator color={themeColors.text} />

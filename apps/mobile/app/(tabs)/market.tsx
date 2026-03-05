@@ -1,5 +1,5 @@
 import { memo, useCallback } from "react";
-import { View, Text, FlatList, StyleSheet } from "react-native";
+import { View, Text, FlatList, StyleSheet, Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Image } from "expo-image";
 import { useMarket } from "@/hooks/useMarket";
@@ -62,7 +62,11 @@ const CoinRow = memo(function CoinRow({
         {String(index + 1).padStart(2, "0")}
       </Text>
       {item.imageUrl ? (
-        <Image source={{ uri: item.imageUrl }} style={styles.coinIcon} />
+        <Image
+          source={{ uri: item.imageUrl }}
+          style={styles.coinIcon}
+          accessibilityLabel={`${item.name} icon`}
+        />
       ) : null}
       <View style={styles.coinInfo}>
         <Text style={[styles.coinName, { color: textColor }]}>
@@ -99,7 +103,7 @@ const keyExtractor = (item: MarketCoin) => item.id;
 export default function MarketScreen() {
   const theme = useAppStore((s) => s.theme);
   const themeColors = colors[theme];
-  const { data, isLoading, refetch } = useMarket();
+  const { data, isLoading, isError, refetch } = useMarket();
 
   const renderItem = useCallback(
     ({ item, index }: { item: MarketCoin; index: number }) => (
@@ -122,7 +126,7 @@ export default function MarketScreen() {
       edges={["top"]}
     >
       <View style={styles.header}>
-        <Text style={[styles.title, { color: themeColors.text }]}>Market</Text>
+        <Text style={[styles.title, { color: themeColors.text }]} accessibilityRole="header">Market</Text>
         <Text style={[styles.subtitle, { color: themeColors.accent }]}>
           Live
         </Text>
@@ -134,6 +138,25 @@ export default function MarketScreen() {
         onRefresh={refetch}
         refreshing={isLoading}
         contentContainerStyle={styles.list}
+        ListEmptyComponent={
+          !isLoading ? (
+            <View style={styles.emptyState}>
+              <Text style={[styles.emptyText, { color: themeColors.textMuted }]}>
+                {isError ? "FAILED TO LOAD PRICES" : "NO MARKET DATA"}
+              </Text>
+              {isError && (
+                <Pressable
+                  onPress={() => refetch()}
+                  accessibilityRole="button"
+                  accessibilityLabel="Retry loading market data"
+                  style={[styles.retryButton, { borderColor: themeColors.accent }]}
+                >
+                  <Text style={[styles.retryText, { color: themeColors.accent }]}>TAP TO RETRY</Text>
+                </Pressable>
+              )}
+            </View>
+          ) : null
+        }
       />
     </SafeAreaView>
   );
@@ -205,5 +228,32 @@ const styles = StyleSheet.create({
     fontFamily: fonts.mono.regular,
     fontSize: fontSize.sm,
     marginTop: 2,
+  },
+  emptyState: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 60,
+    gap: 16,
+  },
+  emptyText: {
+    fontFamily: fonts.mono.regular,
+    fontSize: fontSize.xs,
+    letterSpacing: 2,
+    textTransform: "uppercase",
+  },
+  retryButton: {
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    minHeight: 44,
+    justifyContent: "center",
+  },
+  retryText: {
+    fontFamily: fonts.mono.regular,
+    fontSize: fontSize.xs,
+    letterSpacing: 2,
+    textTransform: "uppercase",
   },
 });

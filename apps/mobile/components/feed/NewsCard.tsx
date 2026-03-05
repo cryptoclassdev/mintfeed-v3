@@ -104,6 +104,7 @@ export const NewsCard = memo(function NewsCard({ article }: NewsCardProps) {
             style={styles.image}
             contentFit="cover"
             transition={300}
+            accessibilityLabel={`Image for ${article.sourceName} article`}
           />
         ) : (
           <View style={[styles.imagePlaceholder, { backgroundColor: themeColors.card }]} />
@@ -140,7 +141,10 @@ export const NewsCard = memo(function NewsCard({ article }: NewsCardProps) {
           <Text style={[styles.metaDot, { color: accentColor }]}>·</Text>
           <Pressable
             onPress={() => Linking.openURL(article.sourceUrl)}
-            hitSlop={8}
+            hitSlop={12}
+            accessibilityRole="link"
+            accessibilityLabel={`Read full article from ${article.sourceName}`}
+            style={styles.sourceLinkTouchable}
           >
             <Text style={[styles.sourceLink, { color: accentColor }]}>
               Read full article
@@ -260,6 +264,10 @@ const styles = StyleSheet.create({
   metaDot: {
     fontSize: 14,
     fontWeight: "700",
+  },
+  sourceLinkTouchable: {
+    minHeight: 36,
+    justifyContent: "center" as const,
   },
   sourceLink: {
     fontFamily: fonts.mono.regular,

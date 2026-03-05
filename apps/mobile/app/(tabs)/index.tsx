@@ -20,13 +20,17 @@ export default function FeedScreen() {
   return (
     <View style={[styles.container, { backgroundColor: themeColors.background }]}>
       <SwipeFeed />
-      <View style={styles.categoryBar}>
+      <View style={styles.categoryBar} accessibilityRole="tablist">
         {CATEGORIES.map((cat) => {
           const isActive = selectedCategory === cat;
           return (
             <Pressable
               key={cat}
               onPress={() => setCategory(cat)}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: isActive }}
+              accessibilityLabel={`${CATEGORY_LABELS[cat]} category`}
+              hitSlop={8}
               style={[
                 styles.chip,
                 {
@@ -70,8 +74,9 @@ const styles = StyleSheet.create({
     zIndex: 30,
   },
   chip: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    minHeight: 36,
     borderRadius: 12,
     borderCurve: "continuous",
     borderWidth: 1,

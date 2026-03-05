@@ -117,7 +117,13 @@ export default function MarketSheet() {
     >
       {/* Header */}
       <View style={styles.header}>
-        <Pressable onPress={() => router.back()} hitSlop={12}>
+        <Pressable
+          onPress={() => router.back()}
+          hitSlop={12}
+          accessibilityRole="button"
+          accessibilityLabel="Close market sheet"
+          style={styles.headerButton}
+        >
           <Ionicons name="close" size={24} color={themeColors.text} />
         </Pressable>
         <Text style={[styles.headerTitle, { color: themeColors.text }]} numberOfLines={1}>
@@ -136,6 +142,9 @@ export default function MarketSheet() {
               selectedSide === "yes" && { borderColor: themeColors.positive, borderWidth: 2 },
             ]}
             onPress={() => setSelectedSide("yes")}
+            accessibilityRole="button"
+            accessibilityState={{ selected: selectedSide === "yes" }}
+            accessibilityLabel={`Yes at ${yesPercent} percent`}
           >
             <Text style={[styles.probLabel, { color: themeColors.positive }]}>YES</Text>
             <Text style={[styles.probValue, { color: themeColors.positive }]}>{yesPercent}%</Text>
@@ -147,6 +156,9 @@ export default function MarketSheet() {
               selectedSide === "no" && { borderColor: themeColors.negative, borderWidth: 2 },
             ]}
             onPress={() => setSelectedSide("no")}
+            accessibilityRole="button"
+            accessibilityState={{ selected: selectedSide === "no" }}
+            accessibilityLabel={`No at ${noPercent} percent`}
           >
             <Text style={[styles.probLabel, { color: themeColors.negative }]}>NO</Text>
             <Text style={[styles.probValue, { color: themeColors.negative }]}>{noPercent}%</Text>
@@ -220,6 +232,8 @@ export default function MarketSheet() {
               ]}
               onPress={handlePlaceBet}
               disabled={createOrder.isPending || !amount}
+              accessibilityRole="button"
+              accessibilityLabel={`Buy ${selectedSide} at ${selectedSide === "yes" ? yesPercent : noPercent} cents`}
             >
               {createOrder.isPending ? (
                 <ActivityIndicator size="small" color={themeColors.background} />
@@ -234,6 +248,8 @@ export default function MarketSheet() {
           <Pressable
             style={[styles.connectButton, { borderColor: themeColors.accentMint }]}
             onPress={handleConnectWallet}
+            accessibilityRole="button"
+            accessibilityLabel="Connect wallet to place bets"
           >
             <Ionicons name="wallet-outline" size={18} color={themeColors.accentMint} />
             <Text style={[styles.connectText, { color: themeColors.accentMint }]}>Connect Wallet to Bet</Text>
@@ -252,6 +268,12 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
+  },
+  headerButton: {
+    minWidth: 44,
+    minHeight: 44,
+    alignItems: "center" as const,
+    justifyContent: "center" as const,
   },
   header: {
     flexDirection: "row",

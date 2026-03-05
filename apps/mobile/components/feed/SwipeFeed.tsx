@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useRef } from "react";
-import { View, StyleSheet, ActivityIndicator, Text } from "react-native";
+import { View, StyleSheet, ActivityIndicator, Text, Pressable } from "react-native";
 import PagerView, {
   type PagerViewOnPageSelectedEvent,
 } from "react-native-pager-view";
@@ -21,7 +21,7 @@ export function SwipeFeed() {
   const pagerRef = useRef<PagerView>(null);
 
   const query = useFeed();
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isError, refetch } =
     query;
 
   const articles = useMemo(
@@ -57,9 +57,25 @@ export function SwipeFeed() {
 
   if (isLoading) {
     return (
-      <View style={styles.centered}>
+      <View style={styles.centered} accessibilityLabel="Loading feed">
         <ActivityIndicator size="large" color={themeColors.accent} />
-        <Text style={[styles.loadingText, { color: themeColors.accent }]}>LOADING FEED</Text>
+        <Text style={[styles.statusText, { color: themeColors.accent }]}>LOADING FEED</Text>
+      </View>
+    );
+  }
+
+  if (isError) {
+    return (
+      <View style={styles.centered}>
+        <Text style={[styles.statusText, { color: themeColors.negative }]}>FAILED TO LOAD</Text>
+        <Pressable
+          onPress={() => refetch()}
+          accessibilityRole="button"
+          accessibilityLabel="Retry loading feed"
+          style={[styles.retryButton, { borderColor: themeColors.accent }]}
+        >
+          <Text style={[styles.retryText, { color: themeColors.accent }]}>TAP TO RETRY</Text>
+        </Pressable>
       </View>
     );
   }
@@ -67,7 +83,7 @@ export function SwipeFeed() {
   if (articles.length === 0) {
     return (
       <View style={styles.centered}>
-        <Text style={[styles.emptyText, { color: themeColors.textMuted }]}>
+        <Text style={[styles.statusText, { color: themeColors.textMuted }]}>
           NO ARTICLES YET
         </Text>
       </View>
@@ -82,8 +98,9 @@ export function SwipeFeed() {
       initialPage={0}
       offscreenPageLimit={2}
       onPageSelected={onPageSelected}
+      accessibilityLabel="News feed, swipe up or down to browse"
     >
-      {articles.map((article, index) => (
+      {articles.map((article) => (
         <View key={article.id} style={styles.page}>
           <NewsCard article={article} />
         </View>
@@ -104,19 +121,26 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     padding: 32,
+    gap: 16,
   },
-  loadingText: {
+  statusText: {
     fontFamily: fonts.mono.regular,
     fontSize: fontSize.xs,
     letterSpacing: 2,
-    marginTop: 16,
     textTransform: "uppercase",
   },
-  emptyText: {
+  retryButton: {
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    minHeight: 44,
+    justifyContent: "center",
+  },
+  retryText: {
     fontFamily: fonts.mono.regular,
-    fontSize: fontSize.sm,
-    textAlign: "center",
-    letterSpacing: 1,
+    fontSize: fontSize.xs,
+    letterSpacing: 2,
     textTransform: "uppercase",
   },
 });

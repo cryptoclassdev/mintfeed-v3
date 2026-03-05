@@ -45,10 +45,22 @@ export default function ArticleDetailScreen() {
       style={[styles.container, { backgroundColor: themeColors.background }]}
     >
       <View style={styles.header}>
-        <Pressable onPress={() => router.back()}>
+        <Pressable
+          onPress={() => router.back()}
+          accessibilityRole="button"
+          accessibilityLabel="Close article"
+          hitSlop={12}
+          style={styles.headerButton}
+        >
           <Ionicons name="close" size={28} color={themeColors.text} />
         </Pressable>
-        <Pressable onPress={() => Linking.openURL(article.sourceUrl)}>
+        <Pressable
+          onPress={() => Linking.openURL(article.sourceUrl)}
+          accessibilityRole="link"
+          accessibilityLabel={`Open full article on ${article.sourceName}`}
+          hitSlop={12}
+          style={styles.headerButton}
+        >
           <Ionicons
             name="open-outline"
             size={22}
@@ -68,6 +80,7 @@ export default function ArticleDetailScreen() {
             style={styles.heroImage}
             contentFit="cover"
             transition={300}
+            accessibilityLabel={`Article image for ${article.title}`}
           />
         ) : null}
 
@@ -92,6 +105,8 @@ export default function ArticleDetailScreen() {
         <Pressable
           style={[styles.readMore, { borderColor: themeColors.accent }]}
           onPress={() => Linking.openURL(article.sourceUrl)}
+          accessibilityRole="link"
+          accessibilityLabel="Read full article in browser"
         >
           <Text style={[styles.readMoreText, { color: themeColors.accent }]}>
             Read full article
@@ -110,6 +125,12 @@ const styles = StyleSheet.create({
   centered: {
     justifyContent: "center",
     alignItems: "center",
+  },
+  headerButton: {
+    minWidth: 44,
+    minHeight: 44,
+    alignItems: "center" as const,
+    justifyContent: "center" as const,
   },
   header: {
     flexDirection: "row",
