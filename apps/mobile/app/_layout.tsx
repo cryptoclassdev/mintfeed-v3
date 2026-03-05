@@ -2,8 +2,6 @@ import { useEffect } from "react";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { PrivyProvider } from "@privy-io/expo";
-import { PRIVY_APP_ID, PRIVY_CLIENT_ID, privyConfig } from "@/lib/privy";
 import { Anton_400Regular } from "@expo-google-fonts/anton";
 import {
   Inter_300Light,
@@ -56,25 +54,23 @@ export default function RootLayout() {
   }
 
   return (
-    <PrivyProvider appId={PRIVY_APP_ID} clientId={PRIVY_CLIENT_ID} config={privyConfig}>
-      <QueryClientProvider client={queryClient}>
-        <StatusBar style={theme === "dark" ? "light" : "dark"} />
-        <Stack
-          screenOptions={{
-            headerShown: false,
-            contentStyle: { backgroundColor: themeColors.background },
+    <QueryClientProvider client={queryClient}>
+      <StatusBar style={theme === "dark" ? "light" : "dark"} />
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          contentStyle: { backgroundColor: themeColors.background },
+        }}
+      >
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen
+          name="article/[id]"
+          options={{
+            presentation: "modal",
+            animation: "slide_from_bottom",
           }}
-        >
-          <Stack.Screen name="(tabs)" />
-          <Stack.Screen
-            name="article/[id]"
-            options={{
-              presentation: "modal",
-              animation: "slide_from_bottom",
-            }}
-          />
-        </Stack>
-      </QueryClientProvider>
-    </PrivyProvider>
+        />
+      </Stack>
+    </QueryClientProvider>
   );
 }

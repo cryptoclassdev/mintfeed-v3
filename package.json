@@ -13,11 +13,6 @@
     "typescript": "^5.7.0"
   },
   "packageManager": "pnpm@9.15.0",
-  "pnpm": {
-    "patchedDependencies": {
-      "@privy-io/expo-native-extensions@0.0.7": "patches/@privy-io__expo-native-extensions@0.0.7.patch"
-    }
-  },
   "version": "1.0.0",
   "dependencies": {
     "expo": "55.0.0-canary-20260223-05214f1",

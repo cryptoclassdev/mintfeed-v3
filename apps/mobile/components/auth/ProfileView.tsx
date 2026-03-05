@@ -1,5 +1,4 @@
 import { View, Text, Pressable, StyleSheet } from "react-native";
-import { usePrivy } from "@privy-io/expo";
 import { colors } from "@/constants/theme";
 import { fonts, fontSize, letterSpacing } from "@/constants/typography";
 import { useAppStore } from "@/lib/store";
@@ -8,20 +7,8 @@ import { formatSolanaAddress } from "@/lib/solana";
 export default function ProfileView() {
   const theme = useAppStore((s) => s.theme);
   const themeColors = colors[theme];
-
-  const { user, logout } = usePrivy();
-
-  const solanaWalletAccount = user?.linked_accounts?.find(
-    (a) =>
-      a.type === "wallet" &&
-      "chain_type" in a &&
-      a.chain_type === "solana"
-  );
-
-  const walletAddress =
-    solanaWalletAccount && "address" in solanaWalletAccount
-      ? solanaWalletAccount.address
-      : undefined;
+  const walletAddress = useAppStore((s) => s.walletAddress);
+  const disconnectWallet = useAppStore((s) => s.disconnectWallet);
 
   const displayName = walletAddress
     ? formatSolanaAddress(walletAddress)
@@ -90,10 +77,10 @@ export default function ProfileView() {
               borderColor: themeColors.border,
             },
           ]}
-          onPress={logout}
+          onPress={disconnectWallet}
         >
           <Text style={[styles.signOutText, { color: themeColors.negative }]}>
-            Sign Out
+            Disconnect
           </Text>
         </Pressable>
       </View>

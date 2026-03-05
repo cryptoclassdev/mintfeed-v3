@@ -18,55 +18,18 @@ const APP_IDENTITY = {
   uri: "https://mintfeed.app",
 } as const;
 
-const ED25519_SIGNATURE_LENGTH = 64;
-
 /**
- * Authorize and sign a message in a single MWA session (one wallet round-trip).
- *
- * @param getMessageToSign - Called with the wallet address after authorize;
- *   returns the message bytes to sign (e.g. a SIWS payload).
- * @returns The wallet address and base58-encoded Ed25519 signature.
+ * Authorize via MWA in a single wallet round-trip.
+ * Returns the wallet's base58 public key address.
  */
-export async function mwaAuthorizeAndSign(
-  getMessageToSign: (address: string) => Promise<Uint8Array>
-): Promise<{ address: string; signature: string }> {
+export async function mwaAuthorize(): Promise<string> {
   const transact = getTransact();
   return transact(async (wallet) => {
     const auth = await wallet.authorize({
       identity: APP_IDENTITY,
       chain: SOLANA_MWA_CHAIN,
     });
-
-    const address = base64ToBase58(auth.accounts[0].address);
-
-    const messageBytes = await getMessageToSign(address);
-
-    const signedPayloads = await wallet.signMessages({
-      addresses: [auth.accounts[0].address],
-      payloads: [messageBytes],
-    });
-
-    const payload = signedPayloads[0];
-
-    if (__DEV__) {
-      console.log("[MWA] signed payload length:", payload.length);
-      console.log("[MWA] message input length:", messageBytes.length);
-    }
-
-    // Extract the 64-byte Ed25519 signature from the signed payload.
-    // If payload is exactly 64 bytes, it's just the signature (some wallets).
-    // Otherwise, the signature is the last 64 bytes of the payload.
-    const sigBytes =
-      payload.length === ED25519_SIGNATURE_LENGTH
-        ? payload
-        : payload.slice(payload.length - ED25519_SIGNATURE_LENGTH);
-
-    if (__DEV__) {
-      console.log("[MWA] extracted sig length:", sigBytes.length);
-    }
-
-    const signature = bs58.encode(sigBytes);
-    return { address, signature };
+    return base64ToBase58(auth.accounts[0].address);
   });
 }
 

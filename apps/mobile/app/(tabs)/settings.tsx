@@ -1,6 +1,5 @@
 import { View, Text, Switch, StyleSheet, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { usePrivy } from "@privy-io/expo";
 import { useAppStore } from "@/lib/store";
 import { colors } from "@/constants/theme";
 import { fonts, fontSize, letterSpacing } from "@/constants/typography";
@@ -11,9 +10,7 @@ export default function ProfileScreen() {
   const theme = useAppStore((s) => s.theme);
   const toggleTheme = useAppStore((s) => s.toggleTheme);
   const themeColors = colors[theme];
-
-  const { isReady, user } = usePrivy();
-  const authenticated = !!user;
+  const walletAddress = useAppStore((s) => s.walletAddress);
 
   return (
     <SafeAreaView
@@ -25,13 +22,7 @@ export default function ProfileScreen() {
           Profile
         </Text>
 
-        {isReady && (
-          authenticated ? (
-            <ProfileView />
-          ) : (
-            <LoginScreen />
-          )
-        )}
+        {walletAddress ? <ProfileView /> : <LoginScreen />}
 
         <View style={styles.section}>
           <Text

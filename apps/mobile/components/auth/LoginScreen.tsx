@@ -7,20 +7,15 @@ import {
   ActivityIndicator,
   Platform,
 } from "react-native";
-import { useLoginWithSiws } from "@privy-io/expo";
 import { colors } from "@/constants/theme";
 import { fonts, fontSize } from "@/constants/typography";
 import { useAppStore } from "@/lib/store";
-import { mwaAuthorizeAndSign } from "@/lib/wallet-adapter";
-
-const SIWS_DOMAIN = "mintfeed.app";
-const SIWS_URI = "https://mintfeed.app";
+import { mwaAuthorize } from "@/lib/wallet-adapter";
 
 export default function LoginScreen() {
   const theme = useAppStore((s) => s.theme);
   const themeColors = colors[theme];
-
-  const { generateMessage, login } = useLoginWithSiws();
+  const connectWallet = useAppStore((s) => s.connectWallet);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -30,21 +25,8 @@ export default function LoginScreen() {
     setError(null);
 
     try {
-      let siwsMessage: string;
-
-      const { signature } = await mwaAuthorizeAndSign(async (address) => {
-        const { message } = await generateMessage({
-          wallet: { address },
-          from: { domain: SIWS_DOMAIN, uri: SIWS_URI },
-        });
-        siwsMessage = message;
-        return new TextEncoder().encode(message);
-      });
-
-      await login({
-        signature,
-        message: siwsMessage!,
-      });
+      const address = await mwaAuthorize();
+      connectWallet(address);
     } catch (err) {
       const msg =
         err instanceof Error ? err.message : "Wallet connection failed";
