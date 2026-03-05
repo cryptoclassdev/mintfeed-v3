@@ -6,11 +6,12 @@ interface AppState {
   theme: ThemeMode;
   readArticleIds: Set<string>;
   walletAddress: string | null;
+  walletAuthToken: string | null;
   setCategory: (category: "all" | "crypto" | "ai") => void;
   setTheme: (theme: ThemeMode) => void;
   toggleTheme: () => void;
   markAsRead: (id: string) => void;
-  connectWallet: (address: string) => void;
+  connectWallet: (address: string, authToken: string) => void;
   disconnectWallet: () => void;
 }
 
@@ -19,6 +20,7 @@ export const useAppStore = create<AppState>((set) => ({
   theme: "dark",
   readArticleIds: new Set(),
   walletAddress: null,
+  walletAuthToken: null,
 
   setCategory: (category) => set({ selectedCategory: category }),
 
@@ -36,7 +38,7 @@ export const useAppStore = create<AppState>((set) => ({
       return { readArticleIds: updated };
     }),
 
-  connectWallet: (address) => set({ walletAddress: address }),
+  connectWallet: (address, authToken) => set({ walletAddress: address, walletAuthToken: authToken }),
 
-  disconnectWallet: () => set({ walletAddress: null }),
+  disconnectWallet: () => set({ walletAddress: null, walletAuthToken: null }),
 }));

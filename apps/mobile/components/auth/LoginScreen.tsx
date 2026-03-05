@@ -25,8 +25,8 @@ export default function LoginScreen() {
     setError(null);
 
     try {
-      const address = await mwaAuthorize();
-      connectWallet(address);
+      const { address, authToken } = await mwaAuthorize();
+      connectWallet(address, authToken);
     } catch (err) {
       const msg =
         err instanceof Error ? err.message : "Wallet connection failed";

@@ -2,7 +2,7 @@ import { Platform } from "react-native";
 import bs58 from "bs58";
 import { Buffer } from "buffer";
 import { VersionedTransaction } from "@solana/web3.js";
-import { SOLANA_MWA_CHAIN } from "@/lib/solana";
+import { SOLANA_MWA_CHAIN, solanaConnection } from "@/lib/solana";
 
 // Lazy-load MWA to avoid eager TurboModuleRegistry.getEnforcing crash on iOS
 function getTransact() {
@@ -21,42 +21,71 @@ const APP_IDENTITY = {
 
 /**
  * Authorize via MWA in a single wallet round-trip.
- * Returns the wallet's base58 public key address.
+ * Returns the wallet's base58 public key address and auth_token for reauthorization.
  */
-export async function mwaAuthorize(): Promise<string> {
+export async function mwaAuthorize(): Promise<{ address: string; authToken: string }> {
   const transact = getTransact();
   return transact(async (wallet) => {
     const auth = await wallet.authorize({
       identity: APP_IDENTITY,
       chain: SOLANA_MWA_CHAIN,
     });
-    return base64ToBase58(auth.accounts[0].address);
+    return {
+      address: base64ToBase58(auth.accounts[0].address),
+      authToken: auth.auth_token,
+    };
   });
 }
 
 /**
- * Sign and send a transaction via MWA.
- * Takes a base64-encoded unsigned transaction, opens the wallet,
- * authorizes, signs + sends, and returns the tx signature as base58.
+ * Sign a transaction via MWA, then send it ourselves via RPC.
+ *
+ * Uses signTransactions (not signAndSendTransactions) because Phantom on
+ * Android silently cancels MWA signAndSend sessions — the signing prompt
+ * never appears and the session ends with CancellationException.
+ *
+ * Flow: reauthorize → signTransactions → sendRawTransaction (via our RPC).
+ * Falls back to full authorize() if reauthorize fails (expired token).
  */
-export async function mwaSignAndSend(base64Transaction: string): Promise<string> {
+export async function mwaSignAndSend(
+  base64Transaction: string,
+  authToken: string,
+): Promise<{ signature: string; authToken: string }> {
   const transact = getTransact();
 
-  return transact(async (wallet) => {
-    await wallet.authorize({
-      identity: APP_IDENTITY,
-      chain: SOLANA_MWA_CHAIN,
-    });
+  const txBytes = Buffer.from(base64Transaction, "base64");
+  const transaction = VersionedTransaction.deserialize(txBytes);
 
-    const txBytes = Buffer.from(base64Transaction, "base64");
-    const transaction = VersionedTransaction.deserialize(txBytes);
+  const { signedTx, newAuthToken } = await transact(async (wallet) => {
+    let token = authToken;
+    try {
+      const reauth = await wallet.reauthorize({
+        auth_token: authToken,
+        identity: APP_IDENTITY,
+      });
+      token = reauth.auth_token;
+    } catch {
+      const auth = await wallet.authorize({
+        identity: APP_IDENTITY,
+        chain: SOLANA_MWA_CHAIN,
+      });
+      token = auth.auth_token;
+    }
 
-    const signatures = await wallet.signAndSendTransactions({
+    const signed = await wallet.signTransactions({
       transactions: [transaction],
     });
 
-    return bs58.encode(Buffer.from(signatures[0]));
+    return { signedTx: signed[0], newAuthToken: token };
   });
+
+  const rawTransaction = signedTx.serialize();
+  const txSignature = await solanaConnection.sendRawTransaction(rawTransaction, {
+    skipPreflight: true,
+    maxRetries: 3,
+  });
+
+  return { signature: txSignature, authToken: newAuthToken };
 }
 
 function base64ToBase58(base64Address: string): string {
