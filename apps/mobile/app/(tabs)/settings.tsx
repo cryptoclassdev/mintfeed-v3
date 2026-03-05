@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { View, Text, Switch, StyleSheet, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { usePrivy } from "@privy-io/expo";
@@ -7,7 +6,6 @@ import { colors } from "@/constants/theme";
 import { fonts, fontSize, letterSpacing } from "@/constants/typography";
 import LoginScreen from "@/components/auth/LoginScreen";
 import ProfileView from "@/components/auth/ProfileView";
-import WalletConnectSheet from "@/components/auth/WalletConnectSheet";
 
 export default function ProfileScreen() {
   const theme = useAppStore((s) => s.theme);
@@ -16,8 +14,6 @@ export default function ProfileScreen() {
 
   const { isReady, user } = usePrivy();
   const authenticated = !!user;
-
-  const [walletSheetVisible, setWalletSheetVisible] = useState(false);
 
   return (
     <SafeAreaView
@@ -33,9 +29,7 @@ export default function ProfileScreen() {
           authenticated ? (
             <ProfileView />
           ) : (
-            <LoginScreen
-              onConnectWallet={() => setWalletSheetVisible(true)}
-            />
+            <LoginScreen />
           )
         )}
 
@@ -95,11 +89,6 @@ export default function ProfileScreen() {
           </View>
         </View>
       </ScrollView>
-
-      <WalletConnectSheet
-        visible={walletSheetVisible}
-        onClose={() => setWalletSheetVisible(false)}
-      />
     </SafeAreaView>
   );
 }

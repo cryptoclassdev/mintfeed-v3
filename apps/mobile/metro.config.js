@@ -20,4 +20,30 @@ config.resolver.unstable_conditionNames = [
   "require",
 ];
 
+// MWA packages list "browser" before "react-native" in their exports map,
+// so Metro picks the browser build (which requires HTTPS / window.isSecureContext).
+// Force them to resolve to their native entry points instead.
+const MWA_NATIVE_OVERRIDES = {
+  "@solana-mobile/mobile-wallet-adapter-protocol":
+    "@solana-mobile/mobile-wallet-adapter-protocol/lib/cjs/index.native.js",
+  "@solana-mobile/mobile-wallet-adapter-protocol-web3js":
+    "@solana-mobile/mobile-wallet-adapter-protocol-web3js/lib/cjs/index.native.js",
+};
+
+const originalResolveRequest = config.resolver.resolveRequest;
+config.resolver.resolveRequest = (context, moduleName, platform) => {
+  // Only override MWA resolution on Android — the native TurboModule doesn't exist on iOS
+  if (platform === "android" && MWA_NATIVE_OVERRIDES[moduleName]) {
+    return context.resolveRequest(
+      context,
+      MWA_NATIVE_OVERRIDES[moduleName],
+      platform,
+    );
+  }
+  if (originalResolveRequest) {
+    return originalResolveRequest(context, moduleName, platform);
+  }
+  return context.resolveRequest(context, moduleName, platform);
+};
+
 module.exports = config;

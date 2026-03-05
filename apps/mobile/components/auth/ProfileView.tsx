@@ -11,12 +11,6 @@ export default function ProfileView() {
 
   const { user, logout } = usePrivy();
 
-  const emailAccount = user?.linked_accounts?.find(
-    (a) => a.type === "email"
-  );
-  const googleAccount = user?.linked_accounts?.find(
-    (a) => a.type === "google_oauth"
-  );
   const solanaWalletAccount = user?.linked_accounts?.find(
     (a) =>
       a.type === "wallet" &&
@@ -24,12 +18,14 @@ export default function ProfileView() {
       a.chain_type === "solana"
   );
 
-  const displayName =
-    googleAccount?.name ?? emailAccount?.address ?? "User";
   const walletAddress =
     solanaWalletAccount && "address" in solanaWalletAccount
       ? solanaWalletAccount.address
       : undefined;
+
+  const displayName = walletAddress
+    ? formatSolanaAddress(walletAddress)
+    : "User";
 
   return (
     <View style={styles.container}>
@@ -95,7 +91,6 @@ export default function ProfileView() {
             },
           ]}
           onPress={logout}
-
         >
           <Text style={[styles.signOutText, { color: themeColors.negative }]}>
             Sign Out
