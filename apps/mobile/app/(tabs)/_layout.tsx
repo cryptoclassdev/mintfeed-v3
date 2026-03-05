@@ -17,7 +17,7 @@ export default function TabLayout() {
         tabBarStyle: {
           backgroundColor: "transparent",
           borderTopWidth: 1,
-          borderTopColor: "rgba(255,255,255,0.05)",
+          borderTopColor: themeColors.border,
           position: "absolute",
           elevation: 0,
         },
@@ -36,15 +36,6 @@ export default function TabLayout() {
           title: "Feed",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="grid-outline" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="predict"
-        options={{
-          title: "Predict",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="pulse-outline" size={size} color={color} />
           ),
         }}
       />

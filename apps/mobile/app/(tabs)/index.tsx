@@ -34,8 +34,8 @@ export default function FeedScreen() {
                     ? themeColors.accent
                     : themeColors.border,
                   backgroundColor: isActive
-                    ? "rgba(230, 0, 0, 0.15)"
-                    : "rgba(0, 0, 0, 0.6)",
+                    ? themeColors.overlay
+                    : themeColors.overlayStrong,
                 },
               ]}
             >

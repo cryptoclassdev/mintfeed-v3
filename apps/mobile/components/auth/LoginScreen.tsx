@@ -54,7 +54,7 @@ export default function LoginScreen() {
           disabled={loading}
         >
           {loading ? (
-            <ActivityIndicator color="#FFFFFF" />
+            <ActivityIndicator color={themeColors.text} />
           ) : (
             <Text style={styles.buttonText}>Connect Wallet</Text>
           )}
@@ -100,7 +100,7 @@ const styles = StyleSheet.create({
   buttonText: {
     fontFamily: fonts.body.semiBold,
     fontSize: fontSize.base,
-    color: "#FFFFFF",
+    color: "#FFFFFF", // contrast on accent bg
   },
   unavailableText: {
     fontFamily: fonts.body.regular,

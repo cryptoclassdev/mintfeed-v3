@@ -20,10 +20,6 @@ import { usePredictionMarketDetail, usePredictionOrderbook } from "@/hooks/usePr
 import { useCreateOrder } from "@/hooks/usePredictionTrading";
 import { microToUsd, usdToMicro, USDC_MINT } from "@mintfeed/shared";
 
-const YES_COLOR = "#00ff66";
-const NO_COLOR = "#E60000";
-const ACCENT = "#00D4AA";
-
 export default function MarketSheet() {
   const { id: marketId } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
@@ -51,10 +47,6 @@ export default function MarketSheet() {
     if (price <= 0) return 0;
     return Math.floor(usd / price);
   }, [amount, selectedSide, yesPrice, noPrice]);
-
-  const potentialPayout = useMemo(() => {
-    return estimatedShares * 1;
-  }, [estimatedShares]);
 
   const handleConnectWallet = useCallback(async () => {
     try {
@@ -84,8 +76,8 @@ export default function MarketSheet() {
       });
       Alert.alert("Bet Placed", `Your ${selectedSide.toUpperCase()} bet was submitted.`);
       setAmount("");
-    } catch (err: any) {
-      const message = err?.message ?? String(err);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
       Alert.alert("Trade Failed", message);
     }
   }, [walletAddress, marketId, amount, selectedSide, createOrder]);
@@ -112,7 +104,7 @@ export default function MarketSheet() {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: themeColors.background }]}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={ACCENT} />
+          <ActivityIndicator size="large" color={themeColors.accentMint} />
         </View>
       </SafeAreaView>
     );
@@ -140,46 +132,48 @@ export default function MarketSheet() {
           <Pressable
             style={[
               styles.probCard,
-              selectedSide === "yes" && { borderColor: YES_COLOR, borderWidth: 2 },
+              { backgroundColor: themeColors.card, borderColor: themeColors.cardBorder },
+              selectedSide === "yes" && { borderColor: themeColors.positive, borderWidth: 2 },
             ]}
             onPress={() => setSelectedSide("yes")}
           >
-            <Text style={[styles.probLabel, { color: YES_COLOR }]}>YES</Text>
-            <Text style={[styles.probValue, { color: YES_COLOR }]}>{yesPercent}%</Text>
+            <Text style={[styles.probLabel, { color: themeColors.positive }]}>YES</Text>
+            <Text style={[styles.probValue, { color: themeColors.positive }]}>{yesPercent}%</Text>
           </Pressable>
           <Pressable
             style={[
               styles.probCard,
-              selectedSide === "no" && { borderColor: NO_COLOR, borderWidth: 2 },
+              { backgroundColor: themeColors.card, borderColor: themeColors.cardBorder },
+              selectedSide === "no" && { borderColor: themeColors.negative, borderWidth: 2 },
             ]}
             onPress={() => setSelectedSide("no")}
           >
-            <Text style={[styles.probLabel, { color: NO_COLOR }]}>NO</Text>
-            <Text style={[styles.probValue, { color: NO_COLOR }]}>{noPercent}%</Text>
+            <Text style={[styles.probLabel, { color: themeColors.negative }]}>NO</Text>
+            <Text style={[styles.probValue, { color: themeColors.negative }]}>{noPercent}%</Text>
           </Pressable>
         </View>
 
         {/* Probability bar */}
         <View style={styles.fullBar}>
-          <View style={[styles.fullBarYes, { flex: yesPercent || 1 }]} />
-          <View style={[styles.fullBarNo, { flex: noPercent || 1 }]} />
+          <View style={[styles.fullBarYes, { flex: yesPercent || 1, backgroundColor: themeColors.positive }]} />
+          <View style={[styles.fullBarNo, { flex: noPercent || 1, backgroundColor: themeColors.negative }]} />
         </View>
 
         {/* Orderbook */}
         {orderbookRows.length > 0 && (
-          <View style={styles.orderbookSection}>
+          <View style={[styles.orderbookSection, { backgroundColor: themeColors.card }]}>
             <Text style={[styles.sectionTitle, { color: themeColors.textMuted }]}>ORDERBOOK</Text>
             <View style={styles.orderbookHeader}>
-              <Text style={[styles.obHeaderText, { color: YES_COLOR }]}>YES BIDS</Text>
-              <Text style={[styles.obHeaderText, { color: NO_COLOR, textAlign: "right" }]}>
+              <Text style={[styles.obHeaderText, { color: themeColors.positive }]}>YES BIDS</Text>
+              <Text style={[styles.obHeaderText, { color: themeColors.negative, textAlign: "right" }]}>
                 NO BIDS
               </Text>
             </View>
             {orderbookRows.map((row, i) => (
               <View key={i} style={styles.orderbookRow}>
                 <Text style={[styles.obQty, { color: themeColors.text }]}>{row.yQty || ""}</Text>
-                <Text style={[styles.obPrice, { color: YES_COLOR }]}>{row.yPrice || ""}</Text>
-                <Text style={[styles.obPrice, { color: NO_COLOR }]}>{row.nPrice || ""}</Text>
+                <Text style={[styles.obPrice, { color: themeColors.positive }]}>{row.yPrice || ""}</Text>
+                <Text style={[styles.obPrice, { color: themeColors.negative }]}>{row.nPrice || ""}</Text>
                 <Text style={[styles.obQty, { color: themeColors.text, textAlign: "right" }]}>
                   {row.nQty || ""}
                 </Text>
@@ -212,7 +206,7 @@ export default function MarketSheet() {
 
             {estimatedShares > 0 && (
               <Text style={[styles.estimate, { color: themeColors.textMuted }]}>
-                ~{estimatedShares} shares · Payout if correct: ${potentialPayout.toFixed(2)}
+                ~{estimatedShares} shares · Payout if correct: ${estimatedShares.toFixed(2)}
               </Text>
             )}
 
@@ -220,7 +214,7 @@ export default function MarketSheet() {
               style={[
                 styles.betButton,
                 {
-                  backgroundColor: selectedSide === "yes" ? YES_COLOR : NO_COLOR,
+                  backgroundColor: selectedSide === "yes" ? themeColors.positive : themeColors.negative,
                   opacity: createOrder.isPending || !amount ? 0.5 : 1,
                 },
               ]}
@@ -228,18 +222,21 @@ export default function MarketSheet() {
               disabled={createOrder.isPending || !amount}
             >
               {createOrder.isPending ? (
-                <ActivityIndicator size="small" color="#000" />
+                <ActivityIndicator size="small" color={themeColors.background} />
               ) : (
-                <Text style={styles.betButtonText}>
+                <Text style={[styles.betButtonText, { color: themeColors.background }]}>
                   Buy {selectedSide.toUpperCase()} · {selectedSide === "yes" ? yesPercent : noPercent}¢
                 </Text>
               )}
             </Pressable>
           </>
         ) : (
-          <Pressable style={[styles.connectButton, { borderColor: ACCENT }]} onPress={handleConnectWallet}>
-            <Ionicons name="wallet-outline" size={18} color={ACCENT} />
-            <Text style={[styles.connectText, { color: ACCENT }]}>Connect Wallet to Bet</Text>
+          <Pressable
+            style={[styles.connectButton, { borderColor: themeColors.accentMint }]}
+            onPress={handleConnectWallet}
+          >
+            <Ionicons name="wallet-outline" size={18} color={themeColors.accentMint} />
+            <Text style={[styles.connectText, { color: themeColors.accentMint }]}>Connect Wallet to Bet</Text>
           </Pressable>
         )}
       </View>
@@ -283,11 +280,9 @@ const styles = StyleSheet.create({
   },
   probCard: {
     flex: 1,
-    backgroundColor: "#111111",
     borderRadius: 12,
     borderCurve: "continuous",
     borderWidth: 1,
-    borderColor: "#222222",
     alignItems: "center",
     paddingVertical: 20,
     gap: 4,
@@ -310,16 +305,11 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     marginBottom: 24,
   },
-  fullBarYes: {
-    backgroundColor: YES_COLOR,
-  },
-  fullBarNo: {
-    backgroundColor: NO_COLOR,
-  },
+  fullBarYes: {},
+  fullBarNo: {},
 
   // Orderbook
   orderbookSection: {
-    backgroundColor: "#111111",
     borderRadius: 12,
     borderCurve: "continuous",
     padding: 12,
@@ -410,7 +400,6 @@ const styles = StyleSheet.create({
   betButtonText: {
     fontFamily: fonts.mono.bold,
     fontSize: fontSize.sm,
-    color: "#000000",
     letterSpacing: letterSpacing.wide,
   },
   connectButton: {

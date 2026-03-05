@@ -1,11 +1,10 @@
-import { View, Text, StyleSheet, Pressable, Linking } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { View, Text, StyleSheet, Pressable } from "react-native";
+import { useRouter } from "expo-router";
+import { useAppStore } from "@/lib/store";
+import { colors } from "@/constants/theme";
 import { fonts, fontSize, letterSpacing } from "@/constants/typography";
 import { useLiveMarketPrice } from "@/hooks/useLiveMarketPrice";
 import type { PredictionMarket } from "@mintfeed/shared";
-
-const ACCENT = "#00D4AA";
-const TRACK_COLOR = "#1a1a1a";
 
 interface PredictionCardProps {
   market: PredictionMarket;
@@ -22,6 +21,9 @@ function parsePrices(raw: unknown): Record<string, number> {
 }
 
 export function PredictionCard({ market }: PredictionCardProps) {
+  const router = useRouter();
+  const theme = useAppStore((s) => s.theme);
+  const themeColors = colors[theme];
   const { data: livePrices } = useLiveMarketPrice(market.id);
 
   const prices = parsePrices(
@@ -40,26 +42,32 @@ export function PredictionCard({ market }: PredictionCardProps) {
 
   return (
     <Pressable
-      style={styles.container}
-      onPress={() => Linking.openURL(market.marketUrl)}
+      style={({ pressed }) => [
+        styles.container,
+        { backgroundColor: themeColors.card },
+        pressed && { opacity: 0.7 },
+      ]}
+      onPress={() => router.push(`/market-sheet/${market.id}`)}
     >
-      {/* Question + link icon */}
-      <View style={styles.questionRow}>
-        <Text style={styles.question}>{market.question}</Text>
-        <Ionicons name="open-outline" size={10} color="#444" style={styles.linkIcon} />
-      </View>
+      {/* Question */}
+      <Text style={[styles.question, { color: themeColors.textSecondary }]} numberOfLines={2}>
+        {market.question}
+      </Text>
 
       {/* Probability bar + outcome label */}
       {hasValidOdds && (
         <View style={styles.barRow}>
-          <View style={styles.barTrack}>
-            <View style={[styles.barFill, { width: `${percentage}%` }]} />
+          <View style={[styles.barTrack, { backgroundColor: themeColors.trackBg }]}>
+            <View style={[styles.barFill, { width: `${percentage}%`, backgroundColor: themeColors.accentMint }]} />
           </View>
-          <Text style={styles.odds}>
+          <Text style={[styles.odds, { color: themeColors.accentMint }]}>
             {leadingOutcome.outcome} {percentage}%
           </Text>
         </View>
       )}
+
+      {/* Tap hint */}
+      <Text style={[styles.tapHint, { color: themeColors.textFaint }]}>Tap to bet</Text>
     </Pressable>
   );
 }
@@ -67,7 +75,6 @@ export function PredictionCard({ market }: PredictionCardProps) {
 const styles = StyleSheet.create({
   container: {
     flexDirection: "column",
-    backgroundColor: "#111111",
     borderRadius: 8,
     borderCurve: "continuous",
     paddingHorizontal: 10,
@@ -75,20 +82,10 @@ const styles = StyleSheet.create({
     marginTop: 6,
     gap: 6,
   },
-  questionRow: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 6,
-  },
   question: {
-    flex: 1,
     fontFamily: fonts.body.regular,
     fontSize: 12.5,
     lineHeight: 17,
-    color: "#d0d0d0",
-  },
-  linkIcon: {
-    marginTop: 3,
   },
   barRow: {
     flexDirection: "row",
@@ -98,19 +95,23 @@ const styles = StyleSheet.create({
   barTrack: {
     flex: 1,
     height: 3,
-    backgroundColor: TRACK_COLOR,
     borderRadius: 2,
     overflow: "hidden",
   },
   barFill: {
     height: "100%",
-    backgroundColor: ACCENT,
     borderRadius: 2,
   },
   odds: {
     fontFamily: fonts.mono.regular,
     fontSize: fontSize.xs,
-    color: ACCENT,
     letterSpacing: letterSpacing.wide,
+  },
+  tapHint: {
+    fontFamily: fonts.mono.regular,
+    fontSize: 9,
+    letterSpacing: letterSpacing.wide,
+    textTransform: "uppercase",
+    textAlign: "right",
   },
 });

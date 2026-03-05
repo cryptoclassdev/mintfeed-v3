@@ -2,6 +2,8 @@ import { memo } from "react";
 import { View, Text, StyleSheet, Pressable, Linking, useWindowDimensions } from "react-native";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
+import { useAppStore } from "@/lib/store";
+import { colors } from "@/constants/theme";
 import { fonts, fontSize, letterSpacing } from "@/constants/typography";
 import { PredictionCard } from "./PredictionCard";
 import type { Article } from "@mintfeed/shared";
@@ -44,13 +46,10 @@ function detectSentiment(title: string, summary: string): Sentiment {
   return "neutral";
 }
 
-const ACCENT_RED = "#E60000";
-const ACCENT_GREEN = "#00ff66";
-
-function getAccentColor(sentiment: Sentiment): string {
-  if (sentiment === "positive") return ACCENT_GREEN;
-  if (sentiment === "negative") return ACCENT_RED;
-  return ACCENT_GREEN;
+function getAccentColor(sentiment: Sentiment, themeColors: { positive: string; negative: string }): string {
+  if (sentiment === "positive") return themeColors.positive;
+  if (sentiment === "negative") return themeColors.negative;
+  return themeColors.positive;
 }
 
 const EMOJI_REGEX =
@@ -78,11 +77,13 @@ interface NewsCardProps {
 }
 
 export const NewsCard = memo(function NewsCard({ article }: NewsCardProps) {
-  const { width: screenWidth, height: screenHeight } = useWindowDimensions();
+  const { height: screenHeight } = useWindowDimensions();
+  const theme = useAppStore((s) => s.theme);
+  const themeColors = colors[theme];
   const imageHeight = screenHeight * IMAGE_HEIGHT_RATIO;
 
   const sentiment = detectSentiment(article.title, article.summary);
-  const accentColor = getAccentColor(sentiment);
+  const accentColor = getAccentColor(sentiment, themeColors);
   const cleanTitle = stripEmoji(article.title);
   const cleanSummary = stripEmoji(article.summary);
 
@@ -93,7 +94,7 @@ export const NewsCard = memo(function NewsCard({ article }: NewsCardProps) {
   });
 
   return (
-    <View style={[styles.container, { width: screenWidth, height: screenHeight }]}>
+    <View style={[styles.container, { backgroundColor: themeColors.background }]}>
       {/* Top: Image zone */}
       <View style={[styles.imageZone, { height: imageHeight }]}>
         {article.imageUrl ? (
@@ -105,18 +106,18 @@ export const NewsCard = memo(function NewsCard({ article }: NewsCardProps) {
             transition={300}
           />
         ) : (
-          <View style={styles.imagePlaceholder} />
+          <View style={[styles.imagePlaceholder, { backgroundColor: themeColors.card }]} />
         )}
 
         {/* Gradient fade from image into content */}
         <LinearGradient
-          colors={["transparent", "rgba(3,3,3,0.6)", "#030303"]}
+          colors={["transparent", themeColors.gradientMid, themeColors.background]}
           locations={[0.3, 0.7, 1]}
           style={styles.imageGradient}
         />
 
         {/* Category badge on the image */}
-        <View style={[styles.badge, { borderColor: accentColor }]}>
+        <View style={[styles.badge, { borderColor: accentColor, backgroundColor: themeColors.overlayStrong }]}>
           <Text style={[styles.badgeText, { color: accentColor }]}>
             {article.category}
           </Text>
@@ -129,13 +130,13 @@ export const NewsCard = memo(function NewsCard({ article }: NewsCardProps) {
         <View style={[styles.accentLine, { backgroundColor: accentColor }]} />
 
         {/* Title */}
-        <Text style={styles.title}>{cleanTitle}</Text>
+        <Text style={[styles.title, { color: themeColors.text }]}>{cleanTitle}</Text>
 
         {/* Source + time + read more link */}
         <View style={styles.meta}>
-          <Text style={styles.metaText}>{article.sourceName}</Text>
+          <Text style={[styles.metaText, { color: themeColors.textMuted }]}>{article.sourceName}</Text>
           <Text style={[styles.metaDot, { color: accentColor }]}>·</Text>
-          <Text style={styles.metaText}>{timeAgo(article.publishedAt)}</Text>
+          <Text style={[styles.metaText, { color: themeColors.textMuted }]}>{timeAgo(article.publishedAt)}</Text>
           <Text style={[styles.metaDot, { color: accentColor }]}>·</Text>
           <Pressable
             onPress={() => Linking.openURL(article.sourceUrl)}
@@ -148,7 +149,7 @@ export const NewsCard = memo(function NewsCard({ article }: NewsCardProps) {
         </View>
 
         {/* Summary */}
-        <Text style={styles.summary}>{cleanSummary}</Text>
+        <Text style={[styles.summary, { color: themeColors.textSecondary }]}>{cleanSummary}</Text>
 
         {/* Prediction markets (up to 3) */}
         {markets.length > 0 ? (
@@ -158,9 +159,18 @@ export const NewsCard = memo(function NewsCard({ article }: NewsCardProps) {
             ))}
           </View>
         ) : (
-          <Pressable style={styles.createMarketButton} disabled>
-            <Text style={styles.createMarketText}>+ Create a Market</Text>
-            <Text style={styles.comingSoonBadge}>Coming Soon</Text>
+          <Pressable
+            style={[styles.createMarketButton, {
+              backgroundColor: themeColors.card,
+              borderColor: themeColors.cardBorder,
+            }]}
+            disabled
+          >
+            <Text style={[styles.createMarketText, { color: themeColors.textMuted }]}>+ Create a Market</Text>
+            <Text style={[styles.comingSoonBadge, {
+              color: themeColors.textFaint,
+              backgroundColor: themeColors.trackBg,
+            }]}>Coming Soon</Text>
           </Pressable>
         )}
       </View>
@@ -171,7 +181,6 @@ export const NewsCard = memo(function NewsCard({ article }: NewsCardProps) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#030303",
   },
 
   /* Image zone */
@@ -186,7 +195,6 @@ const styles = StyleSheet.create({
   imagePlaceholder: {
     width: "100%",
     height: "100%",
-    backgroundColor: "#111111",
   },
   imageGradient: {
     position: "absolute",
@@ -204,7 +212,6 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
     borderRadius: 10,
     borderCurve: "continuous",
-    backgroundColor: "rgba(0,0,0,0.7)",
   },
   badgeText: {
     fontFamily: fonts.mono.regular,
@@ -230,14 +237,12 @@ const styles = StyleSheet.create({
     fontFamily: fonts.body.bold,
     fontSize: 22,
     lineHeight: 30,
-    color: "#f0f0f0",
     marginBottom: 16,
   },
   summary: {
     fontFamily: fonts.body.regular,
     fontSize: 15,
     lineHeight: 24,
-    color: "#b0b0b0",
     marginBottom: 12,
   },
   meta: {
@@ -249,7 +254,6 @@ const styles = StyleSheet.create({
   metaText: {
     fontFamily: fonts.mono.regular,
     fontSize: fontSize.xs,
-    color: "#666666",
     letterSpacing: letterSpacing.wide,
     textTransform: "uppercase",
   },
@@ -272,11 +276,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 8,
-    backgroundColor: "#111111",
     borderRadius: 8,
     borderCurve: "continuous",
     borderWidth: 1,
-    borderColor: "#222222",
     borderStyle: "dashed",
     paddingVertical: 10,
     marginTop: 6,
@@ -285,14 +287,11 @@ const styles = StyleSheet.create({
   createMarketText: {
     fontFamily: fonts.mono.regular,
     fontSize: fontSize.xs,
-    color: "#666666",
     letterSpacing: letterSpacing.wide,
   },
   comingSoonBadge: {
     fontFamily: fonts.mono.regular,
     fontSize: 9,
-    color: "#444444",
-    backgroundColor: "#1a1a1a",
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,

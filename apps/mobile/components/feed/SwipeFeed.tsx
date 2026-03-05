@@ -59,7 +59,7 @@ export function SwipeFeed() {
     return (
       <View style={styles.centered}>
         <ActivityIndicator size="large" color={themeColors.accent} />
-        <Text style={styles.loadingText}>LOADING FEED</Text>
+        <Text style={[styles.loadingText, { color: themeColors.accent }]}>LOADING FEED</Text>
       </View>
     );
   }
@@ -108,7 +108,6 @@ const styles = StyleSheet.create({
   loadingText: {
     fontFamily: fonts.mono.regular,
     fontSize: fontSize.xs,
-    color: "#E60000",
     letterSpacing: 2,
     marginTop: 16,
     textTransform: "uppercase",

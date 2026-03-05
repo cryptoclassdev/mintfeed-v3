@@ -49,7 +49,7 @@ export default function ProfileScreen() {
                 false: themeColors.border,
                 true: themeColors.accent,
               }}
-              thumbColor="#FFFFFF"
+              thumbColor={themeColors.text}
             />
           </View>
         </View>

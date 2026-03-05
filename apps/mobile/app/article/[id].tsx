@@ -71,7 +71,7 @@ export default function ArticleDetailScreen() {
           />
         ) : null}
 
-        <View style={[styles.badge, { borderColor: themeColors.accent }]}>
+        <View style={[styles.badge, { borderColor: themeColors.accent, backgroundColor: themeColors.overlay }]}>
           <Text style={[styles.badgeText, { color: themeColors.accent }]}>
             {article.category}
           </Text>
@@ -138,7 +138,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     marginBottom: 12,
-    backgroundColor: "rgba(0,0,0,0.6)",
+    // backgroundColor set dynamically via themeColors.overlay
   },
   badgeText: {
     fontFamily: fonts.mono.regular,

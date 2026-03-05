@@ -82,8 +82,10 @@ Types mirror Prisma models for API responses. Key constants: `DEFAULT_PAGE_SIZE=
 
 ## Design System
 
-- **Dark theme (default):** `#0A0A0A` background, `#FAFAFA` text, `#00D4AA` accent (mint green)
-- **Fonts:** Playfair Display 700 (serif headlines), DM Sans 400/500/700 (body)
+- **Dark theme (default):** `#030303` background, `#f0f0f0` text, `#E60000` accent (red), `#00D4AA` prediction accent (mint)
+- **Light theme:** `#f5f5f5` background, `#111111` text, `#cc0000` accent, `#009977` prediction accent
+- **Semantic colors:** `positive` (green), `negative` (red), `textSecondary`, `textMuted`, `textFaint`
+- **Fonts:** Anton 400 (display headlines), Inter 300/400/600/700 (body), JetBrains Mono 400/700 (mono/labels)
 - **Definitions:** `apps/mobile/constants/theme.ts` and `apps/mobile/constants/typography.ts`
 
 ## Environment Variables
