@@ -4,6 +4,10 @@ import {
   formatResolutionCountdown,
   MINIMUM_TRADE_USD,
 } from "@mintfeed/shared";
+import {
+  buildResolutionRulePreview,
+  formatResolveDateTime,
+} from "../utils";
 
 // Mock all hooks used by MarketSheet
 jest.mock("@/lib/store", () => ({
@@ -26,6 +30,15 @@ jest.mock("@/hooks/usePredictionTrading", () => ({
 }));
 
 describe("MarketSheet trade validation logic", () => {
+  beforeAll(() => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date("2026-03-08T00:00:00Z"));
+  });
+
+  afterAll(() => {
+    jest.useRealTimers();
+  });
+
   it("validates trade amounts correctly", () => {
     expect(validateTradeAmount("5.00")).toEqual({ valid: true });
     expect(validateTradeAmount("1")).toEqual({ valid: true });
@@ -83,5 +96,29 @@ describe("MarketSheet buy button state", () => {
     expect(isDisabled(false, false, false)).toBe(true);
     expect(isDisabled(true, true, false)).toBe(true);
     expect(isDisabled(true, false, true)).toBe(true);
+  });
+});
+
+describe("MarketSheet resolution copy", () => {
+  it("collapses whitespace and keeps short rules intact", () => {
+    const shortRule = "Resolves YES if Bitcoin closes above $100k.\n\nResolves NO otherwise.";
+
+    expect(buildResolutionRulePreview(shortRule)).toEqual({
+      text: "Resolves YES if Bitcoin closes above $100k. Resolves NO otherwise.",
+      truncated: false,
+    });
+  });
+
+  it("truncates long rules into a compact preview", () => {
+    const longRule = "Resolves YES if the model scores above 60. ".repeat(12);
+
+    const preview = buildResolutionRulePreview(longRule, 120);
+    expect(preview.truncated).toBe(true);
+    expect(preview.text!.length).toBeLessThanOrEqual(121);
+    expect(preview.text!.endsWith("…")).toBe(true);
+  });
+
+  it("formats the exact resolve date with UTC timezone", () => {
+    expect(formatResolveDateTime(1772928000)).toBe("Mar 8, 2026, 12:00 AM UTC");
   });
 });

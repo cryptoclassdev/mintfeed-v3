@@ -259,6 +259,26 @@ export async function backfillMarketMatches(): Promise<void> {
  * Refresh outcomePrices for all active (non-closed) prediction markets.
  */
 export async function refreshMarketPrices(): Promise<void> {
+  const duplicateGroups = await prisma.predictionMarket.groupBy({
+    by: ["eventId"],
+    _count: { eventId: true },
+    where: { closed: false },
+  });
+  const duplicateEventIds = duplicateGroups
+    .filter((group) => group._count.eventId > 1)
+    .map((group) => group.eventId);
+
+  if (duplicateEventIds.length > 0) {
+    await prisma.predictionMarket.updateMany({
+      where: {
+        closed: false,
+        eventId: { in: duplicateEventIds },
+      },
+      data: { closed: true },
+    });
+    console.log(`[Jupiter] Closed stale multi-market rows for ${duplicateEventIds.length} event IDs`);
+  }
+
   const activeMarkets = await prisma.predictionMarket.findMany({
     where: { closed: false },
     select: { id: true, eventId: true, question: true },

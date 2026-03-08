@@ -8,10 +8,10 @@ import { useAppStore } from "@/lib/store";
 import { colors } from "@/constants/theme";
 import { fonts, fontSize, letterSpacing } from "@/constants/typography";
 import { PredictionCard } from "./PredictionCard";
+import { getNewsCardBottomPadding } from "./news-card-layout";
 import type { Article } from "@mintfeed/shared";
 
 const IMAGE_HEIGHT_RATIO = 0.28;
-const TAB_BAR_ESTIMATED_HEIGHT = 50;
 
 const NEGATIVE_KEYWORDS = [
   "crash", "drop", "fall", "dump", "panic", "hack", "ban", "plunge",
@@ -100,7 +100,7 @@ export const NewsCard = memo(function NewsCard({ article }: NewsCardProps) {
   const theme = useAppStore((s) => s.theme);
   const themeColors = colors[theme];
   const imageHeight = screenHeight * IMAGE_HEIGHT_RATIO;
-  const bottomPadding = TAB_BAR_ESTIMATED_HEIGHT + safeBottom + 16;
+  const bottomPadding = getNewsCardBottomPadding(safeBottom);
 
   const sentiment = detectSentiment(article.title, article.summary);
   const sentimentColor = getSentimentColor(sentiment, themeColors);

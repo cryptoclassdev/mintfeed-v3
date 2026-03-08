@@ -28,6 +28,19 @@
         "react-native-ai-debugger"
       ],
       "env": {}
+    },
+    "obsidian": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "@mauricio.wolff/mcp-obsidian@latest",
+        "/Users/vaibhavsharma/Documents/Obsidian Vault"
+      ],
+      "env": {}
+    },
+    "supabase": {
+      "type": "http",
+      "url": "https://mcp.supabase.com/mcp"
     }
   }
 }
