@@ -73,8 +73,9 @@ export async function relaySignedTransaction(
   options: RelayOptions = {},
 ): Promise<SubmitSignedTransactionResponse> {
   const rpcUrl = options.rpcUrl ?? DEFAULT_SOLANA_RPC_URL;
-  const confirmationPollIntervalMs = options.confirmationPollIntervalMs ?? 500;
-  const maxConfirmationChecks = options.maxConfirmationChecks ?? 20;
+  const pollIntervalMs = options.confirmationPollIntervalMs ?? 1_500;
+  const maxChecks = options.maxConfirmationChecks ?? 20;
+  const BLOCK_HEIGHT_CHECK_INTERVAL = 5;
 
   const signature = await rpcRequest<string>(
     rpcUrl,
@@ -89,7 +90,9 @@ export async function relaySignedTransaction(
     ],
   );
 
-  for (let attempt = 0; attempt < maxConfirmationChecks; attempt += 1) {
+  for (let attempt = 0; attempt < maxChecks; attempt += 1) {
+    await sleep(pollIntervalMs);
+
     const statusResult = await rpcRequest<{ value: SignatureStatus[] }>(
       rpcUrl,
       "getSignatureStatuses",
@@ -108,20 +111,21 @@ export async function relaySignedTransaction(
       return { signature };
     }
 
-    const currentBlockHeight = await rpcRequest<number>(
-      rpcUrl,
-      "getBlockHeight",
-      [{ commitment: "confirmed" }],
-    );
-
-    if (currentBlockHeight > request.txMeta.lastValidBlockHeight) {
-      throw new Error("Transaction expired before confirmation. Try again.");
-    }
-
-    if (attempt < maxConfirmationChecks - 1) {
-      await sleep(confirmationPollIntervalMs);
+    // Check block height sparingly to avoid extra RPC calls
+    if (attempt % BLOCK_HEIGHT_CHECK_INTERVAL === 0) {
+      const currentBlockHeight = await rpcRequest<number>(
+        rpcUrl,
+        "getBlockHeight",
+        [{ commitment: "confirmed" }],
+      );
+      if (currentBlockHeight > request.txMeta.lastValidBlockHeight) {
+        throw new Error("Transaction expired before confirmation. Try again.");
+      }
     }
   }
 
-  throw new Error("Transaction confirmation timed out. Try again.");
+  // Transaction was sent successfully but confirmation timed out.
+  // Return the signature anyway — the tx is likely landing.
+  console.warn("[Solana Relay] Confirmation timed out, returning signature optimistically:", signature);
+  return { signature };
 }

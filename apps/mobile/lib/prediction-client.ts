@@ -38,7 +38,7 @@ export function createOrder(body: CreateOrderRequest): Promise<CreateOrderRespon
 export function submitSignedTransaction(
   body: SubmitSignedTransactionRequest,
 ): Promise<SubmitSignedTransactionResponse> {
-  return api.post(`${BASE}/transactions/submit`, { json: body }).json();
+  return api.post(`${BASE}/transactions/submit`, { json: body, timeout: 45_000 }).json();
 }
 
 // --- Orders ---
