@@ -28,6 +28,7 @@ import {
   computeLiquiditySpread,
   MINIMUM_TRADE_USD,
 } from "@mintfeed/shared";
+import { buildResolutionRulePreview, formatResolveDateTime } from "./utils";
 
 const STATUS_COLORS = {
   open: "#00ff66",
@@ -49,6 +50,7 @@ export default function MarketSheet() {
 
   const [selectedSide, setSelectedSide] = useState<"yes" | "no">("yes");
   const [amount, setAmount] = useState("");
+  const [showFullRules, setShowFullRules] = useState(false);
 
   const yesPrice = market ? microToUsd(market.pricing.buyYesPriceUsd) : 0;
   const noPrice = market ? microToUsd(market.pricing.buyNoPriceUsd) : 0;
@@ -56,6 +58,10 @@ export default function MarketSheet() {
   const noPercent = Math.round(noPrice * 100);
 
   const tradeValidation = useMemo(() => validateTradeAmount(amount), [amount]);
+  const resolutionPreview = useMemo(
+    () => buildResolutionRulePreview(market?.metadata.rulesPrimary),
+    [market?.metadata.rulesPrimary],
+  );
 
   const estimatedShares = useMemo(() => {
     const usd = parseTradeAmount(amount);
@@ -225,6 +231,40 @@ export default function MarketSheet() {
           <View style={[styles.fullBarNo, { flex: noPercent || 1, backgroundColor: themeColors.negative }]} />
         </View>
 
+        {resolutionPreview.text && (
+          <View
+            style={[
+              styles.resolutionSection,
+              {
+                backgroundColor: themeColors.card,
+                borderColor: themeColors.cardBorder,
+              },
+            ]}
+          >
+            <View style={styles.resolutionHeader}>
+              <Ionicons name="document-text-outline" size={14} color={themeColors.textMuted} />
+              <Text style={[styles.resolutionLabel, { color: themeColors.textMuted }]}>
+                RESOLUTION
+              </Text>
+            </View>
+            <Text style={[styles.resolutionText, { color: themeColors.textSecondary }]}>
+              {showFullRules ? market?.metadata.rulesPrimary?.replace(/\s+/g, " ").trim() : resolutionPreview.text}
+            </Text>
+            {resolutionPreview.truncated && (
+              <Pressable
+                onPress={() => setShowFullRules((value) => !value)}
+                hitSlop={8}
+                accessibilityRole="button"
+                accessibilityLabel={showFullRules ? "Show less resolution criteria" : "Show full resolution criteria"}
+              >
+                <Text style={[styles.resolutionToggle, { color: themeColors.accent }]}>
+                  {showFullRules ? "Read less" : "Read full rules"}
+                </Text>
+              </Pressable>
+            )}
+          </View>
+        )}
+
         {/* TODO: Probability history chart — requires PredictionPriceSnapshot table + cron + new API endpoint */}
 
         {/* Resolution countdown + Volume */}
@@ -237,11 +277,7 @@ export default function MarketSheet() {
                   {formatResolutionCountdown(market.closeTime)}
                 </Text>
                 <Text style={[styles.metaDate, { color: themeColors.textMuted }]}>
-                  {new Date(market.closeTime * 1000).toLocaleDateString("en-US", {
-                    month: "short",
-                    day: "numeric",
-                    year: "numeric",
-                  })}
+                  {formatResolveDateTime(market.closeTime)}
                 </Text>
               </View>
             )}
@@ -445,6 +481,37 @@ const styles = StyleSheet.create({
   },
   fullBarYes: {},
   fullBarNo: {},
+
+  resolutionSection: {
+    borderWidth: 1,
+    borderRadius: 12,
+    borderCurve: "continuous",
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    gap: 8,
+    marginBottom: 20,
+  },
+  resolutionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  resolutionLabel: {
+    fontFamily: fonts.mono.bold,
+    fontSize: fontSize.xxs,
+    letterSpacing: letterSpacing.wide,
+  },
+  resolutionText: {
+    fontFamily: fonts.body.regular,
+    fontSize: fontSize.base,
+    lineHeight: 22,
+  },
+  resolutionToggle: {
+    fontFamily: fonts.mono.regular,
+    fontSize: fontSize.xs,
+    letterSpacing: letterSpacing.wide,
+    textTransform: "uppercase",
+  },
 
   // Meta section (resolution + volume)
   metaSection: {

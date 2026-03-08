@@ -1,6 +1,10 @@
 import { Hono } from "hono";
 import { prisma, Category } from "@mintfeed/db";
-import { DEFAULT_PAGE_SIZE, isBinaryMarket } from "@mintfeed/shared";
+import {
+  DEFAULT_PAGE_SIZE,
+  dedupeArticlesByContent,
+  isBinaryMarket,
+} from "@mintfeed/shared";
 
 export const feedRoutes = new Hono();
 
@@ -61,6 +65,10 @@ function mapArticle(article: ArticleWithPredictions) {
   };
 }
 
+function dedupeMappedArticles<T extends ReturnType<typeof mapArticle>>(articles: T[]): T[] {
+  return dedupeArticlesByContent(articles);
+}
+
 feedRoutes.get("/feed", async (c) => {
   const categoryParam = c.req.query("category") ?? "all";
   const cursor = c.req.query("cursor");
@@ -82,7 +90,7 @@ feedRoutes.get("/feed", async (c) => {
 
     const hasMore = articles.length > limit;
     const raw = hasMore ? articles.slice(0, limit) : articles;
-    const data = raw.map(mapArticle);
+    const data = dedupeMappedArticles(raw.map(mapArticle));
     const nextCursor = hasMore ? data[data.length - 1]?.id ?? null : null;
 
     return c.json({ data, nextCursor, hasMore });
@@ -101,7 +109,7 @@ feedRoutes.get("/feed", async (c) => {
 
       const hasMore = articles.length > limit;
       const raw = hasMore ? articles.slice(0, limit) : articles;
-      const data = raw.map((a) => ({ ...a, predictionMarkets: [] }));
+      const data = dedupeArticlesByContent(raw.map((a) => ({ ...a, predictionMarkets: [] })));
       const nextCursor = hasMore ? data[data.length - 1]?.id ?? null : null;
 
       return c.json({ data, nextCursor, hasMore });

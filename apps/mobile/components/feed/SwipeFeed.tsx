@@ -8,7 +8,7 @@ import { useAppStore } from "@/lib/store";
 import { colors } from "@/constants/theme";
 import { fonts, fontSize } from "@/constants/typography";
 import { NewsCard } from "./NewsCard";
-import type { Article } from "@mintfeed/shared";
+import { dedupeArticlesByContent, type Article } from "@mintfeed/shared";
 
 const PREFETCH_THRESHOLD = 5;
 const RENDER_WINDOW = 4;
@@ -27,13 +27,7 @@ export function SwipeFeed() {
 
   const articles = useMemo(() => {
     const all = data?.pages.flatMap((page) => page.data) ?? EMPTY_ARTICLES;
-    const seen = new Set<string>();
-    return all.filter((article) => {
-      const key = article.title.toLowerCase().replace(/[^a-z0-9]/g, "");
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    });
+    return dedupeArticlesByContent(all);
   }, [data?.pages]);
 
   const articlesRef = useRef(articles);

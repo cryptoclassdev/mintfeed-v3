@@ -2,16 +2,19 @@ import { useRef, useCallback } from "react";
 import { Tabs, usePathname, useRouter } from "expo-router";
 import { View, StyleSheet } from "react-native";
 import { Gesture, GestureDetector, Directions } from "react-native-gesture-handler";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useAppStore } from "@/lib/store";
 import { colors } from "@/constants/theme";
 import { fonts } from "@/constants/typography";
+import { getTabBarHeight } from "@/components/feed/news-card-layout";
 
 const TAB_ORDER = ["/", "/market", "/settings"] as const;
 
 export default function TabLayout() {
   const theme = useAppStore((s) => s.theme);
   const themeColors = colors[theme];
+  const { bottom: safeBottom } = useSafeAreaInsets();
   const router = useRouter();
   const pathname = usePathname();
   const pathnameRef = useRef(pathname);
@@ -55,6 +58,9 @@ export default function TabLayout() {
           borderTopColor: themeColors.border,
           position: "absolute",
           elevation: 0,
+          height: getTabBarHeight(safeBottom),
+          paddingTop: 8,
+          paddingBottom: safeBottom + 8,
         },
         tabBarBackground: () => (
           <View style={[StyleSheet.absoluteFill, { backgroundColor: themeColors.background }]} />
