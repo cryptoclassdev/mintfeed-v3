@@ -4,6 +4,9 @@ import {
   parseTradeAmount,
   isBinaryMarket,
   formatResolutionCountdown,
+  formatCompactVolume,
+  formatCompactDate,
+  computeLiquiditySpread,
 } from "./trade-validation";
 
 describe("validateTradeAmount", () => {
@@ -61,6 +64,41 @@ describe("isBinaryMarket", () => {
     expect(isBinaryMarket(undefined)).toBe(false);
     expect(isBinaryMarket("Yes")).toBe(false);
   });
+
+  it("returns false for multi-outcome markets", () => {
+    expect(isBinaryMarket(["Trump", "Biden", "DeSantis"])).toBe(false);
+    expect(isBinaryMarket(["Option A", "Option B"])).toBe(false);
+  });
+});
+
+describe("filterBinaryMarkets", () => {
+  it("keeps only markets with Yes/No outcomes", () => {
+    const markets = [
+      { id: "1", outcomes: ["Yes", "No"], question: "Binary?" },
+      { id: "2", outcomes: ["Trump", "Biden", "DeSantis"], question: "Who wins?" },
+      { id: "3", outcomes: ["Yes", "No"], question: "Another binary?" },
+    ];
+    const filtered = markets.filter((m) => isBinaryMarket(m.outcomes));
+    expect(filtered).toHaveLength(2);
+    expect(filtered.map((m) => m.id)).toEqual(["1", "3"]);
+  });
+
+  it("returns empty array when no binary markets exist", () => {
+    const markets = [
+      { id: "1", outcomes: ["A", "B", "C"], question: "Multi?" },
+      { id: "2", outcomes: null, question: "Null outcomes?" },
+    ];
+    const filtered = markets.filter((m) => isBinaryMarket(m.outcomes));
+    expect(filtered).toHaveLength(0);
+  });
+
+  it("handles outcomePrices-only check as fallback", () => {
+    const prices = { Yes: 0.73, No: 0.27 };
+    const nonBinaryPrices = { Trump: 0.5, Biden: 0.3, DeSantis: 0.2 };
+    const hasYesNo = (op: Record<string, number>) => "Yes" in op && "No" in op && Object.keys(op).length === 2;
+    expect(hasYesNo(prices)).toBe(true);
+    expect(hasYesNo(nonBinaryPrices)).toBe(false);
+  });
 });
 
 describe("formatResolutionCountdown", () => {
@@ -102,4 +140,31 @@ describe("formatResolutionCountdown", () => {
     const pastTime = Math.floor(Date.now() / 1000) - 3600;
     expect(formatResolutionCountdown(pastTime)).toBe("Resolved");
   });
+});
+
+describe("formatCompactVolume", () => {
+  it("formats millions", () => expect(formatCompactVolume(362_000_000_000_000)).toBe("$362M"));
+  it("formats thousands", () => expect(formatCompactVolume(50_000_000_000)).toBe("$50K"));
+  it("formats small amounts", () => expect(formatCompactVolume(50_000_000)).toBe("$50"));
+  it("returns null for zero", () => expect(formatCompactVolume(0)).toBeNull());
+});
+
+describe("formatCompactDate", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-03-08T12:00:00Z"));
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("formats same-year date without year", () => expect(formatCompactDate("2026-12-31T00:00:00Z")).toBe("Dec 31"));
+  it("formats different-year date with year", () => expect(formatCompactDate("2027-06-15T00:00:00Z")).toBe("Jun 15, 2027"));
+  it("returns null for null input", () => expect(formatCompactDate(null)).toBeNull());
+});
+
+describe("computeLiquiditySpread", () => {
+  it("computes spread in USD", () => expect(computeLiquiditySpread({ buyYesPriceUsd: 730_000, sellYesPriceUsd: 750_000 })).toBeCloseTo(0.02));
+  it("returns 0 for zero prices", () => expect(computeLiquiditySpread({ buyYesPriceUsd: 0, sellYesPriceUsd: 0 })).toBe(0));
 });

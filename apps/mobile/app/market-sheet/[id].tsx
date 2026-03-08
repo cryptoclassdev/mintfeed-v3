@@ -16,10 +16,8 @@ import { useAppStore } from "@/lib/store";
 import { mwaAuthorize } from "@/lib/wallet-adapter";
 import { colors } from "@/constants/theme";
 import { fonts, fontSize, letterSpacing } from "@/constants/typography";
-import { usePredictionMarketDetail, usePredictionOrderbook } from "@/hooks/usePredictionMarket";
+import { usePredictionMarketDetail } from "@/hooks/usePredictionMarket";
 import { useCreateOrder, useTradingStatus } from "@/hooks/usePredictionTrading";
-import { usePredictionOrders } from "@/hooks/usePredictionOrders";
-import { OrderRow } from "@/components/predict/OrderRow";
 import {
   microToUsd,
   usdToMicro,
@@ -27,6 +25,7 @@ import {
   validateTradeAmount,
   parseTradeAmount,
   formatResolutionCountdown,
+  computeLiquiditySpread,
   MINIMUM_TRADE_USD,
 } from "@mintfeed/shared";
 
@@ -45,10 +44,8 @@ export default function MarketSheet() {
   const themeColors = colors[theme];
 
   const { data: market, isLoading: marketLoading } = usePredictionMarketDetail(marketId);
-  const { data: orderbook } = usePredictionOrderbook(marketId);
   const createOrder = useCreateOrder();
   const { data: tradingStatus } = useTradingStatus();
-  const { data: ordersData } = usePredictionOrders(walletAddress ?? undefined);
 
   const [selectedSide, setSelectedSide] = useState<"yes" | "no">("yes");
   const [amount, setAmount] = useState("");
@@ -67,11 +64,6 @@ export default function MarketSheet() {
     if (price <= 0) return 0;
     return Math.floor(usd / price);
   }, [amount, selectedSide, yesPrice, noPrice]);
-
-  const userOrders = useMemo(() => {
-    if (!ordersData?.data || !marketId) return [];
-    return ordersData.data.filter((o) => o.marketId === marketId);
-  }, [ordersData, marketId]);
 
   const handleConnectWallet = useCallback(async () => {
     try {
@@ -111,24 +103,6 @@ export default function MarketSheet() {
     }
   }, [walletAddress, marketId, amount, selectedSide, createOrder]);
 
-  // Orderbook data
-  const orderbookRows = useMemo(() => {
-    if (!orderbook) return [];
-    const yBids = (orderbook.yes_dollars ?? []).slice(0, 5);
-    const nBids = (orderbook.no_dollars ?? []).slice(0, 5);
-    const maxLen = Math.max(yBids.length, nBids.length);
-    const rows: Array<{ yQty: number; yPrice: string; nPrice: string; nQty: number }> = [];
-    for (let i = 0; i < maxLen; i++) {
-      rows.push({
-        yQty: yBids[i]?.[1] ?? 0,
-        yPrice: yBids[i]?.[0] ?? "",
-        nPrice: nBids[i]?.[0] ?? "",
-        nQty: nBids[i]?.[1] ?? 0,
-      });
-    }
-    return rows;
-  }, [orderbook]);
-
   const isTradingPaused = tradingStatus?.trading_active === false;
   const hasAmountInput = amount.length > 0;
   const isAmountInvalid = hasAmountInput && !tradeValidation.valid;
@@ -146,6 +120,8 @@ export default function MarketSheet() {
     return `Buy ${selectedSide.toUpperCase()} \u00B7 ${selectedSide === "yes" ? yesPercent : noPercent}\u00A2`;
   }, [isTradingPaused, hasAmountInput, tradeValidation, selectedSide, yesPercent, noPercent]);
 
+  const isBinary = market && yesPrice > 0 && noPrice > 0;
+
   if (marketLoading) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: themeColors.background }]}>
@@ -156,7 +132,26 @@ export default function MarketSheet() {
     );
   }
 
-  const marketTitle = market?.metadata.title ?? question ?? "Market";
+  if (market && !isBinary) {
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor: themeColors.background }]}>
+        <View style={styles.header}>
+          <Pressable onPress={() => router.back()} hitSlop={12} style={styles.headerButton}>
+            <Ionicons name="close" size={24} color={themeColors.text} />
+          </Pressable>
+          <View style={{ flex: 1 }} />
+        </View>
+        <View style={styles.loadingContainer}>
+          <Ionicons name="alert-circle-outline" size={32} color={themeColors.textMuted} />
+          <Text style={[styles.emptyText, { color: themeColors.textMuted, marginTop: 12 }]}>
+            Market unavailable
+          </Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  const marketTitle = question ?? market?.metadata.title ?? "Market";
   const marketStatus = market?.status ?? "open";
   const statusColor = STATUS_COLORS[marketStatus] ?? STATUS_COLORS.open;
 
@@ -191,13 +186,6 @@ export default function MarketSheet() {
             </Text>
           </View>
         </View>
-
-        {/* Rules section */}
-        {market?.metadata.rulesPrimary ? (
-          <Text style={[styles.rulesText, { color: themeColors.textSecondary }]}>
-            {market.metadata.rulesPrimary}
-          </Text>
-        ) : null}
 
         {/* YES / NO probabilities */}
         <View style={styles.probRow}>
@@ -237,6 +225,8 @@ export default function MarketSheet() {
           <View style={[styles.fullBarNo, { flex: noPercent || 1, backgroundColor: themeColors.negative }]} />
         </View>
 
+        {/* TODO: Probability history chart — requires PredictionPriceSnapshot table + cron + new API endpoint */}
+
         {/* Resolution countdown + Volume */}
         {market && (
           <View style={styles.metaSection}>
@@ -269,44 +259,15 @@ export default function MarketSheet() {
           </View>
         )}
 
-        {/* Orderbook */}
-        {orderbookRows.length > 0 && (
-          <View style={[styles.orderbookSection, { backgroundColor: themeColors.card }]}>
-            <Text style={[styles.sectionTitle, { color: themeColors.textMuted }]}>ORDERBOOK</Text>
-            <View style={styles.orderbookHeader}>
-              <Text style={[styles.obHeaderText, { color: themeColors.positive }]}>YES BIDS</Text>
-              <Text style={[styles.obHeaderText, { color: themeColors.negative, textAlign: "right" }]}>
-                NO BIDS
-              </Text>
-            </View>
-            {orderbookRows.map((row, i) => (
-              <View key={i} style={styles.orderbookRow}>
-                <Text style={[styles.obQty, { color: themeColors.text }]}>{row.yQty || ""}</Text>
-                <Text style={[styles.obPrice, { color: themeColors.positive }]}>{row.yPrice || ""}</Text>
-                <Text style={[styles.obPrice, { color: themeColors.negative }]}>{row.nPrice || ""}</Text>
-                <Text style={[styles.obQty, { color: themeColors.text, textAlign: "right" }]}>
-                  {row.nQty || ""}
-                </Text>
-              </View>
-            ))}
+        {/* Liquidity spread */}
+        {market && yesPrice > 0 && (
+          <View style={styles.spreadRow}>
+            <Text style={[styles.spreadLabel, { color: themeColors.textMuted }]}>SPREAD</Text>
+            <Text style={[styles.spreadValue, { color: themeColors.text }]}>
+              {(computeLiquiditySpread(market.pricing) * 100).toFixed(1)}¢
+            </Text>
           </View>
         )}
-
-        {/* User's previous orders */}
-        <View style={[styles.ordersSection, { backgroundColor: themeColors.card }]}>
-          <Text style={[styles.sectionTitle, { color: themeColors.textMuted }]}>YOUR TRADES</Text>
-          {userOrders.length > 0 ? (
-            <View style={styles.ordersList}>
-              {userOrders.map((order) => (
-                <OrderRow key={order.pubkey} order={order} />
-              ))}
-            </View>
-          ) : (
-            <Text style={[styles.emptyText, { color: themeColors.textFaint }]}>
-              No previous trades
-            </Text>
-          )}
-        </View>
       </ScrollView>
 
       {/* Trade section — pinned to bottom */}
@@ -449,14 +410,6 @@ const styles = StyleSheet.create({
     letterSpacing: letterSpacing.wide,
   },
 
-  // Rules
-  rulesText: {
-    fontFamily: fonts.body.regular,
-    fontSize: fontSize.base,
-    lineHeight: 20,
-    marginBottom: 20,
-  },
-
   // Probability cards
   probRow: {
     flexDirection: "row",
@@ -520,55 +473,31 @@ const styles = StyleSheet.create({
     letterSpacing: letterSpacing.wide,
   },
 
-  // Orderbook
-  orderbookSection: {
-    borderRadius: 12,
-    borderCurve: "continuous",
-    padding: 12,
-    marginBottom: 16,
+  // Liquidity spread
+  spreadRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    marginBottom: 20,
   },
+  spreadLabel: {
+    fontFamily: fonts.mono.regular,
+    fontSize: fontSize.xxs,
+    letterSpacing: letterSpacing.wide,
+  },
+  spreadValue: {
+    fontFamily: fonts.mono.bold,
+    fontSize: fontSize.sm,
+    letterSpacing: letterSpacing.wide,
+  },
+
+  // Section shared
   sectionTitle: {
     fontFamily: fonts.mono.regular,
     fontSize: fontSize.xxs,
     letterSpacing: letterSpacing.wide,
     marginBottom: 8,
-  },
-  orderbookHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 4,
-  },
-  obHeaderText: {
-    fontFamily: fonts.mono.bold,
-    fontSize: 10,
-    letterSpacing: letterSpacing.wide,
-  },
-  orderbookRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingVertical: 2,
-  },
-  obQty: {
-    fontFamily: fonts.mono.regular,
-    fontSize: 11,
-    width: 60,
-  },
-  obPrice: {
-    fontFamily: fonts.mono.regular,
-    fontSize: 11,
-    width: 50,
-    textAlign: "center",
-  },
-
-  // User orders section
-  ordersSection: {
-    borderRadius: 12,
-    borderCurve: "continuous",
-    padding: 12,
-    marginBottom: 16,
-  },
-  ordersList: {
-    gap: 8,
   },
   emptyText: {
     fontFamily: fonts.mono.regular,

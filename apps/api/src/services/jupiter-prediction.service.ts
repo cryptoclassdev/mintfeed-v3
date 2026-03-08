@@ -126,6 +126,9 @@ export async function matchMarketForArticle(
         continue;
       }
 
+      // Only binary events — single-market events are true Yes/No questions
+      if (fullEvent.markets.length !== 1) continue;
+
       for (const market of fullEvent.markets) {
         if (market.status !== "open") continue;
         if (existingIds.has(market.marketId)) continue;
@@ -274,6 +277,15 @@ export async function refreshMarketPrices(): Promise<void> {
       const fresh = await jupiterClient
         .get(`markets/${market.id}`)
         .json<JupiterMarket>();
+
+      // Skip if market lost binary pricing
+      if (!fresh.pricing || fresh.pricing.buyYesPriceUsd <= 0 || fresh.pricing.buyNoPriceUsd <= 0) {
+        await prisma.predictionMarket.update({
+          where: { id: market.id },
+          data: { closed: true },
+        });
+        continue;
+      }
 
       const outcomePrices = buildOutcomePrices(fresh.pricing);
       const hasValidPrices = Object.values(outcomePrices).some((v) => v > 0);

@@ -26,7 +26,11 @@ export const predictionRoutes = new Hono();
 
 predictionRoutes.get("/predictions/markets/:marketId", async (c) => {
   const { marketId } = c.req.param();
-  const data = await jupiter.get(`markets/${marketId}`).json();
+  const data = await jupiter.get(`markets/${marketId}`).json<any>();
+  // Reject non-binary markets
+  if (!data?.pricing || data.pricing.buyYesPriceUsd <= 0 || data.pricing.buyNoPriceUsd <= 0) {
+    return c.json({ error: "Market is not a binary Yes/No market" }, 404);
+  }
   return c.json(data);
 });
 

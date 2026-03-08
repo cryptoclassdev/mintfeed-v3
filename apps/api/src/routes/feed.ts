@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { prisma, Category } from "@mintfeed/db";
-import { DEFAULT_PAGE_SIZE } from "@mintfeed/shared";
+import { DEFAULT_PAGE_SIZE, isBinaryMarket } from "@mintfeed/shared";
 
 export const feedRoutes = new Hono();
 
@@ -27,9 +27,11 @@ const ARTICLE_SELECT_WITH_PREDICTIONS = {
         select: {
           id: true,
           question: true,
+          outcomes: true,
           outcomePrices: true,
           marketUrl: true,
           volume: true,
+          endDate: true,
         },
       },
     },
@@ -45,13 +47,14 @@ function mapArticle(article: ArticleWithPredictions) {
   const seen = new Set<string>();
   const markets = predictionMarkets
     .map((link) => link.predictionMarket)
+    .filter((m) => isBinaryMarket(m.outcomes))
     .sort((a, b) => b.volume - a.volume)
     .filter((m) => {
       if (seen.has(m.question)) return false;
       seen.add(m.question);
       return true;
     })
-    .map(({ volume: _v, ...m }) => m);
+    .map(({ outcomes: _, ...m }) => ({ ...m, endDate: m.endDate?.toISOString() ?? null }));
   return {
     ...rest,
     predictionMarkets: markets,
@@ -125,9 +128,11 @@ feedRoutes.get("/feed/:id", async (c) => {
               select: {
                 id: true,
                 question: true,
+                outcomes: true,
                 outcomePrices: true,
                 marketUrl: true,
                 volume: true,
+                endDate: true,
               },
             },
           },
@@ -143,13 +148,14 @@ feedRoutes.get("/feed/:id", async (c) => {
     const seen = new Set<string>();
     const markets = predictionMarkets
       .map((link) => link.predictionMarket)
+      .filter((m) => isBinaryMarket(m.outcomes))
       .sort((a, b) => b.volume - a.volume)
       .filter((m) => {
         if (seen.has(m.question)) return false;
         seen.add(m.question);
         return true;
       })
-      .map(({ volume: _v, ...m }) => m);
+      .map(({ outcomes: _, ...m }) => ({ ...m, endDate: m.endDate?.toISOString() ?? null }));
     return c.json({
       ...rest,
       predictionMarkets: markets,

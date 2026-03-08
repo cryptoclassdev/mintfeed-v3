@@ -1,4 +1,5 @@
 import { MINIMUM_TRADE_USD } from "./constants";
+import { MICRO_USD } from "./types";
 
 type ValidationError = "BELOW_MINIMUM" | "INVALID_NUMBER";
 
@@ -43,4 +44,29 @@ export function formatResolutionCountdown(closeTimeUnix: number): string {
   if (hours > 0) return `Resolves in ${hours} ${hours === 1 ? "hour" : "hours"}`;
   if (minutes > 0) return `Resolves in ${minutes} min`;
   return "Resolves today";
+}
+
+export function formatCompactVolume(volumeMicroUsd: number): string | null {
+  if (!volumeMicroUsd || volumeMicroUsd <= 0) return null;
+  const usd = volumeMicroUsd / MICRO_USD;
+  if (usd >= 1_000_000) return `$${(usd / 1_000_000).toFixed(1).replace(/\.0$/, "")}M`;
+  if (usd >= 1_000) return `$${(usd / 1_000).toFixed(0)}K`;
+  return `$${usd.toFixed(0)}`;
+}
+
+export function formatCompactDate(isoDate: string | null | undefined): string | null {
+  if (!isoDate) return null;
+  const date = new Date(isoDate);
+  if (isNaN(date.getTime())) return null;
+  const sameYear = date.getFullYear() === new Date().getFullYear();
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    ...(sameYear ? {} : { year: "numeric" }),
+  });
+}
+
+export function computeLiquiditySpread(pricing: { buyYesPriceUsd: number; sellYesPriceUsd: number }): number {
+  if (pricing.buyYesPriceUsd === 0 && pricing.sellYesPriceUsd === 0) return 0;
+  return (pricing.sellYesPriceUsd - pricing.buyYesPriceUsd) / MICRO_USD;
 }

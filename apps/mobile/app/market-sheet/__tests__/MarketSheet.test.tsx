@@ -1,5 +1,3 @@
-import { renderHook } from "@testing-library/react-native";
-import { useMemo } from "react";
 import {
   validateTradeAmount,
   parseTradeAmount,
@@ -20,20 +18,11 @@ jest.mock("@/lib/wallet-adapter", () => ({
 
 jest.mock("@/hooks/usePredictionMarket", () => ({
   usePredictionMarketDetail: jest.fn(() => ({ data: null, isLoading: false })),
-  usePredictionOrderbook: jest.fn(() => ({ data: null })),
 }));
 
 jest.mock("@/hooks/usePredictionTrading", () => ({
   useCreateOrder: jest.fn(() => ({ mutateAsync: jest.fn(), isPending: false })),
   useTradingStatus: jest.fn(() => ({ data: { trading_active: true } })),
-}));
-
-jest.mock("@/hooks/usePredictionOrders", () => ({
-  usePredictionOrders: jest.fn(() => ({ data: null })),
-}));
-
-jest.mock("@/components/predict/OrderRow", () => ({
-  OrderRow: () => null,
 }));
 
 describe("MarketSheet trade validation logic", () => {
@@ -61,29 +50,6 @@ describe("MarketSheet trade validation logic", () => {
 
   it("exports MINIMUM_TRADE_USD constant", () => {
     expect(MINIMUM_TRADE_USD).toBe(1);
-  });
-});
-
-describe("MarketSheet user orders filtering", () => {
-  it("filters orders by marketId", () => {
-    const targetMarketId = "market-123";
-    const orders = [
-      { pubkey: "a", marketId: "market-123", isYes: true, isBuy: true, contracts: "10", priceUsd: "500000", status: "filled", ownerPubkey: "owner1" },
-      { pubkey: "b", marketId: "market-456", isYes: false, isBuy: true, contracts: "5", priceUsd: "300000", status: "open", ownerPubkey: "owner1" },
-      { pubkey: "c", marketId: "market-123", isYes: false, isBuy: false, contracts: "3", priceUsd: "700000", status: "filled", ownerPubkey: "owner1" },
-    ];
-
-    const filtered = orders.filter((o) => o.marketId === targetMarketId);
-    expect(filtered).toHaveLength(2);
-    expect(filtered.every((o) => o.marketId === targetMarketId)).toBe(true);
-  });
-
-  it("returns empty array when no orders match", () => {
-    const orders = [
-      { pubkey: "a", marketId: "market-999", isYes: true, isBuy: true, contracts: "10", priceUsd: "500000", status: "filled", ownerPubkey: "owner1" },
-    ];
-    const filtered = orders.filter((o) => o.marketId === "market-123");
-    expect(filtered).toHaveLength(0);
   });
 });
 

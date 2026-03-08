@@ -5,6 +5,7 @@ import { useAppStore } from "@/lib/store";
 import { colors } from "@/constants/theme";
 import { fonts, fontSize, letterSpacing } from "@/constants/typography";
 import { useLiveMarketPrice } from "@/hooks/useLiveMarketPrice";
+import { formatCompactVolume, formatCompactDate } from "@mintfeed/shared";
 import type { PredictionMarket } from "@mintfeed/shared";
 
 interface PredictionCardProps {
@@ -41,10 +42,16 @@ export const PredictionCard = memo(function PredictionCard({
   const yesPrice = prices["Yes"] ?? 0;
   const noPrice = prices["No"] ?? 0;
   const yesPercent = Math.round(yesPrice * 100);
-  const noPercent = Math.round(noPrice * 100);
   const hasOdds = yesPrice > 0 || noPrice > 0;
   const isResolved = yesPrice >= 0.99 || noPrice >= 0.99;
   const winnerSide = yesPrice >= 0.99 ? "YES" : "NO";
+
+  const parts: string[] = [];
+  const dateStr = formatCompactDate(market.endDate);
+  if (dateStr) parts.push(dateStr);
+  const volStr = formatCompactVolume(market.volume ?? 0);
+  if (volStr) parts.push(volStr);
+  const metaText = parts.join(" \u00B7 ") || null;
 
   if (isResolved) {
     return (
@@ -73,7 +80,7 @@ export const PredictionCard = memo(function PredictionCard({
             <Text style={[styles.resolvedBadge, { color: themeColors.textMuted, backgroundColor: themeColors.trackBg }]}>
               RESOLVED
             </Text>
-            <Text style={[styles.sideText, { color: themeColors.textSecondary }]}>
+            <Text style={[styles.percentText, { color: themeColors.textSecondary }]}>
               {winnerSide} won
             </Text>
           </View>
@@ -81,6 +88,8 @@ export const PredictionCard = memo(function PredictionCard({
       </View>
     );
   }
+
+  const accessLabel = `${market.question}, ${yesPercent} percent chance${dateStr ? `, resolves ${dateStr}` : ""}`;
 
   return (
     <Pressable
@@ -97,7 +106,7 @@ export const PredictionCard = memo(function PredictionCard({
         params: { question: market.question },
       })}
       accessibilityRole="button"
-      accessibilityLabel={`${market.question}, Yes at ${yesPercent} percent, No at ${noPercent} percent`}
+      accessibilityLabel={accessLabel}
       accessibilityHint="Opens prediction market details"
     >
       {/* Mint accent stripe */}
@@ -114,11 +123,11 @@ export const PredictionCard = memo(function PredictionCard({
           {market.question}
         </Text>
 
-        {/* YES price | bar | NO price */}
+        {/* Probability % | bar | meta (date · volume) */}
         {hasOdds && (
           <View style={styles.oddsRow}>
-            <Text style={[styles.sideText, { color: themeColors.positive }]}>
-              YES {yesPercent}¢
+            <Text style={[styles.percentText, { color: themeColors.positive }]}>
+              {yesPercent}%
             </Text>
             <View style={[styles.barTrack, { backgroundColor: themeColors.trackBg }]}>
               <View
@@ -130,19 +139,13 @@ export const PredictionCard = memo(function PredictionCard({
                   },
                 ]}
               />
-              <View
-                style={[
-                  styles.barNo,
-                  {
-                    flex: noPercent || 1,
-                    backgroundColor: themeColors.negative,
-                  },
-                ]}
-              />
+              <View style={{ flex: (100 - yesPercent) || 1 }} />
             </View>
-            <Text style={[styles.sideText, { color: themeColors.negative, textAlign: "right" }]}>
-              NO {noPercent}¢
-            </Text>
+            {metaText && (
+              <Text style={[styles.metaText, { color: themeColors.textMuted }]}>
+                {metaText}
+              </Text>
+            )}
           </View>
         )}
       </View>
@@ -180,11 +183,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 8,
   },
-  sideText: {
+  percentText: {
     fontFamily: fonts.mono.bold,
     fontSize: 10,
     letterSpacing: letterSpacing.wide,
-    minWidth: 46,
+    minWidth: 30,
   },
   barTrack: {
     flex: 1,
@@ -192,15 +195,16 @@ const styles = StyleSheet.create({
     borderRadius: 2,
     overflow: "hidden",
     flexDirection: "row",
-    gap: 1,
   },
   barYes: {
     height: "100%",
     borderRadius: 2,
   },
-  barNo: {
-    height: "100%",
-    borderRadius: 2,
+  metaText: {
+    fontFamily: fonts.mono.regular,
+    fontSize: 9,
+    letterSpacing: letterSpacing.wide,
+    textAlign: "right",
   },
   resolvedBadge: {
     fontFamily: fonts.mono.bold,
