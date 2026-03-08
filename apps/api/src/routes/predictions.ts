@@ -1,5 +1,7 @@
 import { Hono } from "hono";
 import ky, { HTTPError } from "ky";
+import type { SubmitSignedTransactionRequest } from "@mintfeed/shared";
+import { relaySignedTransaction } from "../services/solana-relay.service";
 
 const JUPITER_API_URL = "https://api.jup.ag/prediction/v1";
 
@@ -74,6 +76,18 @@ predictionRoutes.get("/predictions/orders", async (c) => {
   const params = Object.fromEntries(new URL(c.req.url).searchParams);
   const data = await jupiter.get("orders", { searchParams: params }).json();
   return c.json(data);
+});
+
+predictionRoutes.post("/predictions/transactions/submit", async (c) => {
+  try {
+    const body = await c.req.json<SubmitSignedTransactionRequest>();
+    const result = await relaySignedTransaction(body);
+    return c.json(result);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Transaction broadcast failed. Try again.";
+    console.error("[Solana Relay]", message);
+    return c.json({ message }, 502);
+  }
 });
 
 // --- Positions ---

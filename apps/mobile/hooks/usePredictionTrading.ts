@@ -2,11 +2,15 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   fetchTradingStatus,
   createOrder,
+  submitSignedTransaction,
   closePosition,
   closeAllPositions,
   claimPosition,
 } from "@/lib/prediction-client";
-import { mwaSignAndSend } from "@/lib/wallet-adapter";
+import {
+  isWalletTransactionError,
+  mwaSignTransaction,
+} from "@/lib/wallet-adapter";
 import { useAppStore } from "@/lib/store";
 import type {
   CreateOrderRequest,
@@ -16,6 +20,57 @@ import type {
 } from "@mintfeed/shared";
 
 const TRADING_STATUS_REFETCH_INTERVAL_MS = 30_000;
+
+export function toWalletActionError(error: unknown, disconnectWallet: () => void): Error {
+  if (isWalletTransactionError(error)) {
+    if (
+      error.code === "WALLET_SESSION_EXPIRED"
+      || error.code === "WALLET_ACCOUNT_MISMATCH"
+    ) {
+      disconnectWallet();
+    }
+    return new Error(error.message);
+  }
+
+  const message = error instanceof Error ? error.message : String(error);
+  return new Error(`Wallet signing failed: ${message}`);
+}
+
+export async function toRelayActionError(error: unknown): Promise<Error> {
+  const httpErr = error as { response?: { json?: () => Promise<Record<string, string>> }; message?: string };
+  const body = await httpErr?.response?.json?.().catch(() => null);
+  const message = body?.message ?? httpErr?.message ?? "Transaction broadcast failed. Try again.";
+  return new Error(message);
+}
+
+async function signAndRelayTransaction(
+  unsignedTransaction: string,
+  txMeta: CreateOrderResponse["txMeta"] | ClaimPositionResponse["txMeta"],
+  walletAuthToken: string,
+  walletAddress: string,
+  connectWallet: (address: string, authToken: string) => void,
+): Promise<{ signature: string; authToken: string }> {
+  const signed = await mwaSignTransaction(
+    unsignedTransaction,
+    walletAuthToken,
+    txMeta,
+    walletAddress,
+  );
+
+  if (signed.authToken !== walletAuthToken) {
+    connectWallet(walletAddress, signed.authToken);
+  }
+
+  const result = await submitSignedTransaction({
+    signedTransaction: signed.signedTransaction,
+    txMeta,
+  });
+
+  return {
+    signature: result.signature,
+    authToken: signed.authToken,
+  };
+}
 
 export function useTradingStatus() {
   return useQuery<TradingStatus>({
@@ -30,6 +85,7 @@ export function useCreateOrder() {
   const walletAddress = useAppStore((s) => s.walletAddress);
   const walletAuthToken = useAppStore((s) => s.walletAuthToken);
   const connectWallet = useAppStore((s) => s.connectWallet);
+  const disconnectWallet = useAppStore((s) => s.disconnectWallet);
 
   return useMutation<string, Error, CreateOrderRequest>({
     mutationFn: async (request) => {
@@ -59,16 +115,22 @@ export function useCreateOrder() {
       }));
 
       try {
-        const result = await mwaSignAndSend(response.transaction, walletAuthToken);
-        if (result.authToken !== walletAuthToken) {
-          connectWallet(walletAddress, result.authToken);
-        }
+        const result = await signAndRelayTransaction(
+          response.transaction,
+          response.txMeta,
+          walletAuthToken,
+          walletAddress,
+          connectWallet,
+        );
         if (__DEV__) console.log("[createOrder] TX signature:", result.signature);
         return result.signature;
       } catch (err: unknown) {
-        const msg = err instanceof Error ? err.message : String(err);
-        if (__DEV__) console.error("[createOrder] MWA sign/send failed:", msg);
-        throw new Error(`Wallet signing failed: ${msg}`);
+        if (isWalletTransactionError(err)) {
+          if (__DEV__) console.error("[createOrder] MWA sign failed:", err);
+          throw toWalletActionError(err, disconnectWallet);
+        }
+        if (__DEV__) console.error("[createOrder] Relay failed:", err);
+        throw await toRelayActionError(err);
       }
     },
     onSuccess: () => {
@@ -85,6 +147,7 @@ export function useClosePosition() {
   const walletAddress = useAppStore((s) => s.walletAddress);
   const walletAuthToken = useAppStore((s) => s.walletAuthToken);
   const connectWallet = useAppStore((s) => s.connectWallet);
+  const disconnectWallet = useAppStore((s) => s.disconnectWallet);
 
   return useMutation<
     string,
@@ -92,18 +155,28 @@ export function useClosePosition() {
     { positionPubkey: string; ownerPubkey: string }
   >({
     mutationFn: async ({ positionPubkey, ownerPubkey }) => {
-      if (!walletAuthToken || !walletAddress) {
-        throw new Error("Wallet not connected");
+      try {
+        if (!walletAuthToken || !walletAddress) {
+          throw new Error("Wallet not connected");
+        }
+        const response: CreateOrderResponse = await closePosition(
+          positionPubkey,
+          ownerPubkey,
+        );
+        const result = await signAndRelayTransaction(
+          response.transaction,
+          response.txMeta,
+          walletAuthToken,
+          walletAddress,
+          connectWallet,
+        );
+        return result.signature;
+      } catch (error) {
+        if (isWalletTransactionError(error)) {
+          throw toWalletActionError(error, disconnectWallet);
+        }
+        throw await toRelayActionError(error);
       }
-      const response: CreateOrderResponse = await closePosition(
-        positionPubkey,
-        ownerPubkey,
-      );
-      const result = await mwaSignAndSend(response.transaction, walletAuthToken);
-      if (result.authToken !== walletAuthToken) {
-        connectWallet(walletAddress, result.authToken);
-      }
-      return result.signature;
     },
     onSuccess: () => {
       if (walletAddress) {
@@ -119,6 +192,7 @@ export function useCloseAllPositions() {
   const walletAddress = useAppStore((s) => s.walletAddress);
   const walletAuthToken = useAppStore((s) => s.walletAuthToken);
   const connectWallet = useAppStore((s) => s.connectWallet);
+  const disconnectWallet = useAppStore((s) => s.disconnectWallet);
 
   return useMutation<string[], Error, { ownerPubkey: string }>({
     mutationFn: async ({ ownerPubkey }) => {
@@ -127,15 +201,25 @@ export function useCloseAllPositions() {
       }
       const responses: CreateOrderResponse[] =
         await closeAllPositions(ownerPubkey);
-      let currentToken = walletAuthToken;
       const signatures: string[] = [];
-      for (const r of responses) {
-        const result = await mwaSignAndSend(r.transaction, currentToken);
-        currentToken = result.authToken;
-        signatures.push(result.signature);
-      }
-      if (currentToken !== walletAuthToken) {
-        connectWallet(walletAddress, currentToken);
+      let currentAuthToken = walletAuthToken;
+      try {
+        for (const r of responses) {
+          const result = await signAndRelayTransaction(
+            r.transaction,
+            r.txMeta,
+            currentAuthToken,
+            walletAddress,
+            connectWallet,
+          );
+          currentAuthToken = result.authToken;
+          signatures.push(result.signature);
+        }
+      } catch (error) {
+        if (isWalletTransactionError(error)) {
+          throw toWalletActionError(error, disconnectWallet);
+        }
+        throw await toRelayActionError(error);
       }
       return signatures;
     },
@@ -153,6 +237,7 @@ export function useClaimPosition() {
   const walletAddress = useAppStore((s) => s.walletAddress);
   const walletAuthToken = useAppStore((s) => s.walletAuthToken);
   const connectWallet = useAppStore((s) => s.connectWallet);
+  const disconnectWallet = useAppStore((s) => s.disconnectWallet);
 
   return useMutation<
     string,
@@ -160,18 +245,28 @@ export function useClaimPosition() {
     { positionPubkey: string; ownerPubkey: string }
   >({
     mutationFn: async ({ positionPubkey, ownerPubkey }) => {
-      if (!walletAuthToken || !walletAddress) {
-        throw new Error("Wallet not connected");
+      try {
+        if (!walletAuthToken || !walletAddress) {
+          throw new Error("Wallet not connected");
+        }
+        const response: ClaimPositionResponse = await claimPosition(
+          positionPubkey,
+          ownerPubkey,
+        );
+        const result = await signAndRelayTransaction(
+          response.transaction,
+          response.txMeta,
+          walletAuthToken,
+          walletAddress,
+          connectWallet,
+        );
+        return result.signature;
+      } catch (error) {
+        if (isWalletTransactionError(error)) {
+          throw toWalletActionError(error, disconnectWallet);
+        }
+        throw await toRelayActionError(error);
       }
-      const response: ClaimPositionResponse = await claimPosition(
-        positionPubkey,
-        ownerPubkey,
-      );
-      const result = await mwaSignAndSend(response.transaction, walletAuthToken);
-      if (result.authToken !== walletAuthToken) {
-        connectWallet(walletAddress, result.authToken);
-      }
-      return result.signature;
     },
     onSuccess: () => {
       if (walletAddress) {

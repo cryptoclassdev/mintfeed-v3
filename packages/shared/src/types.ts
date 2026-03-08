@@ -140,6 +140,18 @@ export interface ClaimPositionResponse {
   };
 }
 
+export interface SubmitSignedTransactionRequest {
+  signedTransaction: string;
+  txMeta: {
+    blockhash: string;
+    lastValidBlockHeight: number;
+  };
+}
+
+export interface SubmitSignedTransactionResponse {
+  signature: string;
+}
+
 export interface PredictionPosition {
   pubkey: string;
   ownerPubkey: string;

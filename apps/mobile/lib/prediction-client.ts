@@ -6,6 +6,8 @@ import type {
   CreateOrderRequest,
   CreateOrderResponse,
   ClaimPositionResponse,
+  SubmitSignedTransactionRequest,
+  SubmitSignedTransactionResponse,
   PredictionOrder,
   PredictionPosition,
   JupiterPaginatedResponse,
@@ -31,6 +33,12 @@ export function fetchTradingStatus(): Promise<TradingStatus> {
 
 export function createOrder(body: CreateOrderRequest): Promise<CreateOrderResponse> {
   return api.post(`${BASE}/orders`, { json: body }).json();
+}
+
+export function submitSignedTransaction(
+  body: SubmitSignedTransactionRequest,
+): Promise<SubmitSignedTransactionResponse> {
+  return api.post(`${BASE}/transactions/submit`, { json: body }).json();
 }
 
 // --- Orders ---

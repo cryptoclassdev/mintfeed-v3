@@ -3,7 +3,7 @@
     "name": "Midnight",
     "slug": "midnight",
     "version": "1.0.0",
-    "scheme": "mintfeed",
+    "scheme": "midnight",
     "orientation": "portrait",
     "icon": "./assets/adaptive-icon.png",
     "userInterfaceStyle": "automatic",
@@ -29,7 +29,7 @@
           "autoVerify": true,
           "data": [
             {
-              "scheme": "mintfeed"
+              "scheme": "midnight"
             }
           ],
           "category": [

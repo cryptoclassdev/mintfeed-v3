@@ -8,5 +8,5 @@ module.exports = {
     "^@/(.*)$": "<rootDir>/$1",
     "^@mintfeed/shared$": "<rootDir>/../../packages/shared/src",
   },
-  setupFilesAfterSetup: ["./jest.setup.ts"],
+  setupFilesAfterEnv: ["./jest.setup.ts"],
 };
