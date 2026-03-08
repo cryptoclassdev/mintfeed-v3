@@ -11,7 +11,7 @@ interface ValidationResult {
 export function validateTradeAmount(amountStr: string): ValidationResult {
   const parsed = parseTradeAmount(amountStr);
   if (parsed === null) return { valid: false, error: "INVALID_NUMBER" };
-  if (parsed < MINIMUM_TRADE_USD) return { valid: false, error: "BELOW_MINIMUM" };
+  if (parsed <= MINIMUM_TRADE_USD) return { valid: false, error: "BELOW_MINIMUM" };
   return { valid: true };
 }
 

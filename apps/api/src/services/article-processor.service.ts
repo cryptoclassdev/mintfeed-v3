@@ -12,8 +12,19 @@ function truncateToWordLimit(text: string, limit: number = ARTICLE_SUMMARY_WORD_
   return words.slice(0, limit).join(" ");
 }
 
+function normalizeUrl(url: string): string {
+  try {
+    const parsed = new URL(url);
+    parsed.search = "";
+    parsed.hash = "";
+    return parsed.toString().replace(/\/+$/, "");
+  } catch {
+    return url;
+  }
+}
+
 function hashUrl(url: string): string {
-  return createHash("sha256").update(url).digest("hex");
+  return createHash("sha256").update(normalizeUrl(url)).digest("hex");
 }
 
 function normalizeTitle(title: string): string {
@@ -56,7 +67,7 @@ async function processItem(item: ParsedFeedItem): Promise<void> {
     data: {
       sourceUrl: item.link,
       sourceUrlHash,
-      titleHash: hashTitle(title),
+      titleHash: hashTitle(item.title),
       sourceName: item.sourceName,
       category: item.category,
       originalTitle: item.title,
@@ -74,6 +85,8 @@ async function processItem(item: ParsedFeedItem): Promise<void> {
     console.error(`[ArticleProcessor] Market matching failed for "${item.title.slice(0, 40)}":`, err);
   });
 }
+
+export { normalizeUrl, hashUrl, normalizeTitle, hashTitle };
 
 export async function processArticles(): Promise<void> {
   console.log("[ArticleProcessor] Starting feed processing...");

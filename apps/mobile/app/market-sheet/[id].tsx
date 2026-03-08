@@ -7,13 +7,12 @@ import {
   TextInput,
   ScrollView,
   ActivityIndicator,
-  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { useMobileWallet } from "@wallet-ui/react-native-web3js";
 import { useAppStore } from "@/lib/store";
-import { mwaAuthorize } from "@/lib/wallet-adapter";
 import { colors } from "@/constants/theme";
 import { fonts, fontSize, letterSpacing } from "@/constants/typography";
 import { usePredictionMarketDetail } from "@/hooks/usePredictionMarket";
@@ -28,6 +27,7 @@ import {
   computeLiquiditySpread,
   MINIMUM_TRADE_USD,
 } from "@mintfeed/shared";
+import { showToast } from "@/lib/toast";
 import { buildResolutionRulePreview, formatResolveDateTime } from "./utils";
 
 const STATUS_COLORS = {
@@ -40,8 +40,8 @@ export default function MarketSheet() {
   const { id: marketId, question } = useLocalSearchParams<{ id: string; question?: string }>();
   const router = useRouter();
   const theme = useAppStore((s) => s.theme);
-  const walletAddress = useAppStore((s) => s.walletAddress);
-  const connectWallet = useAppStore((s) => s.connectWallet);
+  const { account, connect } = useMobileWallet();
+  const walletAddress = account?.address.toString() ?? null;
   const themeColors = colors[theme];
 
   const { data: market, isLoading: marketLoading } = usePredictionMarketDetail(marketId);
@@ -73,21 +73,22 @@ export default function MarketSheet() {
 
   const handleConnectWallet = useCallback(async () => {
     try {
-      const { address, authToken } = await mwaAuthorize();
-      connectWallet(address, authToken);
+      await connect();
+      showToast("success", "Wallet Connected");
     } catch (err) {
-      Alert.alert("Wallet Error", String(err));
+      const msg = err instanceof Error ? err.message : "Connection failed";
+      showToast("error", "Connection Failed", msg);
     }
-  }, [connectWallet]);
+  }, [connect]);
 
   const handlePlaceBet = useCallback(async () => {
     if (!walletAddress || !marketId) return;
     const validation = validateTradeAmount(amount);
     if (!validation.valid) {
       const msg = validation.error === "BELOW_MINIMUM"
-        ? `Minimum bet: $${MINIMUM_TRADE_USD.toFixed(2)}`
+        ? `Minimum bet: >$${MINIMUM_TRADE_USD.toFixed(2)}`
         : "Enter a valid amount.";
-      Alert.alert("Invalid amount", msg);
+      showToast("error", "Invalid amount", msg);
       return;
     }
 
@@ -101,11 +102,11 @@ export default function MarketSheet() {
         depositAmount: usdToMicro(usd),
         depositMint: USDC_MINT,
       });
-      Alert.alert("Bet Placed", `Your ${selectedSide.toUpperCase()} bet was submitted.`);
+      showToast("success", "Bet Placed", `Your ${selectedSide.toUpperCase()} bet was submitted.`);
       setAmount("");
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
-      Alert.alert("Trade Failed", message);
+      showToast("error", "Trade Failed", message);
     }
   }, [walletAddress, marketId, amount, selectedSide, createOrder]);
 
@@ -118,10 +119,10 @@ export default function MarketSheet() {
   const buyButtonText = useMemo(() => {
     if (isTradingPaused) return "Trading Paused";
     if (!hasAmountInput || tradeValidation.error === "INVALID_NUMBER") {
-      return `Enter $${MINIMUM_TRADE_USD}+ to bet`;
+      return `Enter >$${MINIMUM_TRADE_USD} to bet`;
     }
     if (tradeValidation.error === "BELOW_MINIMUM") {
-      return `Enter $${MINIMUM_TRADE_USD}+ to bet`;
+      return `Enter >$${MINIMUM_TRADE_USD} to bet`;
     }
     return `Buy ${selectedSide.toUpperCase()} \u00B7 ${selectedSide === "yes" ? yesPercent : noPercent}\u00A2`;
   }, [isTradingPaused, hasAmountInput, tradeValidation, selectedSide, yesPercent, noPercent]);
@@ -344,13 +345,13 @@ export default function MarketSheet() {
             {/* Validation error */}
             {isAmountInvalid && tradeValidation.error === "BELOW_MINIMUM" && (
               <Text style={[styles.errorText, { color: themeColors.negative }]}>
-                Minimum bet: ${MINIMUM_TRADE_USD.toFixed(2)}
+                Minimum bet: {'>'}${MINIMUM_TRADE_USD.toFixed(2)}
               </Text>
             )}
 
             {/* Persistent hint */}
             <Text style={[styles.hintText, { color: themeColors.textMuted }]}>
-              Min. bet: ${MINIMUM_TRADE_USD.toFixed(2)} USDC
+              Min. bet: {'>'}${MINIMUM_TRADE_USD.toFixed(2)} USDC
             </Text>
 
             {estimatedShares > 0 && (
@@ -393,6 +394,7 @@ export default function MarketSheet() {
           </Pressable>
         )}
       </View>
+
     </SafeAreaView>
   );
 }
@@ -429,7 +431,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   marketTitle: {
-    fontFamily: fonts.display.regular,
+    fontFamily: fonts.brand.bold,
     fontSize: fontSize.xl,
     lineHeight: 30,
   },

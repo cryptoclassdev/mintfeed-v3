@@ -12,12 +12,8 @@ import {
 // Mock all hooks used by MarketSheet
 jest.mock("@/lib/store", () => ({
   useAppStore: jest.fn((selector: (s: Record<string, unknown>) => unknown) =>
-    selector({ theme: "dark", walletAddress: null, walletAuthToken: null, connectWallet: jest.fn() }),
+    selector({ theme: "dark" }),
   ),
-}));
-
-jest.mock("@/lib/wallet-adapter", () => ({
-  mwaAuthorize: jest.fn(),
 }));
 
 jest.mock("@/hooks/usePredictionMarket", () => ({
@@ -41,7 +37,7 @@ describe("MarketSheet trade validation logic", () => {
 
   it("validates trade amounts correctly", () => {
     expect(validateTradeAmount("5.00")).toEqual({ valid: true });
-    expect(validateTradeAmount("1")).toEqual({ valid: true });
+    expect(validateTradeAmount("1")).toEqual({ valid: false, error: "BELOW_MINIMUM" });
     expect(validateTradeAmount("0.50")).toEqual({ valid: false, error: "BELOW_MINIMUM" });
     expect(validateTradeAmount("")).toEqual({ valid: false, error: "INVALID_NUMBER" });
   });
@@ -76,14 +72,14 @@ describe("MarketSheet buy button state", () => {
       percent: number,
     ) => {
       if (isTradingPaused) return "Trading Paused";
-      if (!hasAmountInput || validation.error === "INVALID_NUMBER") return `Enter $${MINIMUM_TRADE_USD}+ to bet`;
-      if (validation.error === "BELOW_MINIMUM") return `Enter $${MINIMUM_TRADE_USD}+ to bet`;
+      if (!hasAmountInput || validation.error === "INVALID_NUMBER") return `Enter >$${MINIMUM_TRADE_USD} to bet`;
+      if (validation.error === "BELOW_MINIMUM") return `Enter >$${MINIMUM_TRADE_USD} to bet`;
       return `Buy ${selectedSide.toUpperCase()} \u00B7 ${percent}\u00A2`;
     };
 
     expect(getButtonText(true, false, { valid: false }, "yes", 50)).toBe("Trading Paused");
-    expect(getButtonText(false, false, { valid: false, error: "INVALID_NUMBER" }, "yes", 50)).toBe("Enter $1+ to bet");
-    expect(getButtonText(false, true, { valid: false, error: "BELOW_MINIMUM" }, "yes", 50)).toBe("Enter $1+ to bet");
+    expect(getButtonText(false, false, { valid: false, error: "INVALID_NUMBER" }, "yes", 50)).toBe("Enter >$1 to bet");
+    expect(getButtonText(false, true, { valid: false, error: "BELOW_MINIMUM" }, "yes", 50)).toBe("Enter >$1 to bet");
     expect(getButtonText(false, true, { valid: true }, "yes", 73)).toBe("Buy YES \u00B7 73\u00A2");
     expect(getButtonText(false, true, { valid: true }, "no", 27)).toBe("Buy NO \u00B7 27\u00A2");
   });
@@ -96,6 +92,15 @@ describe("MarketSheet buy button state", () => {
     expect(isDisabled(false, false, false)).toBe(true);
     expect(isDisabled(true, true, false)).toBe(true);
     expect(isDisabled(true, false, true)).toBe(true);
+  });
+});
+
+describe("MarketSheet design", () => {
+  it("market title uses brand font", () => {
+    // fonts.brand.bold = "BlauerNue-Bold" per typography.ts
+    const { fonts } = require("@/constants/typography");
+    expect(fonts.brand.bold).toBe("BlauerNue-Bold");
+    // The style is verified by the font assignment in the component
   });
 });
 

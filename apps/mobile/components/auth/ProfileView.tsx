@@ -1,10 +1,18 @@
 import { useState } from "react";
-import { View, Text, Pressable, StyleSheet, ActivityIndicator } from "react-native";
+import {
+  View,
+  Text,
+  Pressable,
+  StyleSheet,
+  ActivityIndicator,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useMobileWallet } from "@wallet-ui/react-native-web3js";
 import { colors } from "@/constants/theme";
 import { fonts, fontSize, letterSpacing } from "@/constants/typography";
 import { useAppStore } from "@/lib/store";
 import { formatSolanaAddress } from "@/lib/solana";
+import { useSkrDomain } from "@/hooks/useSkrDomain";
 import { usePredictionPositions } from "@/hooks/usePredictionPositions";
 import { usePredictionOrders } from "@/hooks/usePredictionOrders";
 import { PositionCard } from "@/components/predict/PositionCard";
@@ -14,9 +22,10 @@ import { microToUsd } from "@mintfeed/shared";
 export default function ProfileView() {
   const theme = useAppStore((s) => s.theme);
   const themeColors = colors[theme];
-  const walletAddress = useAppStore((s) => s.walletAddress);
-  const disconnectWallet = useAppStore((s) => s.disconnectWallet);
+  const { account, disconnect } = useMobileWallet();
+  const walletAddress = account?.address.toString() ?? null;
 
+  const { data: skrDomain } = useSkrDomain(walletAddress);
   const { data: positionsData, isLoading: positionsLoading } =
     usePredictionPositions(walletAddress ?? undefined);
   const { data: ordersData, isLoading: ordersLoading } =
@@ -32,15 +41,20 @@ export default function ProfileView() {
     (p) => p.market?.status === "closed" || p.market?.status === "cancelled",
   );
 
-  const displayName = walletAddress
-    ? formatSolanaAddress(walletAddress)
-    : "User";
+  const displayName = skrDomain
+    ? `${skrDomain}.skr`
+    : walletAddress
+      ? formatSolanaAddress(walletAddress)
+      : "User";
 
   const totalValue = openPositions.reduce(
     (sum, p) => sum + microToUsd(p.costBasisUsd) + microToUsd(p.pnlUsd),
     0,
   );
-  const totalPnl = openPositions.reduce((sum, p) => sum + microToUsd(p.pnlUsd), 0);
+  const totalPnl = openPositions.reduce(
+    (sum, p) => sum + microToUsd(p.pnlUsd),
+    0,
+  );
   const hasPositions = openPositions.length > 0;
   const hasHistory = orders.length > 0 || closedPositions.length > 0;
   const [showHistory, setShowHistory] = useState(false);
@@ -64,13 +78,22 @@ export default function ProfileView() {
           ]}
         >
           <View style={styles.walletRow}>
-            <Ionicons name="wallet-outline" size={18} color={themeColors.accentMint} />
+            <Ionicons
+              name="wallet-outline"
+              size={18}
+              color={themeColors.accentMint}
+            />
             <View>
               <Text style={[styles.rowLabel, { color: themeColors.text }]}>
                 {displayName}
               </Text>
               {walletAddress && (
-                <Text style={[styles.walletFull, { color: themeColors.textMuted }]}>
+                <Text
+                  style={[
+                    styles.walletFull,
+                    { color: themeColors.textMuted },
+                  ]}
+                >
                   {walletAddress}
                 </Text>
               )}
@@ -99,18 +122,33 @@ export default function ProfileView() {
             ]}
           >
             <View style={styles.summaryItem}>
-              <Text style={[styles.summaryLabel, { color: themeColors.textMuted }]}>
+              <Text
+                style={[
+                  styles.summaryLabel,
+                  { color: themeColors.textMuted },
+                ]}
+              >
                 TOTAL VALUE
               </Text>
-              <Text style={[styles.summaryValue, { color: themeColors.text }]}>
+              <Text
+                style={[styles.summaryValue, { color: themeColors.text }]}
+              >
                 ${totalValue.toFixed(2)}
               </Text>
             </View>
             <View
-              style={[styles.summaryDivider, { backgroundColor: themeColors.border }]}
+              style={[
+                styles.summaryDivider,
+                { backgroundColor: themeColors.border },
+              ]}
             />
             <View style={styles.summaryItem}>
-              <Text style={[styles.summaryLabel, { color: themeColors.textMuted }]}>
+              <Text
+                style={[
+                  styles.summaryLabel,
+                  { color: themeColors.textMuted },
+                ]}
+              >
                 TOTAL P&L
               </Text>
               <Text
@@ -128,13 +166,23 @@ export default function ProfileView() {
               </Text>
             </View>
             <View
-              style={[styles.summaryDivider, { backgroundColor: themeColors.border }]}
+              style={[
+                styles.summaryDivider,
+                { backgroundColor: themeColors.border },
+              ]}
             />
             <View style={styles.summaryItem}>
-              <Text style={[styles.summaryLabel, { color: themeColors.textMuted }]}>
+              <Text
+                style={[
+                  styles.summaryLabel,
+                  { color: themeColors.textMuted },
+                ]}
+              >
                 ACTIVE
               </Text>
-              <Text style={[styles.summaryValue, { color: themeColors.text }]}>
+              <Text
+                style={[styles.summaryValue, { color: themeColors.text }]}
+              >
                 {openPositions.length}
               </Text>
             </View>
@@ -168,9 +216,13 @@ export default function ProfileView() {
               No open positions
             </Text>
             <Text
-              style={[styles.emptySubtitle, { color: themeColors.textFaint }]}
+              style={[
+                styles.emptySubtitle,
+                { color: themeColors.textFaint },
+              ]}
             >
-              Bet on prediction markets from the feed to see your positions here.
+              Bet on prediction markets from the feed to see your positions
+              here.
             </Text>
           </View>
         )}
@@ -191,9 +243,15 @@ export default function ProfileView() {
           accessibilityLabel={showHistory ? "Hide history" : "Show history"}
         >
           <Text
-            style={[styles.sectionTitle, { color: themeColors.textMuted, marginBottom: 0 }]}
+            style={[
+              styles.sectionTitle,
+              { color: themeColors.textMuted, marginBottom: 0 },
+            ]}
           >
-            HISTORY{hasHistory ? ` (${orders.length + closedPositions.length})` : ""}
+            HISTORY
+            {hasHistory
+              ? ` (${orders.length + closedPositions.length})`
+              : ""}
           </Text>
           <Ionicons
             name={showHistory ? "chevron-up" : "chevron-down"}
@@ -206,7 +264,10 @@ export default function ProfileView() {
           <>
             {(ordersLoading || positionsLoading) && (
               <View style={styles.loadingRow}>
-                <ActivityIndicator size="small" color={themeColors.accent} />
+                <ActivityIndicator
+                  size="small"
+                  color={themeColors.accent}
+                />
               </View>
             )}
 
@@ -221,7 +282,10 @@ export default function ProfileView() {
                 ]}
               >
                 <Text
-                  style={[styles.emptyTitle, { color: themeColors.textMuted }]}
+                  style={[
+                    styles.emptyTitle,
+                    { color: themeColors.textMuted },
+                  ]}
                 >
                   No trades yet
                 </Text>
@@ -231,13 +295,21 @@ export default function ProfileView() {
             {closedPositions.length > 0 && (
               <View style={styles.positionsList}>
                 {closedPositions.map((position) => (
-                  <PositionCard key={position.pubkey} position={position} />
+                  <PositionCard
+                    key={position.pubkey}
+                    position={position}
+                  />
                 ))}
               </View>
             )}
 
             {orders.length > 0 && (
-              <View style={[styles.ordersList, closedPositions.length > 0 && { marginTop: 10 }]}>
+              <View
+                style={[
+                  styles.ordersList,
+                  closedPositions.length > 0 && { marginTop: 10 },
+                ]}
+              >
                 {orders.map((order) => (
                   <OrderRow key={order.pubkey} order={order} />
                 ))}
@@ -257,11 +329,13 @@ export default function ProfileView() {
               borderColor: themeColors.border,
             },
           ]}
-          onPress={disconnectWallet}
+          onPress={disconnect}
           accessibilityRole="button"
           accessibilityLabel="Disconnect wallet"
         >
-          <Text style={[styles.signOutText, { color: themeColors.negative }]}>
+          <Text
+            style={[styles.signOutText, { color: themeColors.negative }]}
+          >
             Disconnect
           </Text>
         </Pressable>

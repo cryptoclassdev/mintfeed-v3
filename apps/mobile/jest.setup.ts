@@ -28,9 +28,32 @@ jest.mock("expo-router", () => ({
   Link: "Link",
 }));
 
-// MWA
-jest.mock("@solana-mobile/mobile-wallet-adapter-protocol-web3js", () => ({
-  transact: jest.fn(),
+// @solana/web3.js (avoid ESM parsing errors in nested deps)
+jest.mock("@solana/web3.js", () => ({
+  VersionedTransaction: {
+    deserialize: jest.fn(),
+  },
+  Connection: jest.fn(),
+  PublicKey: jest.fn((key: string) => ({ toString: () => key, toBase58: () => key })),
+  clusterApiUrl: jest.fn(() => "https://api.mainnet-beta.solana.com"),
+  SystemProgram: { transfer: jest.fn() },
+  LAMPORTS_PER_SOL: 1_000_000_000,
+}));
+
+// wallet-ui SDK
+jest.mock("@wallet-ui/react-native-web3js", () => ({
+  useMobileWallet: jest.fn(() => ({
+    account: undefined,
+    connect: jest.fn(),
+    disconnect: jest.fn(),
+    signTransaction: jest.fn(),
+    signAndSendTransaction: jest.fn(),
+    signMessage: jest.fn(),
+    connection: {},
+  })),
+  MobileWalletProvider: ({ children }: { children: React.ReactNode }) => children,
+  toUint8Array: jest.fn(),
+  fromUint8Array: jest.fn(),
 }));
 
 // api-client

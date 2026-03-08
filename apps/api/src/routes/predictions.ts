@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import ky, { HTTPError } from "ky";
 import type { SubmitSignedTransactionRequest } from "@mintfeed/shared";
+import { prisma } from "@mintfeed/db";
 import { relaySignedTransaction } from "../services/solana-relay.service";
 
 const JUPITER_API_URL = "https://api.jup.ag/prediction/v1";
@@ -33,6 +34,23 @@ predictionRoutes.get("/predictions/markets/:marketId", async (c) => {
   if (!data?.pricing || data.pricing.buyYesPriceUsd <= 0 || data.pricing.buyNoPriceUsd <= 0) {
     return c.json({ error: "Market is not a binary Yes/No market" }, 404);
   }
+
+  // Fall back to event-level volume when market pricing reports 0
+  if (!data.pricing.volume || data.pricing.volume === 0) {
+    const dbMarket = await prisma.predictionMarket.findUnique({
+      where: { id: marketId },
+      select: { eventId: true },
+    });
+    if (dbMarket?.eventId) {
+      try {
+        const event = await jupiter.get(`events/${dbMarket.eventId}`).json<any>();
+        if (event?.volumeUsd) {
+          data.pricing.volume = Number(event.volumeUsd);
+        }
+      } catch { /* keep 0 */ }
+    }
+  }
+
   return c.json(data);
 });
 
@@ -94,8 +112,31 @@ predictionRoutes.post("/predictions/transactions/submit", async (c) => {
 
 predictionRoutes.get("/predictions/positions", async (c) => {
   const params = Object.fromEntries(new URL(c.req.url).searchParams);
-  const data = await jupiter.get("positions", { searchParams: params }).json();
-  return c.json(data);
+  const data = await jupiter.get("positions", { searchParams: params }).json<any>();
+
+  // Enrich positions that are missing market metadata
+  const positions = data?.data ?? [];
+  const enriched = await Promise.all(
+    positions.map(async (pos: any) => {
+      if (pos.market?.title && pos.market?.pricing) return pos;
+      try {
+        const market = await jupiter.get(`markets/${pos.marketId}`).json<any>();
+        return {
+          ...pos,
+          market: {
+            title: market.metadata?.title,
+            status: market.status,
+            result: market.result,
+            pricing: market.pricing,
+          },
+        };
+      } catch {
+        return pos;
+      }
+    })
+  );
+
+  return c.json({ ...data, data: enriched });
 });
 
 predictionRoutes.delete("/predictions/positions/:positionPubkey", async (c) => {

@@ -13,9 +13,11 @@
   "dependencies": {
     "@google/generative-ai": "^0.21.0",
     "@hono/node-server": "^1.13.0",
-    "@prisma/client": "^6.2.0",
     "@mintfeed/db": "workspace:*",
     "@mintfeed/shared": "workspace:*",
+    "@onsol/tldparser": "^1.2.1",
+    "@prisma/client": "^6.2.0",
+    "@solana/web3.js": "^1.98.4",
     "hono": "^4.6.0",
     "ky": "^1.7.0",
     "node-cron": "^3.0.3",

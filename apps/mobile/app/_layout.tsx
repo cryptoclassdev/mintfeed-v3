@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { MobileWalletProvider } from "@wallet-ui/react-native-web3js";
 import { Anton_400Regular } from "@expo-google-fonts/anton";
 import {
   Inter_300Light,
@@ -18,7 +19,9 @@ import * as SplashScreen from "expo-splash-screen";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { useAppStore } from "@/lib/store";
 import { colors } from "@/constants/theme";
+import { APP_IDENTITY, SOLANA_MWA_CHAIN, SOLANA_RPC_URL } from "@/lib/solana";
 import { OnboardingFlow } from "@/components/onboarding/OnboardingFlow";
+import { ToastProvider } from "@/components/ui/Toast";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -62,8 +65,14 @@ export default function RootLayout() {
   if (!hasCompletedOnboarding) {
     return (
       <QueryClientProvider client={queryClient}>
-        <StatusBar style={theme === "dark" ? "light" : "dark"} />
-        <OnboardingFlow />
+        <MobileWalletProvider
+          chain={SOLANA_MWA_CHAIN}
+          endpoint={SOLANA_RPC_URL}
+          identity={APP_IDENTITY}
+        >
+          <StatusBar style={theme === "dark" ? "light" : "dark"} />
+          <OnboardingFlow />
+        </MobileWalletProvider>
       </QueryClientProvider>
     );
   }
@@ -71,29 +80,36 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <QueryClientProvider client={queryClient}>
-        <StatusBar style={theme === "dark" ? "light" : "dark"} />
-        <Stack
-          screenOptions={{
-            headerShown: false,
-            contentStyle: { backgroundColor: themeColors.background },
-          }}
+        <MobileWalletProvider
+          chain={SOLANA_MWA_CHAIN}
+          endpoint={SOLANA_RPC_URL}
+          identity={APP_IDENTITY}
         >
-          <Stack.Screen name="(tabs)" />
-          <Stack.Screen
-            name="article/[id]"
-            options={{
-              presentation: "modal",
-              animation: "slide_from_bottom",
+          <StatusBar style={theme === "dark" ? "light" : "dark"} />
+          <Stack
+            screenOptions={{
+              headerShown: false,
+              contentStyle: { backgroundColor: themeColors.background },
             }}
-          />
-          <Stack.Screen
-            name="market-sheet/[id]"
-            options={{
-              presentation: "modal",
-              animation: "slide_from_bottom",
-            }}
-          />
-        </Stack>
+          >
+            <Stack.Screen name="(tabs)" />
+            <Stack.Screen
+              name="article/[id]"
+              options={{
+                presentation: "modal",
+                animation: "slide_from_bottom",
+              }}
+            />
+            <Stack.Screen
+              name="market-sheet/[id]"
+              options={{
+                presentation: "modal",
+                animation: "slide_from_bottom",
+              }}
+            />
+          </Stack>
+          <ToastProvider />
+        </MobileWalletProvider>
       </QueryClientProvider>
     </GestureHandlerRootView>
   );

@@ -4,73 +4,71 @@ import {
   Text,
   Pressable,
   StyleSheet,
-  ActivityIndicator,
   Platform,
+  ActivityIndicator,
 } from "react-native";
+import { useMobileWallet } from "@wallet-ui/react-native-web3js";
 import { colors } from "@/constants/theme";
 import { fonts, fontSize } from "@/constants/typography";
 import { useAppStore } from "@/lib/store";
-import { mwaAuthorize } from "@/lib/wallet-adapter";
+import { showToast } from "@/lib/toast";
 
 export default function LoginScreen() {
   const theme = useAppStore((s) => s.theme);
   const themeColors = colors[theme];
-  const connectWallet = useAppStore((s) => s.connectWallet);
-
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  async function handleConnect() {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const { address, authToken } = await mwaAuthorize();
-      connectWallet(address, authToken);
-    } catch (err) {
-      const msg =
-        err instanceof Error ? err.message : "Wallet connection failed";
-      setError(msg);
-    } finally {
-      setLoading(false);
-    }
-  }
+  const { connect } = useMobileWallet();
+  const [connecting, setConnecting] = useState(false);
 
   const isAndroid = Platform.OS === "android";
 
+  const handleConnect = async () => {
+    setConnecting(true);
+    try {
+      await connect();
+      showToast("success", "Wallet Connected");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Connection failed";
+      showToast("error", "Connection Failed", msg);
+    } finally {
+      setConnecting(false);
+    }
+  };
+
   return (
     <View style={styles.container}>
-      <Text style={[styles.heading, { color: themeColors.text }]} accessibilityRole="header">
+      <Text
+        style={[styles.heading, { color: themeColors.text }]}
+        accessibilityRole="header"
+      >
         Connect your wallet
       </Text>
       <Text style={[styles.subheading, { color: themeColors.textMuted }]}>
-        Sign in with a Solana wallet — Phantom, Backpack, Jupiter, and more.
+        Sign in with any Solana wallet app installed on your device.
       </Text>
 
       {isAndroid ? (
         <Pressable
-          style={[styles.button, { backgroundColor: themeColors.accent }]}
+          style={[
+            styles.button,
+            { backgroundColor: themeColors.accent },
+            connecting && { opacity: 0.6 },
+          ]}
           onPress={handleConnect}
-          disabled={loading}
+          disabled={connecting}
           accessibilityRole="button"
           accessibilityLabel="Connect Solana wallet"
-          accessibilityState={{ busy: loading }}
         >
-          {loading ? (
-            <ActivityIndicator color={themeColors.text} />
+          {connecting ? (
+            <ActivityIndicator size="small" color="#FFFFFF" />
           ) : (
             <Text style={styles.buttonText}>Connect Wallet</Text>
           )}
         </Pressable>
       ) : (
-        <Text style={[styles.unavailableText, { color: themeColors.textMuted }]}>
+        <Text
+          style={[styles.unavailableText, { color: themeColors.textMuted }]}
+        >
           Wallet connection is available on Android.
-        </Text>
-      )}
-
-      {error && (
-        <Text style={[styles.errorText, { color: themeColors.negative }]}>
-          {error}
         </Text>
       )}
     </View>
@@ -103,18 +101,12 @@ const styles = StyleSheet.create({
   buttonText: {
     fontFamily: fonts.body.semiBold,
     fontSize: fontSize.base,
-    color: "#FFFFFF", // contrast on accent bg
+    color: "#FFFFFF",
   },
   unavailableText: {
     fontFamily: fonts.body.regular,
     fontSize: fontSize.sm,
     textAlign: "center",
     paddingVertical: 14,
-  },
-  errorText: {
-    fontFamily: fonts.body.regular,
-    fontSize: fontSize.sm,
-    marginTop: 12,
-    textAlign: "center",
   },
 });

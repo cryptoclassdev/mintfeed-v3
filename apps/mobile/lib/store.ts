@@ -8,16 +8,12 @@ interface AppState {
   theme: ThemeMode;
   hapticsEnabled: boolean;
   readArticleIds: Record<string, true>;
-  walletAddress: string | null;
-  walletAuthToken: string | null;
   hasCompletedOnboarding: boolean;
   setCategory: (category: "all" | "crypto" | "ai") => void;
   setTheme: (theme: ThemeMode) => void;
   toggleTheme: () => void;
   toggleHaptics: () => void;
   markAsRead: (id: string) => void;
-  connectWallet: (address: string, authToken: string) => void;
-  disconnectWallet: () => void;
   completeOnboarding: () => void;
 }
 
@@ -28,8 +24,6 @@ export const useAppStore = create<AppState>()(
       theme: "dark",
       hapticsEnabled: true,
       readArticleIds: {},
-      walletAddress: null,
-      walletAuthToken: null,
       hasCompletedOnboarding: false,
 
       setCategory: (category) => set({ selectedCategory: category }),
@@ -49,12 +43,6 @@ export const useAppStore = create<AppState>()(
           readArticleIds: { ...state.readArticleIds, [id]: true as const },
         })),
 
-      connectWallet: (address, authToken) =>
-        set({ walletAddress: address, walletAuthToken: authToken }),
-
-      disconnectWallet: () =>
-        set({ walletAddress: null, walletAuthToken: null }),
-
       completeOnboarding: () => set({ hasCompletedOnboarding: true }),
     }),
     {
@@ -63,8 +51,6 @@ export const useAppStore = create<AppState>()(
       partialize: (state) => ({
         theme: state.theme,
         hapticsEnabled: state.hapticsEnabled,
-        walletAddress: state.walletAddress,
-        walletAuthToken: state.walletAuthToken,
         readArticleIds: state.readArticleIds,
         hasCompletedOnboarding: state.hasCompletedOnboarding,
       }),

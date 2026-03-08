@@ -1,5 +1,6 @@
-import { View, Text, Switch, StyleSheet, ScrollView } from "react-native";
+import { View, Text, StyleSheet, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useMobileWallet } from "@wallet-ui/react-native-web3js";
 import { useAppStore } from "@/lib/store";
 import { colors } from "@/constants/theme";
 import { fonts, fontSize, letterSpacing } from "@/constants/typography";
@@ -8,11 +9,9 @@ import ProfileView from "@/components/auth/ProfileView";
 
 export default function ProfileScreen() {
   const theme = useAppStore((s) => s.theme);
-  const toggleTheme = useAppStore((s) => s.toggleTheme);
-  const hapticsEnabled = useAppStore((s) => s.hapticsEnabled);
-  const toggleHaptics = useAppStore((s) => s.toggleHaptics);
   const themeColors = colors[theme];
-  const walletAddress = useAppStore((s) => s.walletAddress);
+  const { account } = useMobileWallet();
+  const walletAddress = account?.address.toString() ?? null;
 
   return (
     <SafeAreaView
@@ -25,62 +24,6 @@ export default function ProfileScreen() {
         </Text>
 
         {walletAddress ? <ProfileView /> : <LoginScreen />}
-
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <View style={[styles.sectionAccent, { backgroundColor: themeColors.accent }]} />
-            <Text
-              style={[styles.sectionTitle, { color: themeColors.textSecondary }]}
-            >
-              APPEARANCE
-            </Text>
-          </View>
-          <View
-            style={[
-              styles.row,
-              {
-                backgroundColor: themeColors.card,
-                borderColor: themeColors.border,
-              },
-            ]}
-          >
-            <Text style={[styles.rowLabel, { color: themeColors.text }]}>
-              Dark Mode
-            </Text>
-            <Switch
-              value={theme === "dark"}
-              onValueChange={toggleTheme}
-              trackColor={{
-                false: themeColors.border,
-                true: themeColors.accent,
-              }}
-              thumbColor={themeColors.text}
-            />
-          </View>
-          <View
-            style={[
-              styles.row,
-              {
-                backgroundColor: themeColors.card,
-                borderColor: themeColors.border,
-                marginTop: 8,
-              },
-            ]}
-          >
-            <Text style={[styles.rowLabel, { color: themeColors.text }]}>
-              Haptics
-            </Text>
-            <Switch
-              value={hapticsEnabled}
-              onValueChange={toggleHaptics}
-              trackColor={{
-                false: themeColors.border,
-                true: themeColors.accent,
-              }}
-              thumbColor={themeColors.text}
-            />
-          </View>
-        </View>
 
         <View style={styles.section}>
           <View style={styles.sectionHeader}>

@@ -1,7 +1,14 @@
 import { Connection, clusterApiUrl } from "@solana/web3.js";
+import type { AppIdentity, Chain } from "@solana-mobile/mobile-wallet-adapter-protocol";
 
 export const SOLANA_CLUSTER = "mainnet-beta";
-export const SOLANA_MWA_CHAIN = "solana:mainnet";
+export const SOLANA_MWA_CHAIN: Chain = "solana:mainnet";
+
+export const APP_IDENTITY: AppIdentity = {
+  name: "Midnight",
+  uri: "https://thecommunication.link",
+  icon: "/images/midnight.png",
+};
 const DEFAULT_SOLANA_RPC_URL = clusterApiUrl(SOLANA_CLUSTER);
 
 export const SOLANA_RPC_URL =

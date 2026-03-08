@@ -10,14 +10,15 @@ import {
 } from "./trade-validation";
 
 describe("validateTradeAmount", () => {
-  it("returns valid for amounts >= $1", () => {
+  it("returns valid for amounts > $1", () => {
     expect(validateTradeAmount("5.00")).toEqual({ valid: true });
-    expect(validateTradeAmount("1")).toEqual({ valid: true });
-    expect(validateTradeAmount("1.00")).toEqual({ valid: true });
+    expect(validateTradeAmount("1.01")).toEqual({ valid: true });
     expect(validateTradeAmount("1000000")).toEqual({ valid: true });
   });
 
-  it("returns BELOW_MINIMUM for amounts < $1", () => {
+  it("returns BELOW_MINIMUM for amounts <= $1", () => {
+    expect(validateTradeAmount("1")).toEqual({ valid: false, error: "BELOW_MINIMUM" });
+    expect(validateTradeAmount("1.00")).toEqual({ valid: false, error: "BELOW_MINIMUM" });
     expect(validateTradeAmount("0.99")).toEqual({ valid: false, error: "BELOW_MINIMUM" });
     expect(validateTradeAmount("0.50")).toEqual({ valid: false, error: "BELOW_MINIMUM" });
     expect(validateTradeAmount("0")).toEqual({ valid: false, error: "BELOW_MINIMUM" });

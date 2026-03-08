@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useAppStore } from "@/lib/store";
+import { showToast } from "@/lib/toast";
 import { colors } from "@/constants/theme";
 import { fonts, fontSize, letterSpacing } from "@/constants/typography";
 import { useClosePosition, useClaimPosition } from "@/hooks/usePredictionTrading";
@@ -69,10 +70,10 @@ export const PositionCard = memo(function PositionCard({
                 positionPubkey: position.pubkey,
                 ownerPubkey: position.ownerPubkey,
               });
-              Alert.alert("Position Closed", "Your position has been sold.");
+              showToast("success", "Position Closed", "Your position has been sold.");
             } catch (err: unknown) {
               const msg = err instanceof Error ? err.message : String(err);
-              Alert.alert("Failed", msg);
+              showToast("error", "Failed", msg);
             } finally {
               setActionLoading(null);
             }
@@ -89,10 +90,10 @@ export const PositionCard = memo(function PositionCard({
         positionPubkey: position.pubkey,
         ownerPubkey: position.ownerPubkey,
       });
-      Alert.alert("Claimed!", "Winnings have been sent to your wallet.");
+      showToast("success", "Claimed!", "Winnings have been sent to your wallet.");
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
-      Alert.alert("Claim Failed", msg);
+      showToast("error", "Claim Failed", msg);
     } finally {
       setActionLoading(null);
     }
