@@ -69,6 +69,8 @@ export const PositionCard = memo(function PositionCard({
               await closePos.mutateAsync({
                 positionPubkey: position.pubkey,
                 ownerPubkey: position.ownerPubkey,
+                isYes: position.isYes,
+                contracts: position.contracts,
               });
               showToast("success", "Position Closed", "Your position has been sold.");
             } catch (err: unknown) {

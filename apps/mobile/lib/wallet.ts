@@ -119,7 +119,9 @@ export async function signPredictionTransaction(
     throw walletError("TRANSACTION_SEND_FAILED", error);
   }
 
-  await ensureTransactionValid(txMeta);
-
+  // Skip post-sign validation — the relay service checks block height during
+  // confirmation polling.  Re-validating here forces an RPC call right after the
+  // app returns from the wallet (background → foreground), when the network
+  // stack is often not yet ready, causing spurious "network request failed".
   return fromUint8Array(signedTx.serialize());
 }

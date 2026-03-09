@@ -38,7 +38,13 @@ export function createOrder(body: CreateOrderRequest): Promise<CreateOrderRespon
 export function submitSignedTransaction(
   body: SubmitSignedTransactionRequest,
 ): Promise<SubmitSignedTransactionResponse> {
-  return api.post(`${BASE}/transactions/submit`, { json: body, timeout: 45_000 }).json();
+  return api
+    .post(`${BASE}/transactions/submit`, {
+      json: body,
+      timeout: 45_000,
+      retry: { limit: 3, methods: ["post"] },
+    })
+    .json();
 }
 
 // --- Orders ---
@@ -64,8 +70,14 @@ export function fetchPosition(positionPubkey: string): Promise<PredictionPositio
 export function closePosition(
   positionPubkey: string,
   ownerPubkey: string,
+  isYes: boolean,
+  contracts: string,
 ): Promise<CreateOrderResponse> {
-  return api.delete(`${BASE}/positions/${positionPubkey}`, { json: { ownerPubkey } }).json();
+  return api
+    .delete(`${BASE}/positions/${positionPubkey}`, {
+      json: { ownerPubkey, isYes, contracts },
+    })
+    .json();
 }
 
 export function closeAllPositions(ownerPubkey: string): Promise<CreateOrderResponse[]> {

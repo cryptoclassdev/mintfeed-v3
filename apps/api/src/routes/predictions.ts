@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import ky, { HTTPError } from "ky";
 import type { SubmitSignedTransactionRequest } from "@mintfeed/shared";
+import { USDC_MINT } from "@mintfeed/shared";
 import { prisma } from "@mintfeed/db";
 import { relaySignedTransaction } from "../services/solana-relay.service";
 
@@ -141,9 +142,24 @@ predictionRoutes.get("/predictions/positions", async (c) => {
 
 predictionRoutes.delete("/predictions/positions/:positionPubkey", async (c) => {
   const { positionPubkey } = c.req.param();
-  const body = await c.req.json();
+  const body = await c.req.json<{
+    ownerPubkey: string;
+    isYes: boolean;
+    contracts: string;
+  }>();
   try {
-    const data = await jupiter.delete(`positions/${positionPubkey}`, { json: body }).json();
+    const data = await jupiter
+      .post("orders", {
+        json: {
+          ownerPubkey: body.ownerPubkey,
+          positionPubkey,
+          isBuy: false,
+          isYes: body.isYes,
+          contracts: body.contracts,
+          depositMint: USDC_MINT,
+        },
+      })
+      .json();
     return c.json(data);
   } catch (err) {
     return forwardJupiterError(err, c);
@@ -151,10 +167,30 @@ predictionRoutes.delete("/predictions/positions/:positionPubkey", async (c) => {
 });
 
 predictionRoutes.delete("/predictions/positions", async (c) => {
-  const body = await c.req.json();
+  const { ownerPubkey } = await c.req.json<{ ownerPubkey: string }>();
   try {
-    const data = await jupiter.delete("positions", { json: body }).json();
-    return c.json(data);
+    const positionsResp = await jupiter
+      .get("positions", { searchParams: { ownerPubkey } })
+      .json<{ data: { pubkey: string; isYes: boolean; contracts: string }[] }>();
+    const positions = positionsResp.data ?? [];
+
+    const results = await Promise.all(
+      positions.map((pos) =>
+        jupiter
+          .post("orders", {
+            json: {
+              ownerPubkey,
+              positionPubkey: pos.pubkey,
+              isBuy: false,
+              isYes: pos.isYes,
+              contracts: pos.contracts,
+              depositMint: USDC_MINT,
+            },
+          })
+          .json(),
+      ),
+    );
+    return c.json(results);
   } catch (err) {
     return forwardJupiterError(err, c);
   }

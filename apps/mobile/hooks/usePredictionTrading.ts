@@ -161,9 +161,9 @@ export function useClosePosition() {
   return useMutation<
     string,
     Error,
-    { positionPubkey: string; ownerPubkey: string }
+    { positionPubkey: string; ownerPubkey: string; isYes: boolean; contracts: string }
   >({
-    mutationFn: async ({ positionPubkey, ownerPubkey }) => {
+    mutationFn: async ({ positionPubkey, ownerPubkey, isYes, contracts }) => {
       if (!walletAddress) {
         throw new Error("Wallet not connected");
       }
@@ -171,6 +171,8 @@ export function useClosePosition() {
         const response: CreateOrderResponse = await closePosition(
           positionPubkey,
           ownerPubkey,
+          isYes,
+          contracts,
         );
         return await signAndRelay(
           (tx) => signTransaction(tx),
