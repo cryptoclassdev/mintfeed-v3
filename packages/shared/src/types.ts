@@ -62,8 +62,9 @@ export interface FeedQueryParams {
 export const MICRO_USD = 1_000_000;
 export const USDC_MINT = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
 
-export function microToUsd(micro: number | string): number {
-  return Number(micro) / MICRO_USD;
+export function microToUsd(micro: number | string | null | undefined): number {
+  const n = Number(micro);
+  return Number.isNaN(n) ? 0 : n / MICRO_USD;
 }
 
 export function usdToMicro(usd: number): string {

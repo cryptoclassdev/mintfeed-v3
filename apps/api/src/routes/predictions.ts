@@ -134,27 +134,24 @@ predictionRoutes.get("/predictions/positions", async (c) => {
   const params = Object.fromEntries(new URL(c.req.url).searchParams);
   const data = await jupiter.get("positions", { searchParams: params }).json<any>();
 
-  // Enrich positions that are missing market metadata
+  // Normalize positions: use event title (the actual question) and map field names
   const positions = data?.data ?? [];
-  const enriched = await Promise.all(
-    positions.map(async (pos: any) => {
-      if (pos.market?.title && pos.market?.pricing) return pos;
-      try {
-        const market = await jupiter.get(`markets/${pos.marketId}`).json<any>();
-        return {
-          ...pos,
-          market: {
-            title: market.metadata?.title,
-            status: market.status,
-            result: market.result,
-            pricing: market.pricing,
-          },
-        };
-      } catch {
-        return pos;
-      }
-    })
-  );
+  const enriched = positions.map((pos: any) => {
+    // Use eventMetadata.title (the question) instead of market.title (the outcome name "Yes"/"No")
+    const title = pos.eventMetadata?.title ?? pos.market?.title ?? "Unknown Market";
+    return {
+      ...pos,
+      // Map Jupiter's totalCostUsd to costBasisUsd for the client
+      costBasisUsd: pos.costBasisUsd ?? pos.totalCostUsd ?? "0",
+      market: {
+        ...pos.market,
+        title,
+        status: pos.marketMetadata?.status ?? pos.market?.status ?? "open",
+        result: pos.marketMetadata?.result ?? pos.market?.result ?? null,
+        pricing: pos.market?.pricing,
+      },
+    };
+  });
 
   return c.json({ ...data, data: enriched });
 });

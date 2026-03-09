@@ -44,12 +44,14 @@ export const PositionCard = memo(function PositionCard({
   const [lastError, setLastError] = useState<{ message: string; retryable: boolean } | null>(null);
 
   const contracts = Number(position.contracts);
-  const costBasis = microToUsd(position.costBasisUsd);
+  const avgPrice = getPositionAvgPrice(position);
+  const rawCost = microToUsd(position.costBasisUsd);
+  // Fallback: compute from avg price × contracts when Jupiter hasn't populated costBasisUsd
+  const costBasis = rawCost > 0 ? rawCost : (avgPrice ?? 0) * contracts;
   const pnl = getPositionPnl(position);
   const pnlPercent = getPositionPnlPercent(position).toFixed(1);
   const isProfitable = pnl >= 0;
   const currentValue = getPositionValue(position);
-  const avgPrice = getPositionAvgPrice(position);
   const fees = getPositionFees(position);
 
   const marketTitle = position.market?.title ?? "Unknown Market";
