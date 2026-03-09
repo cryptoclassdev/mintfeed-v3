@@ -6,10 +6,12 @@
  *   the solana-wallet:// intent to a specific wallet app.
  */
 
+import type { ImageSourcePropType } from "react-native";
+
 export interface WalletInfo {
   id: string;
   name: string;
-  icon: string;
+  icon: ImageSourcePropType;
   scheme: string;
   packageName: string;
 }
@@ -18,28 +20,28 @@ export const WALLET_REGISTRY: WalletInfo[] = [
   {
     id: "phantom",
     name: "Phantom",
-    icon: "👻",
+    icon: require("@/assets/wallet-logos/phantom.png"),
     scheme: "phantom://",
     packageName: "app.phantom",
   },
   {
     id: "solflare",
     name: "Solflare",
-    icon: "🔥",
+    icon: require("@/assets/wallet-logos/solflare.png"),
     scheme: "solflare://",
     packageName: "com.solflare.mobile",
   },
   {
     id: "backpack",
     name: "Backpack",
-    icon: "🎒",
+    icon: require("@/assets/wallet-logos/backpack.png"),
     scheme: "backpack://",
     packageName: "app.backpack",
   },
   {
     id: "ultimate",
     name: "Ultimate",
-    icon: "💎",
+    icon: require("@/assets/wallet-logos/backpack.png"),
     scheme: "ultimate://",
     packageName: "com.aspect.ultimate",
   },
@@ -49,7 +51,7 @@ export const WALLET_REGISTRY: WalletInfo[] = [
 export const SEEKER_WALLET: WalletInfo = {
   id: "seeker",
   name: "Seeker Wallet",
-  icon: "📱",
+  icon: require("@/assets/wallet-logos/seeker.png"),
   scheme: "solana-wallet://",
   packageName: "com.solana.seeker",
 };

@@ -7,6 +7,7 @@ import {
   StyleSheet,
   ActivityIndicator,
 } from "react-native";
+import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
 import { useWalletDiscovery } from "@/hooks/useWalletDiscovery";
 import { useTargetedConnect } from "@/hooks/useTargetedConnect";
@@ -120,7 +121,7 @@ export function WalletPicker({ visible, onClose, onConnected }: WalletPickerProp
                     onPress={() => handleConnect(wallet)}
                     disabled={connectingId !== null}
                   >
-                    <Text style={styles.walletIcon}>{wallet.icon}</Text>
+                    <Image source={wallet.icon} style={styles.walletIcon} />
                     <Text style={[styles.walletName, { color: themeColors.text }]}>
                       {wallet.name}
                     </Text>
@@ -220,9 +221,9 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   walletIcon: {
-    fontSize: 22,
     width: 28,
-    textAlign: "center",
+    height: 28,
+    borderRadius: 6,
   },
   walletName: {
     flex: 1,
