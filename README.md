@@ -22,9 +22,9 @@ Midnight is a mobile-first news app that delivers crypto and AI headlines in a T
 ## Features
 
 - **Vertical swipe feed** — Full-screen news cards with native page transitions, infinite scroll, and read tracking
-- **AI-powered summaries** — Every article is rewritten by Gemini 2.0 Flash into a punchy headline + 60-word summary
+- **AI-powered summaries** — Every article is rewritten by AI into a 60-word summary
 - **Prediction markets** — Jupiter prediction markets matched to articles in real-time, with YES/NO trading via USDC
-- **Live crypto prices** — Top 20 coins by market cap from CoinGecko, refreshed every 5 minutes
+- **Live crypto prices** — Top coins by market cap
 - **Multi-wallet support** — Connect Phantom, Backpack, Solflare, Jupiter, or Seeker to trade on Solana
 - **Dark-first design** — Engineered aesthetic with Anton/Inter/JetBrains Mono typography on a `#030303` canvas
 
