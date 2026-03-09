@@ -82,9 +82,19 @@ predictionRoutes.post("/predictions/orders", async (c) => {
   if (!parsed.success) {
     return c.json({ error: formatZodErrors(parsed.error) }, 400);
   }
-  console.log("[Orders] Request body:", JSON.stringify(parsed.data, null, 2));
+  // Jupiter accepts depositAmount/contracts as string | number.
+  // Convert numeric strings to numbers to match their preferred format.
+  const jupiterBody: Record<string, unknown> = { ...parsed.data };
+  if (typeof jupiterBody.depositAmount === "string") {
+    jupiterBody.depositAmount = Number(jupiterBody.depositAmount);
+  }
+  if (typeof jupiterBody.contracts === "string") {
+    jupiterBody.contracts = Number(jupiterBody.contracts);
+  }
+
+  console.log("[Orders] Request body:", JSON.stringify(jupiterBody, null, 2));
   try {
-    const data = await jupiter.post("orders", { json: parsed.data }).json();
+    const data = await jupiter.post("orders", { json: jupiterBody }).json();
     console.log("[Orders] Jupiter response:", JSON.stringify(data, null, 2));
     return c.json(data);
   } catch (err: any) {

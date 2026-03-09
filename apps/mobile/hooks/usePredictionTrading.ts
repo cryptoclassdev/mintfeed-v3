@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { NativeModules } from "react-native";
 import { useMobileWallet } from "@wallet-ui/react-native-web3js";
 import {
   fetchTradingStatus,
@@ -15,6 +16,8 @@ import {
   type TransactionMeta,
 } from "@/lib/wallet";
 import { fetchWalletBalances, getBalanceError } from "@/lib/balance";
+import { useAppStore } from "@/lib/store";
+import { WALLET_REGISTRY, SEEKER_WALLET } from "@/lib/wallet-registry";
 import type {
   CreateOrderRequest,
   CreateOrderResponse,
@@ -22,6 +25,10 @@ import type {
   TradingStatus,
 } from "@mintfeed/shared";
 import type { VersionedTransaction } from "@solana/web3.js";
+
+const WalletTarget = NativeModules.WalletTarget as {
+  setTargetPackage: (packageName: string | null) => void;
+} | null;
 
 const TRADING_STATUS_REFETCH_INTERVAL_MS = 30_000;
 
@@ -48,18 +55,32 @@ export async function toRelayActionError(error: unknown): Promise<Error> {
   return new Error(message);
 }
 
+function getPreferredPackageName(): string | null {
+  const walletId = useAppStore.getState().preferredWalletId;
+  if (!walletId) return null;
+  const all = [...WALLET_REGISTRY, SEEKER_WALLET];
+  return all.find((w) => w.id === walletId)?.packageName ?? null;
+}
+
 async function signAndRelay(
   signFn: SignFn,
   unsignedTransaction: string,
   txMeta: TransactionMeta,
 ): Promise<string> {
-  const signedTransaction = await signPredictionTransaction(
-    signFn,
-    unsignedTransaction,
-    txMeta,
-  );
-  const result = await submitSignedTransaction({ signedTransaction, txMeta });
-  return result.signature;
+  // Target the preferred wallet so MWA routes directly instead of showing picker
+  const packageName = getPreferredPackageName();
+  try {
+    if (packageName) WalletTarget?.setTargetPackage(packageName);
+    const signedTransaction = await signPredictionTransaction(
+      signFn,
+      unsignedTransaction,
+      txMeta,
+    );
+    const result = await submitSignedTransaction({ signedTransaction, txMeta });
+    return result.signature;
+  } finally {
+    WalletTarget?.setTargetPackage(null);
+  }
 }
 
 export function useTradingStatus() {
@@ -113,18 +134,14 @@ export function useCreateOrder() {
         };
         const body = await httpErr?.response?.json?.().catch(() => null);
         if (__DEV__)
-          console.error(
+          console.warn(
             "[createOrder] API error:",
             httpErr?.response?.status,
             JSON.stringify(body),
             httpErr?.message,
           );
         const code = body?.code ?? "";
-        if (
-          code === "transaction_simulation_failed" ||
-          code === "ANCHOR_6025" ||
-          code === "INSUFFICIENT_FUNDS"
-        ) {
+        if (code === "INSUFFICIENT_FUNDS" || code === "ANCHOR_6025") {
           throw new Error(
             "Insufficient balance. You need both USDC (for the bet) and SOL (\u22480.03 for fees/rent).",
           );
@@ -152,10 +169,10 @@ export function useCreateOrder() {
         return signature;
       } catch (err: unknown) {
         if (isWalletError(err)) {
-          if (__DEV__) console.error("[createOrder] MWA sign failed:", err);
+          if (__DEV__) console.warn("[createOrder] MWA sign failed:", err);
           throw toWalletActionError(err);
         }
-        if (__DEV__) console.error("[createOrder] Relay failed:", err);
+        if (__DEV__) console.warn("[createOrder] Relay failed:", err);
         throw await toRelayActionError(err);
       }
     },
