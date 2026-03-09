@@ -25,7 +25,7 @@ export const api = ky.create({
       : [],
     beforeError: [
       (error) => {
-        if (__DEV__) console.error("[api-client] ERROR:", error.message, error.response?.status, error.request?.url);
+        if (__DEV__) console.warn("[api-client] ERROR:", error.message, error.response?.status, error.request?.url);
         return error;
       },
     ],

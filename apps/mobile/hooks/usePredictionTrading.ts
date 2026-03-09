@@ -93,7 +93,7 @@ export function useTradingStatus() {
 
 export function useCreateOrder() {
   const queryClient = useQueryClient();
-  const { account, signTransaction } = useMobileWallet();
+  const { account, signTransactions } = useMobileWallet();
   const walletAddress = account?.address.toString() ?? null;
 
   return useMutation<string, Error, CreateOrderRequest>({
@@ -161,7 +161,7 @@ export function useCreateOrder() {
 
       try {
         const signature = await signAndRelay(
-          (tx) => signTransaction(tx),
+          (tx) => signTransactions(tx),
           response.transaction,
           response.txMeta,
         );
@@ -191,7 +191,7 @@ export function useCreateOrder() {
 
 export function useClosePosition() {
   const queryClient = useQueryClient();
-  const { account, signTransaction } = useMobileWallet();
+  const { account, signTransactions } = useMobileWallet();
   const walletAddress = account?.address.toString() ?? null;
 
   return useMutation<
@@ -226,7 +226,7 @@ export function useClosePosition() {
 
       try {
         return await signAndRelay(
-          (tx) => signTransaction(tx),
+          (tx) => signTransactions(tx),
           response.transaction,
           response.txMeta,
         );
@@ -257,7 +257,7 @@ export function useClosePosition() {
 
 export function useCloseAllPositions() {
   const queryClient = useQueryClient();
-  const { account, signTransaction } = useMobileWallet();
+  const { account, signTransactions } = useMobileWallet();
   const walletAddress = account?.address.toString() ?? null;
 
   return useMutation<string[], Error, { ownerPubkey: string }>({
@@ -273,7 +273,7 @@ export function useCloseAllPositions() {
       for (const r of responses) {
         try {
           const signature = await signAndRelay(
-            (tx) => signTransaction(tx),
+            (tx) => signTransactions(tx),
             r.transaction,
             r.txMeta,
           );
@@ -317,7 +317,7 @@ export function useCloseAllPositions() {
 
 export function useClaimPosition() {
   const queryClient = useQueryClient();
-  const { account, signTransaction } = useMobileWallet();
+  const { account, signTransactions } = useMobileWallet();
   const walletAddress = account?.address.toString() ?? null;
 
   return useMutation<
@@ -355,7 +355,7 @@ export function useClaimPosition() {
 
       try {
         return await signAndRelay(
-          (tx) => signTransaction(tx),
+          (tx) => signTransactions(tx),
           response.transaction,
           response.txMeta,
         );
