@@ -167,6 +167,6 @@ describe("formatCompactDate", () => {
 });
 
 describe("computeLiquiditySpread", () => {
-  it("computes spread in USD", () => expect(computeLiquiditySpread({ buyYesPriceUsd: 730_000, sellYesPriceUsd: 750_000 })).toBeCloseTo(0.02));
+  it("computes spread as buy minus sell", () => expect(computeLiquiditySpread({ buyYesPriceUsd: 86_000, sellYesPriceUsd: 85_000 })).toBeCloseTo(0.001));
   it("returns 0 for zero prices", () => expect(computeLiquiditySpread({ buyYesPriceUsd: 0, sellYesPriceUsd: 0 })).toBe(0));
 });

@@ -69,5 +69,5 @@ export function formatCompactDate(isoDate: string | null | undefined): string | 
 
 export function computeLiquiditySpread(pricing: { buyYesPriceUsd: number; sellYesPriceUsd: number }): number {
   if (pricing.buyYesPriceUsd === 0 && pricing.sellYesPriceUsd === 0) return 0;
-  return (pricing.sellYesPriceUsd - pricing.buyYesPriceUsd) / MICRO_USD;
+  return (pricing.buyYesPriceUsd - pricing.sellYesPriceUsd) / MICRO_USD;
 }
