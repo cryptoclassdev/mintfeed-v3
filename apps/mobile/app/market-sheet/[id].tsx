@@ -296,7 +296,7 @@ export default function MarketSheet() {
               <View style={styles.metaCard}>
                 <Ionicons name="bar-chart-outline" size={14} color={themeColors.textMuted} />
                 <Text style={[styles.metaVolume, { color: themeColors.text }]}>
-                  ${microToUsd(market.pricing.volume).toLocaleString("en-US", { maximumFractionDigits: 0 })}
+                  ${market.pricing.volume.toLocaleString("en-US", { maximumFractionDigits: 0 })}
                 </Text>
                 <Text style={[styles.metaDate, { color: themeColors.textMuted }]}>
                   VOLUME

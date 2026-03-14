@@ -21,7 +21,7 @@ interface JupiterMarketPricing {
   buyNoPriceUsd: number;
   sellYesPriceUsd: number;
   sellNoPriceUsd: number;
-  volume: number;
+  volume: number; // plain USD (NOT micro-USD)
 }
 
 interface JupiterMarket {

@@ -144,10 +144,11 @@ describe("formatResolutionCountdown", () => {
 });
 
 describe("formatCompactVolume", () => {
-  it("formats millions", () => expect(formatCompactVolume(362_000_000_000_000)).toBe("$362M"));
-  it("formats thousands", () => expect(formatCompactVolume(50_000_000_000)).toBe("$50K"));
-  it("formats small amounts", () => expect(formatCompactVolume(50_000_000)).toBe("$50"));
+  it("formats millions", () => expect(formatCompactVolume(362_000_000)).toBe("$362M"));
+  it("formats thousands", () => expect(formatCompactVolume(50_000)).toBe("$50K"));
+  it("formats small amounts", () => expect(formatCompactVolume(50)).toBe("$50"));
   it("returns null for zero", () => expect(formatCompactVolume(0)).toBeNull());
+  it("formats real Jupiter volume", () => expect(formatCompactVolume(1_610_832)).toBe("$1.6M"));
 });
 
 describe("formatCompactDate", () => {

@@ -1,5 +1,7 @@
 import { MINIMUM_TRADE_USD } from "./constants";
 import { MICRO_USD } from "./types";
+// NOTE: pricing.volume from Jupiter is in plain USD, NOT micro-USD.
+// Only prices (buyYesPriceUsd, etc.) are in micro-USD.
 
 type ValidationError = "BELOW_MINIMUM" | "INVALID_NUMBER";
 
@@ -46,12 +48,11 @@ export function formatResolutionCountdown(closeTimeUnix: number): string {
   return "Resolves today";
 }
 
-export function formatCompactVolume(volumeMicroUsd: number): string | null {
-  if (!volumeMicroUsd || volumeMicroUsd <= 0) return null;
-  const usd = volumeMicroUsd / MICRO_USD;
-  if (usd >= 1_000_000) return `$${(usd / 1_000_000).toFixed(1).replace(/\.0$/, "")}M`;
-  if (usd >= 1_000) return `$${(usd / 1_000).toFixed(0)}K`;
-  return `$${usd.toFixed(0)}`;
+export function formatCompactVolume(volumeUsd: number): string | null {
+  if (!volumeUsd || volumeUsd <= 0) return null;
+  if (volumeUsd >= 1_000_000) return `$${(volumeUsd / 1_000_000).toFixed(1).replace(/\.0$/, "")}M`;
+  if (volumeUsd >= 1_000) return `$${(volumeUsd / 1_000).toFixed(0)}K`;
+  return `$${volumeUsd.toFixed(0)}`;
 }
 
 export function formatCompactDate(isoDate: string | null | undefined): string | null {

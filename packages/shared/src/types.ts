@@ -42,7 +42,7 @@ export interface PredictionMarket {
   outcomePrices: Record<string, number>;  // { "Yes": 0.73, "No": 0.27 }
   marketUrl: string;    // Jupiter prediction page URL
   endDate?: string | null;   // ISO 8601 datetime
-  volume?: number;           // micro-USD from Jupiter
+  volume?: number;           // plain USD from Jupiter
 }
 
 export interface PaginatedResponse<T> {
