@@ -102,10 +102,15 @@ export function ToastProvider() {
     >
       <AnimatedPressable 
         style={styles.content} 
-        onPress={dismiss}
-        hitSlop={8} // Better hit area
+        onPress={() => {
+          if (current.onTap) {
+            current.onTap();
+          }
+          dismiss();
+        }}
+        hitSlop={8}
         accessibilityRole="button"
-        accessibilityLabel={`${current.variant} notification: ${current.title}. Tap to dismiss.`}
+        accessibilityLabel={`${current.variant} notification: ${current.title}. ${current.onTap ? 'Tap to undo.' : 'Tap to dismiss.'}`}
       >
         <View style={[
           styles.iconContainer,
