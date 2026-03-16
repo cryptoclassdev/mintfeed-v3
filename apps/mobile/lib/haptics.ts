@@ -4,6 +4,41 @@ import { useAppStore } from './store';
 /**
  * Centralized haptic feedback utility.
  * Respects the user's hapticsEnabled preference from the store.
+ *
+ * ## Haptic Strategy
+ *
+ * ### Selection (lightest) — UI navigation & state changes
+ * - Swiping between feed cards
+ * - Tab navigation
+ * - Toggling YES/NO on prediction markets
+ * - Onboarding page swipes
+ * - Theme/preference toggles
+ *
+ * ### Impact Light — Small confirmations
+ * - Pressing interactive cards (prediction cards, market cards)
+ * - Opening modals/sheets
+ * - Expanding/collapsing content
+ *
+ * ### Impact Medium — Actions with consequence
+ * - Retry button press
+ * - Connect wallet tap
+ * - "Read full article" link
+ *
+ * ### Impact Heavy — Major confirmations
+ * - Placing a bet / submitting a trade
+ * - Completing onboarding
+ *
+ * ### Notification Success — Positive outcomes
+ * - Bet placed successfully
+ * - Wallet connected
+ *
+ * ### Notification Warning — Attention needed
+ * - Validation errors (amount too low, insufficient balance)
+ * - Trading paused notice
+ *
+ * ### Notification Error — Failures
+ * - Trade failed
+ * - Network error
  */
 
 function isEnabled(): boolean {

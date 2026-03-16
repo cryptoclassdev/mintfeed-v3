@@ -1,5 +1,6 @@
 import { useCallback, useRef, useState } from "react";
 import { View, Text, StyleSheet, Pressable, Dimensions, Image } from "react-native";
+import * as haptics from "@/lib/haptics";
 import PagerView from "react-native-pager-view";
 import Animated, {
   FadeIn,
@@ -50,13 +51,16 @@ export function OnboardingFlow() {
 
   const handleNext = useCallback(() => {
     if (isLastPage) {
+      haptics.heavyImpact(); // Completing onboarding — major action
       completeOnboarding();
     } else {
+      haptics.lightImpact();
       pagerRef.current?.setPage(currentPage + 1);
     }
   }, [isLastPage, currentPage, completeOnboarding]);
 
   const handleSkip = useCallback(() => {
+    haptics.lightImpact();
     completeOnboarding();
   }, [completeOnboarding]);
 
@@ -78,7 +82,7 @@ export function OnboardingFlow() {
         ref={pagerRef}
         style={styles.pager}
         initialPage={0}
-        onPageSelected={(e) => setCurrentPage(e.nativeEvent.position)}
+        onPageSelected={(e) => { haptics.selection(); setCurrentPage(e.nativeEvent.position); }}
       >
         {PAGES.map((page, index) => (
           <View key={index} style={styles.page}>

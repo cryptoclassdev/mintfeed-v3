@@ -7,6 +7,7 @@ import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
+  withTiming,
   FadeIn,
 } from 'react-native-reanimated';
 import * as haptics from "@/lib/haptics";

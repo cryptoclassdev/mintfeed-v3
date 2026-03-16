@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback, useRef } from "react";
 import { View, Text, StyleSheet, Pressable } from "react-native";
+import * as haptics from "@/lib/haptics";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -50,6 +51,12 @@ export function ToastProvider() {
   const show = useCallback(
     (toast: ToastMessage) => {
       if (dismissTimer.current) clearTimeout(dismissTimer.current);
+      
+      // Haptic feedback based on toast variant
+      if (toast.variant === 'success') haptics.success();
+      else if (toast.variant === 'error') haptics.error();
+      else haptics.lightImpact();
+      
       setCurrent(toast);
       
       // Reset values

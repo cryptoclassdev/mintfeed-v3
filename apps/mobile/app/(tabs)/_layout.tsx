@@ -8,6 +8,7 @@ import { useAppStore } from "@/lib/store";
 import { colors } from "@/constants/theme";
 import { fonts } from "@/constants/typography";
 import { getTabBarHeight } from "@/components/feed/news-card-layout";
+import * as haptics from "@/lib/haptics";
 
 const TAB_ORDER = ["/", "/market", "/settings"] as const;
 
@@ -27,6 +28,7 @@ export default function TabLayout() {
       if (idx === -1) return;
       const next = direction === "right" ? idx + 1 : idx - 1;
       if (next < 0 || next >= TAB_ORDER.length) return;
+      haptics.selection();
       router.navigate(TAB_ORDER[next] as any);
     },
     [router],
