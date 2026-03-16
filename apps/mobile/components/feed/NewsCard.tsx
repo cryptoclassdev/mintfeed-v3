@@ -1,5 +1,6 @@
 import React, { memo } from "react";
 import { View, Text, StyleSheet, Pressable, Linking, useWindowDimensions } from "react-native";
+import * as haptics from "@/lib/haptics";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
@@ -167,6 +168,7 @@ export const NewsCard = memo(function NewsCard({ article }: NewsCardProps) {
   // Press handlers
   const handleLinkPressIn = () => {
     linkScale.value = withSpring(0.97, { damping: 15, stiffness: 300 });
+    haptics.mediumImpact();
   };
 
   const handleLinkPressOut = () => {

@@ -30,6 +30,7 @@ import {
   MINIMUM_TRADE_USD,
 } from "@mintfeed/shared";
 import { showToast } from "@/lib/toast";
+import * as haptics from "@/lib/haptics";
 import { buildResolutionRulePreview, formatResolveDateTime } from "./utils";
 import { WalletPicker } from "@/components/wallet/WalletPicker";
 
@@ -88,6 +89,7 @@ export default function MarketSheet() {
   }, [amount, selectedSide, yesPrice, noPrice]);
 
   const handleConnectWallet = useCallback(() => {
+    haptics.mediumImpact();
     setWalletPickerVisible(true);
   }, []);
 
@@ -95,6 +97,7 @@ export default function MarketSheet() {
     if (!walletAddress || !marketId) return;
     const validation = validateTradeAmount(amount);
     if (!validation.valid) {
+      haptics.warning();
       const msg = validation.error === "BELOW_MINIMUM"
         ? `Minimum bet: >$${MINIMUM_TRADE_USD.toFixed(2)}`
         : "Enter a valid amount.";
@@ -112,9 +115,11 @@ export default function MarketSheet() {
         depositAmount: usdToMicro(usd),
         depositMint: USDC_MINT,
       });
+      haptics.success();
       showToast("success", "Bet Placed", `Your ${selectedSide.toUpperCase()} bet was submitted.`);
       setAmount("");
     } catch (err: unknown) {
+      haptics.error();
       const message = err instanceof Error ? err.message : String(err);
       showToast("error", "Trade Failed", message);
     }
@@ -212,7 +217,7 @@ export default function MarketSheet() {
               { backgroundColor: themeColors.card, borderColor: themeColors.cardBorder },
               selectedSide === "yes" && { borderColor: themeColors.positive, borderWidth: 2 },
             ]}
-            onPress={() => setSelectedSide("yes")}
+            onPress={() => { haptics.selection(); setSelectedSide("yes"); }}
             accessibilityRole="button"
             accessibilityState={{ selected: selectedSide === "yes" }}
             accessibilityLabel={`Yes at ${yesPercent} percent`}
@@ -226,7 +231,7 @@ export default function MarketSheet() {
               { backgroundColor: themeColors.card, borderColor: themeColors.cardBorder },
               selectedSide === "no" && { borderColor: themeColors.negative, borderWidth: 2 },
             ]}
-            onPress={() => setSelectedSide("no")}
+            onPress={() => { haptics.selection(); setSelectedSide("no"); }}
             accessibilityRole="button"
             accessibilityState={{ selected: selectedSide === "no" }}
             accessibilityLabel={`No at ${noPercent} percent`}
@@ -392,7 +397,7 @@ export default function MarketSheet() {
                   opacity: buyButtonDisabled ? 0.5 : 1,
                 },
               ]}
-              onPress={handlePlaceBet}
+              onPress={() => { haptics.heavyImpact(); handlePlaceBet(); }}
               disabled={buyButtonDisabled}
               accessibilityRole="button"
               accessibilityLabel={`Buy ${selectedSide} at ${selectedSide === "yes" ? yesPercent : noPercent} cents`}

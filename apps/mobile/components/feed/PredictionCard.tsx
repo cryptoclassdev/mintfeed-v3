@@ -1,6 +1,7 @@
 import React, { memo } from "react";
 import { View, Text, StyleSheet, Pressable } from "react-native";
 import { useRouter } from "expo-router";
+import * as haptics from '@/lib/haptics';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -97,6 +98,7 @@ export const PredictionCard = memo(function PredictionCard({
   // Press handlers
   const handlePressIn = () => {
     scale.value = withSpring(0.97, { damping: 15, stiffness: 300 });
+    haptics.lightImpact();
   };
 
   const handlePressOut = () => {

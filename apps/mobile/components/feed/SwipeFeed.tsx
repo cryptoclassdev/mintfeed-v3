@@ -8,7 +8,9 @@ import Animated, {
   useAnimatedStyle,
   withSpring,
   withTiming,
+  FadeIn,
 } from 'react-native-reanimated';
+import * as haptics from '@/lib/haptics';
 import { useFeed } from "@/hooks/useFeed";
 import { useAppStore } from "@/lib/store";
 import { colors } from "@/constants/theme";
@@ -31,8 +33,6 @@ export function SwipeFeed() {
 
   // Animation values
   const retryScale = useSharedValue(1);
-  const loadingOpacity = useSharedValue(0);
-  const loadingRotation = useSharedValue(0);
 
   const query = useFeed();
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isError, refetch } =
@@ -46,28 +46,15 @@ export function SwipeFeed() {
   const articlesRef = useRef(articles);
   articlesRef.current = articles;
 
-  // Loading animation
-  React.useEffect(() => {
-    if (isLoading) {
-      loadingOpacity.value = withTiming(1, { duration: 400 });
-      // Gentle rotation for loading indicator
-      loadingRotation.value = withTiming(360, { duration: 2000 }, (finished) => {
-        if (finished) {
-          loadingRotation.value = 0;
-          loadingRotation.value = withTiming(360, { duration: 2000 });
-        }
-      });
-    } else {
-      loadingOpacity.value = withTiming(0, { duration: 300 });
-    }
-  }, [isLoading]);
-
   const onPageSelected = useCallback(
     (e: PagerViewOnPageSelectedEvent) => {
       const index = e.nativeEvent.position;
       const currentArticles = articlesRef.current;
 
       setCurrentIndex(index);
+
+      // Light haptic on page swipe
+      haptics.selection();
 
       const article = currentArticles[index];
       if (article) {
@@ -90,11 +77,6 @@ export function SwipeFeed() {
     transform: [{ scale: retryScale.value }],
   }));
 
-  const loadingAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: loadingOpacity.value,
-    transform: [{ rotate: `${loadingRotation.value}deg` }],
-  }));
-
   // Press handlers
   const handleRetryPressIn = () => {
     retryScale.value = withSpring(0.97, { damping: 15, stiffness: 300 });
@@ -104,18 +86,21 @@ export function SwipeFeed() {
     retryScale.value = withSpring(1, { damping: 15, stiffness: 300 });
   };
 
+  const handleRetry = () => {
+    haptics.mediumImpact();
+    refetch();
+  };
+
   if (isLoading) {
     return (
-      <Animated.View style={[styles.centered, loadingAnimatedStyle]} accessibilityLabel="Loading feed">
+      <Animated.View
+        entering={FadeIn.duration(400)}
+        style={styles.centered}
+        accessibilityLabel="Loading feed"
+      >
         <ActivityIndicator size="large" color={themeColors.accent} />
-        <Text style={[
-          styles.statusText, 
-          { 
-            color: themeColors.accent,
-            fontVariant: ['small-caps'], // Better styling for status text
-          }
-        ]}>
-          Loading Feed
+        <Text style={[styles.statusText, { color: themeColors.accent }]}>
+          LOADING FEED
         </Text>
       </Animated.View>
     );
@@ -124,45 +109,32 @@ export function SwipeFeed() {
   if (isError) {
     return (
       <View style={styles.centered}>
-        <Text style={[
-          styles.statusText, 
-          { 
-            color: themeColors.negative,
-            fontVariant: ['small-caps'],
-          }
-        ]}>
-          Failed to Load
+        <Text style={[styles.statusText, { color: themeColors.negative }]}>
+          FAILED TO LOAD
         </Text>
         <AnimatedPressable
-          onPress={() => refetch()}
+          onPress={handleRetry}
           onPressIn={handleRetryPressIn}
           onPressOut={handleRetryPressOut}
           accessibilityRole="button"
           accessibilityLabel="Retry loading feed"
           style={[
-            styles.retryButton, 
-            { 
+            styles.retryButton,
+            {
               backgroundColor: themeColors.card,
-              // Using shadows instead of borders
               shadowColor: themeColors.accent,
               shadowOffset: { width: 0, height: 2 },
               shadowOpacity: 0.3,
               shadowRadius: 4,
               elevation: 4,
-              borderRadius: 12, // Slightly more rounded for modern feel
+              borderRadius: 12,
             },
             retryAnimatedStyle,
           ]}
-          hitSlop={8} // Better hit area
+          hitSlop={8}
         >
-          <Text style={[
-            styles.retryText, 
-            { 
-              color: themeColors.accent,
-              fontVariant: ['small-caps'],
-            }
-          ]}>
-            Tap to Retry
+          <Text style={[styles.retryText, { color: themeColors.accent }]}>
+            TAP TO RETRY
           </Text>
         </AnimatedPressable>
       </View>
@@ -172,14 +144,8 @@ export function SwipeFeed() {
   if (articles.length === 0) {
     return (
       <View style={styles.centered}>
-        <Text style={[
-          styles.statusText, 
-          { 
-            color: themeColors.textMuted,
-            fontVariant: ['small-caps'],
-          }
-        ]}>
-          No Articles Yet
+        <Text style={[styles.statusText, { color: themeColors.textMuted }]}>
+          NO ARTICLES YET
         </Text>
       </View>
     );
@@ -230,7 +196,7 @@ const styles = StyleSheet.create({
   retryButton: {
     paddingHorizontal: 24,
     paddingVertical: 16,
-    minHeight: 48, // Improved minimum hit area
+    minHeight: 48,
     justifyContent: "center",
   },
   retryText: {
