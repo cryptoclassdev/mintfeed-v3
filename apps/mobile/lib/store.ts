@@ -3,6 +3,9 @@ import { persist, createJSONStorage } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { ThemeMode } from "@/constants/theme";
 
+export const QUICK_BET_OPTIONS = [1, 2, 5, 10, 25] as const;
+export type QuickBetAmount = (typeof QUICK_BET_OPTIONS)[number];
+
 interface AppState {
   selectedCategory: "all" | "crypto" | "ai";
   theme: ThemeMode;
@@ -10,6 +13,7 @@ interface AppState {
   readArticleIds: Record<string, true>;
   hasCompletedOnboarding: boolean;
   preferredWalletId: string | null;
+  quickBetAmount: QuickBetAmount;
   setCategory: (category: "all" | "crypto" | "ai") => void;
   setTheme: (theme: ThemeMode) => void;
   toggleTheme: () => void;
@@ -17,6 +21,7 @@ interface AppState {
   markAsRead: (id: string) => void;
   completeOnboarding: () => void;
   setPreferredWallet: (walletId: string | null) => void;
+  setQuickBetAmount: (amount: QuickBetAmount) => void;
 }
 
 export const useAppStore = create<AppState>()(
@@ -28,6 +33,7 @@ export const useAppStore = create<AppState>()(
       readArticleIds: {},
       hasCompletedOnboarding: false,
       preferredWalletId: null,
+      quickBetAmount: 5,
 
       setCategory: (category) => set({ selectedCategory: category }),
 
@@ -49,6 +55,8 @@ export const useAppStore = create<AppState>()(
       completeOnboarding: () => set({ hasCompletedOnboarding: true }),
 
       setPreferredWallet: (walletId) => set({ preferredWalletId: walletId }),
+
+      setQuickBetAmount: (amount) => set({ quickBetAmount: amount }),
     }),
     {
       name: "mintfeed-app-store",
@@ -59,6 +67,7 @@ export const useAppStore = create<AppState>()(
         readArticleIds: state.readArticleIds,
         hasCompletedOnboarding: state.hasCompletedOnboarding,
         preferredWalletId: state.preferredWalletId,
+        quickBetAmount: state.quickBetAmount,
       }),
     },
   ),

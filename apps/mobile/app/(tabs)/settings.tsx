@@ -1,17 +1,25 @@
-import { View, Text, StyleSheet, ScrollView } from "react-native";
+import { View, Text, StyleSheet, ScrollView, Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useMobileWallet } from "@wallet-ui/react-native-web3js";
-import { useAppStore } from "@/lib/store";
+import { useAppStore, QUICK_BET_OPTIONS, type QuickBetAmount } from "@/lib/store";
 import { colors } from "@/constants/theme";
 import { fonts, fontSize, letterSpacing } from "@/constants/typography";
+import * as haptics from "@/lib/haptics";
 import LoginScreen from "@/components/auth/LoginScreen";
 import ProfileView from "@/components/auth/ProfileView";
 
 export default function ProfileScreen() {
   const theme = useAppStore((s) => s.theme);
+  const quickBetAmount = useAppStore((s) => s.quickBetAmount);
+  const setQuickBetAmount = useAppStore((s) => s.setQuickBetAmount);
   const themeColors = colors[theme];
   const { account } = useMobileWallet();
   const walletAddress = account?.address.toString() ?? null;
+
+  const handleQuickBetChange = (amount: QuickBetAmount) => {
+    haptics.selection();
+    setQuickBetAmount(amount);
+  };
 
   return (
     <SafeAreaView
@@ -25,6 +33,60 @@ export default function ProfileScreen() {
 
         {walletAddress ? <ProfileView /> : <LoginScreen />}
 
+        {/* Quick Bet Settings */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <View style={[styles.sectionAccent, { backgroundColor: themeColors.accentMint }]} />
+            <Text
+              style={[styles.sectionTitle, { color: themeColors.textSecondary }]}
+            >
+              QUICK BET
+            </Text>
+          </View>
+          <Text style={[styles.sectionDescription, { color: themeColors.textMuted }]}>
+            Default amount when swiping to bet on predictions
+          </Text>
+          <View style={styles.quickBetRow}>
+            {QUICK_BET_OPTIONS.map((amount) => (
+              <Pressable
+                key={amount}
+                onPress={() => handleQuickBetChange(amount)}
+                style={[
+                  styles.quickBetChip,
+                  {
+                    backgroundColor:
+                      quickBetAmount === amount
+                        ? themeColors.accentMint + "20"
+                        : themeColors.card,
+                    borderColor:
+                      quickBetAmount === amount
+                        ? themeColors.accentMint
+                        : themeColors.cardBorder,
+                  },
+                ]}
+                accessibilityRole="radio"
+                accessibilityState={{ selected: quickBetAmount === amount }}
+                accessibilityLabel={`Set quick bet to ${amount} dollars`}
+              >
+                <Text
+                  style={[
+                    styles.quickBetText,
+                    {
+                      color:
+                        quickBetAmount === amount
+                          ? themeColors.accentMint
+                          : themeColors.textMuted,
+                    },
+                  ]}
+                >
+                  ${amount}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+        </View>
+
+        {/* About */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <View style={[styles.sectionAccent, { backgroundColor: themeColors.accentMint }]} />
@@ -91,6 +153,29 @@ const styles = StyleSheet.create({
     fontSize: fontSize.xxs,
     letterSpacing: letterSpacing.wider,
     textTransform: "uppercase",
+  },
+  sectionDescription: {
+    fontFamily: fonts.body.regular,
+    fontSize: fontSize.sm,
+    marginBottom: 12,
+  },
+  quickBetRow: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  quickBetChip: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 12,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    minHeight: 44,
+  },
+  quickBetText: {
+    fontFamily: fonts.mono.bold,
+    fontSize: fontSize.base,
+    letterSpacing: letterSpacing.wide,
   },
   row: {
     flexDirection: "row",

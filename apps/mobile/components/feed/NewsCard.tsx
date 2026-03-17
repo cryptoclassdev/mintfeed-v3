@@ -14,7 +14,7 @@ import Animated, {
 import { useAppStore } from "@/lib/store";
 import { colors } from "@/constants/theme";
 import { fonts, fontSize, letterSpacing } from "@/constants/typography";
-import { PredictionCard } from "./PredictionCard";
+import { SwipeBetCard } from "./SwipeBetCard";
 import { getNewsCardBottomPadding } from "./news-card-layout";
 import type { Article } from "@mintfeed/shared";
 
@@ -99,11 +99,13 @@ function timeAgo(dateString: string): string {
 
 interface NewsCardProps {
   article: Article;
+  onSwipeBet: (marketId: string, side: "yes" | "no") => void;
+  walletConnected: boolean;
 }
 
 const MAX_VISIBLE_MARKETS = 3;
 
-export const NewsCard = memo(function NewsCard({ article }: NewsCardProps) {
+export const NewsCard = memo(function NewsCard({ article, onSwipeBet, walletConnected }: NewsCardProps) {
   const { height: screenHeight } = useWindowDimensions();
   const { bottom: safeBottom } = useSafeAreaInsets();
   const theme = useAppStore((s) => s.theme);
@@ -320,7 +322,12 @@ export const NewsCard = memo(function NewsCard({ article }: NewsCardProps) {
             </View>
             <View style={styles.marketsStack}>
               {markets.slice(0, MAX_VISIBLE_MARKETS).map((market) => (
-                <PredictionCard key={market.id} market={market} />
+                <SwipeBetCard
+                  key={market.id}
+                  market={market}
+                  onSwipeBet={onSwipeBet}
+                  walletConnected={walletConnected}
+                />
               ))}
             </View>
           </Animated.View>
