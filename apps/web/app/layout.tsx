@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import { Inter, JetBrains_Mono, Anton } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
 
@@ -13,6 +13,12 @@ const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
   weight: ["400", "500"],
   variable: "--font-jetbrains",
+});
+
+const anton = Anton({
+  subsets: ["latin"],
+  weight: ["400"],
+  variable: "--font-anton",
 });
 
 const blauerNue = localFont({
@@ -35,9 +41,9 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`scroll-smooth bg-[#000000] ${inter.variable} ${jetbrainsMono.variable} ${blauerNue.variable}`}
+      className={`scroll-smooth bg-[#000000] antialiased ${inter.variable} ${jetbrainsMono.variable} ${blauerNue.variable} ${anton.variable}`}
     >
-      <body className="font-sans antialiased overflow-x-hidden w-full min-h-screen flex flex-col bg-[#000000] selection:bg-white selection:text-black">
+      <body className="font-sans overflow-x-hidden w-full min-h-screen flex flex-col bg-[#000000] selection:bg-white selection:text-black">
         {children}
       </body>
     </html>
