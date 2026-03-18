@@ -21,8 +21,8 @@ button:focus-visible {
 }
 
 ::selection {
-  background-color: #f4f4f5;
-  color: #000000;
+  background-color: #4C8BD0;
+  color: #ffffff;
 }
 
 .no-scrollbar::-webkit-scrollbar {

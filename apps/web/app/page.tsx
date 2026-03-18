@@ -8,6 +8,7 @@ import {
   TwitterLogo,
   DiscordLogo,
 } from "@phosphor-icons/react/dist/ssr";
+import Image from "next/image";
 import PhoneMockup from "@/components/PhoneMockup";
 
 export default function Home() {
@@ -17,9 +18,7 @@ export default function Home() {
       <nav className="w-full border-b border-[#ffffff10] bg-[#000000]/80 backdrop-blur-xl z-50 sticky top-0">
         <div className="max-w-[1440px] mx-auto px-8 py-5 flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <div className="w-5 h-5 rounded-full bg-[#f4f4f5] flex items-center justify-center">
-              <div className="w-1.5 h-1.5 bg-[#000000] rounded-full" />
-            </div>
+            <Image src="/logo.png" alt="Midnight" width={28} height={28} className="rounded-lg" />
             <span className="text-base font-brand font-medium tracking-tight text-[#f4f4f5]">
               Midnight
             </span>
@@ -27,7 +26,7 @@ export default function Home() {
           <div className="hidden md:flex items-center gap-10 font-sans text-xs font-medium">
             <a
               href="#download"
-              className="bg-[#f4f4f5] text-[#000000] px-5 py-2 rounded-full hover:bg-white active:scale-[0.97] transition-[transform,background-color] duration-150"
+              className="bg-[#4C8BD0] text-white px-5 py-2 rounded-full hover:bg-[#5a9de0] active:scale-[0.97] transition-[transform,background-color] duration-150"
             >
               Get App
             </a>
@@ -43,16 +42,16 @@ export default function Home() {
           {/* Left */}
           <div className="lg:col-span-7 flex flex-col gap-10">
             <div className="inline-flex items-center gap-3 bg-transparent py-2 w-max">
-              <span className="w-1.5 h-1.5 bg-[#f4f4f5] rounded-full animate-pulse-slow" />
+              <span className="w-1.5 h-1.5 bg-[#00D4AA] rounded-full animate-pulse-slow" />
               <span className="font-mono text-[9px] font-normal uppercase tracking-[0.2em] text-[#a1a1aa]">
                 Live on Solana Mainnet
               </span>
             </div>
 
-            <h1 className="text-6xl sm:text-7xl lg:text-[100px] font-medium tracking-tight leading-[1] text-[#f4f4f5]">
+            <h1 className="text-7xl sm:text-8xl lg:text-[110px] font-anton leading-[0.95] text-[#f4f4f5]">
               Read <span className="text-[#888888]">less.</span>
               <br />
-              Predict <span className="text-[#f4f4f5]">more.</span>
+              Predict <span className="text-[#00D4AA]">more.</span>
             </h1>
 
             <p className="font-mono text-[10px] sm:text-[11px] text-[#888888] max-w-md leading-[2.2] tracking-[0.15em] uppercase border-none pl-0 py-2 mt-4">
@@ -63,7 +62,7 @@ export default function Home() {
             <div className="flex flex-col sm:flex-row gap-4 mt-8">
               <a
                 href="#download"
-                className="bg-[#f4f4f5] text-[#000000] font-sans font-medium text-sm py-4 px-8 rounded-full hover:bg-white active:scale-[0.97] transition-[transform,background-color] duration-150 flex items-center justify-center gap-2"
+                className="bg-[#4C8BD0] text-white font-sans font-medium text-sm py-4 px-8 rounded-full hover:bg-[#5a9de0] active:scale-[0.97] transition-[transform,background-color] duration-150 flex items-center justify-center gap-2"
               >
                 <AppleLogo weight="fill" className="text-lg" />
                 App Store
@@ -90,7 +89,7 @@ export default function Home() {
                 </div>
               </div>
               <div>
-                <span className="text-[#f4f4f5] tabular-nums">50K+</span> Traders already
+                <span className="text-[#00D4AA] tabular-nums">50K+</span> Traders already
                 predicting
               </div>
             </div>
@@ -98,7 +97,10 @@ export default function Home() {
 
           {/* Right — Phone Mockup */}
           <div className="lg:col-span-5 flex justify-center relative mt-20 lg:mt-0">
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[600px] bg-glow-center opacity-60 blur-[100px] rounded-full pointer-events-none" />
+            {/* Blue outer glow */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[700px] bg-glow-top opacity-30 blur-[120px] rounded-full pointer-events-none" />
+            {/* Mint inner glow */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[500px] bg-glow-center opacity-80 blur-[80px] rounded-full pointer-events-none" />
 
             <PhoneMockup />
 
@@ -108,59 +110,79 @@ export default function Home() {
 
       {/* Marquee */}
       <div className="w-full bg-[#000000] py-6 overflow-hidden flex whitespace-nowrap border-b border-[#ffffff10] relative z-20">
-        <div className="flex animate-marquee font-mono text-[10px] text-[#555555] tracking-[0.2em] uppercase">
-          <span className="mx-12 text-[#333333]">
+        <div className="flex animate-marquee font-mono text-[10px] text-[#666666] tracking-[0.2em] uppercase">
+          <span className="mx-12 text-[#4C8BD0]">
             •{" "}
             <span className="text-[#888888] ml-4">60-WORD NEWS SUMMARIES</span>
           </span>
-          <span className="mx-12 text-[#333333]">
+          <span className="mx-12 text-[#4C8BD0]">
             •{" "}
             <span className="text-[#888888] ml-4">
               NO FLUFF, JUST THE FACTS
             </span>
           </span>
-          <span className="mx-12 text-[#333333]">
+          <span className="mx-12 text-[#4C8BD0]">
             •{" "}
             <span className="text-[#888888] ml-4">
               GET INFORMED IN SECONDS, NOT MINUTES
             </span>
           </span>
-          <span className="mx-12 text-[#333333]">
+          <span className="mx-12 text-[#4C8BD0]">
             •{" "}
-            <span className="text-[#888888] ml-4">PLACE INFORMED BETS</span>
+            <span className="text-[#00D4AA] ml-4">PLACE INFORMED BETS</span>
           </span>
-          <span className="mx-12 text-[#333333]">
+          <span className="mx-12 text-[#4C8BD0]">
             •{" "}
             <span className="text-[#888888] ml-4">BUILT ON SOLANA</span>
           </span>
         </div>
-        <div className="flex animate-marquee font-mono text-[10px] text-[#555555] tracking-[0.2em] uppercase absolute top-6 left-[100%]">
-          <span className="mx-12 text-[#333333]">
+        <div className="flex animate-marquee font-mono text-[10px] text-[#666666] tracking-[0.2em] uppercase absolute top-6 left-[100%]">
+          <span className="mx-12 text-[#4C8BD0]">
             •{" "}
             <span className="text-[#888888] ml-4">60-WORD NEWS SUMMARIES</span>
           </span>
-          <span className="mx-12 text-[#333333]">
+          <span className="mx-12 text-[#4C8BD0]">
             •{" "}
             <span className="text-[#888888] ml-4">
               NO FLUFF, JUST THE FACTS
             </span>
           </span>
-          <span className="mx-12 text-[#333333]">
+          <span className="mx-12 text-[#4C8BD0]">
             •{" "}
             <span className="text-[#888888] ml-4">
               GET INFORMED IN SECONDS, NOT MINUTES
             </span>
           </span>
-          <span className="mx-12 text-[#333333]">
+          <span className="mx-12 text-[#4C8BD0]">
             •{" "}
-            <span className="text-[#888888] ml-4">PLACE INFORMED BETS</span>
+            <span className="text-[#00D4AA] ml-4">PLACE INFORMED BETS</span>
           </span>
-          <span className="mx-12 text-[#333333]">
+          <span className="mx-12 text-[#4C8BD0]">
             •{" "}
             <span className="text-[#888888] ml-4">BUILT ON SOLANA</span>
           </span>
         </div>
       </div>
+
+      {/* Stats Bar */}
+      <section className="w-full bg-[#030303] border-b border-[#ffffff08] py-12">
+        <div className="max-w-[1440px] mx-auto px-8">
+          <div className="grid grid-cols-3 divide-x divide-[#ffffff08]">
+            <div className="flex flex-col items-center gap-2 px-8">
+              <span className="font-anton text-4xl text-[#f4f4f5] tabular-nums">50K+</span>
+              <span className="font-mono text-[9px] text-[#555555] uppercase tracking-[0.2em]">Active Traders</span>
+            </div>
+            <div className="flex flex-col items-center gap-2 px-8">
+              <span className="font-anton text-4xl text-[#f4f4f5] tabular-nums">60</span>
+              <span className="font-mono text-[9px] text-[#555555] uppercase tracking-[0.2em]">Words Per Summary</span>
+            </div>
+            <div className="flex flex-col items-center gap-2 px-8">
+              <span className="font-anton text-4xl text-[#f4f4f5] tabular-nums">&lt;2s</span>
+              <span className="font-mono text-[9px] text-[#555555] uppercase tracking-[0.2em]">To Get Informed</span>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* How it Works */}
       <section
@@ -181,12 +203,12 @@ export default function Home() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 bg-transparent border-none">
             {/* Step 1 */}
-            <div className="p-12 bg-[#ffffff03] border border-[#ffffff0a] rounded-3xl relative group hover:bg-[#ffffff05] transition-colors duration-300 overflow-hidden">
+            <div className="p-12 bg-[#ffffff03] border border-[#ffffff0a] rounded-3xl relative group hover:bg-[#4C8BD0]/[0.03] hover:border-[#4C8BD0]/20 transition-colors duration-300 overflow-hidden">
               <div className="absolute top-10 right-10 text-[10px] font-mono text-[#555555] uppercase tracking-[0.2em]">
                 No. 01
               </div>
               <div className="relative z-10 flex flex-col h-full mt-10">
-                <div className="w-12 h-12 rounded-full border border-[#ffffff10] bg-transparent text-[#f4f4f5] flex items-center justify-center mb-12 shadow-none">
+                <div className="w-12 h-12 rounded-full border border-[#4C8BD0]/30 bg-transparent text-[#4C8BD0] flex items-center justify-center mb-12 shadow-none">
                   <DeviceMobile className="text-xl" />
                 </div>
                 <h3 className="text-2xl font-medium text-[#f4f4f5] mb-6 tracking-tight">
@@ -200,12 +222,12 @@ export default function Home() {
             </div>
 
             {/* Step 2 */}
-            <div className="p-12 bg-[#ffffff03] border border-[#ffffff0a] rounded-3xl relative group hover:bg-[#ffffff05] transition-colors duration-300 overflow-hidden">
+            <div className="p-12 bg-[#ffffff03] border border-[#ffffff0a] rounded-3xl relative group hover:bg-[#4C8BD0]/[0.03] hover:border-[#4C8BD0]/20 transition-colors duration-300 overflow-hidden">
               <div className="absolute top-10 right-10 text-[10px] font-mono text-[#555555] uppercase tracking-[0.2em]">
                 No. 02
               </div>
               <div className="relative z-10 flex flex-col h-full mt-10">
-                <div className="w-12 h-12 rounded-full border border-[#ffffff10] bg-transparent text-[#f4f4f5] flex items-center justify-center mb-12 shadow-none">
+                <div className="w-12 h-12 rounded-full border border-[#4C8BD0]/30 bg-transparent text-[#4C8BD0] flex items-center justify-center mb-12 shadow-none">
                   <BookOpen className="text-xl" />
                 </div>
                 <h3 className="text-2xl font-medium text-[#f4f4f5] mb-6 tracking-tight">
@@ -220,15 +242,15 @@ export default function Home() {
             </div>
 
             {/* Step 3 */}
-            <div className="p-12 bg-[#ffffff03] border border-[#ffffff0a] rounded-3xl relative group hover:bg-[#ffffff05] transition-colors duration-300 overflow-hidden">
-              <div className="absolute top-10 right-10 text-[10px] font-mono text-[#555555] uppercase tracking-[0.2em]">
+            <div className="p-12 bg-[#00D4AA]/[0.02] border border-[#00D4AA]/10 rounded-3xl relative group hover:bg-[#00D4AA]/[0.04] hover:border-[#00D4AA]/20 transition-colors duration-300 overflow-hidden">
+              <div className="absolute top-10 right-10 text-[10px] font-mono text-[#00D4AA] uppercase tracking-[0.2em]">
                 No. 03
               </div>
               <div className="relative z-10 flex flex-col h-full mt-10">
-                <div className="w-12 h-12 rounded-full border border-[#ffffff10] bg-transparent text-[#f4f4f5] flex items-center justify-center mb-12 shadow-none">
+                <div className="w-12 h-12 rounded-full border border-[#00D4AA]/30 bg-transparent text-[#00D4AA] flex items-center justify-center mb-12 shadow-none">
                   <Coins className="text-xl" />
                 </div>
-                <h3 className="text-2xl font-medium text-[#f4f4f5] mb-6 tracking-tight">
+                <h3 className="text-2xl font-medium text-[#00D4AA] mb-6 tracking-tight">
                   Place Bets
                 </h3>
                 <p className="text-[#888888] font-mono text-[10px] uppercase tracking-[0.15em] leading-[2.2] border-none pl-0 mt-auto">
@@ -251,7 +273,7 @@ export default function Home() {
 
         <div className="max-w-4xl mx-auto flex flex-col items-center justify-center text-center relative z-10">
           <div className="mb-10 flex items-center gap-3 bg-transparent border-none px-0 py-0 shadow-none">
-            <span className="w-1.5 h-1.5 bg-[#f4f4f5] rounded-full" />
+            <span className="w-1.5 h-1.5 bg-[#00D4AA] rounded-full" />
             <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-[#a1a1aa]">
               Join 50,000+ Traders
             </span>
@@ -260,11 +282,7 @@ export default function Home() {
           <h2 className="text-6xl md:text-8xl font-medium tracking-tight text-[#f4f4f5] leading-[1] mb-8">
             Stop reading.
             <br />
-            <span className="text-[#888888]">
-              Start
-              <br />
-              betting.
-            </span>
+            <span className="text-[#888888]">Start betting.</span>
           </h2>
 
           <p className="font-mono text-[10px] text-[#888888] max-w-md leading-[2] tracking-[0.15em] uppercase mb-16">
@@ -273,10 +291,10 @@ export default function Home() {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 w-full max-w-md justify-center">
-            <button className="flex-1 bg-[#f4f4f5] text-[#000000] font-sans font-medium text-sm py-4 px-6 rounded-full hover:bg-white active:scale-[0.97] transition-[transform,background-color] duration-150 flex items-center justify-center gap-3 border-none shadow-none">
+            <button className="flex-1 bg-[#4C8BD0] text-white font-sans font-medium text-sm py-4 px-6 rounded-full hover:bg-[#5a9de0] active:scale-[0.97] transition-[transform,background-color] duration-150 flex items-center justify-center gap-3 border-none shadow-[0_0_30px_rgba(76,139,208,0.20)]">
               <AppleLogo weight="fill" className="text-xl" />
               <div className="flex flex-col items-start text-left leading-none">
-                <span className="font-mono text-[8px] tracking-[0.15em] text-[#555555] mb-0.5 uppercase">
+                <span className="font-mono text-[8px] tracking-[0.15em] text-[#a0c4e8] mb-0.5 uppercase">
                   Download on the
                 </span>
                 <span>App Store</span>
@@ -292,6 +310,9 @@ export default function Home() {
               </div>
             </button>
           </div>
+          <p className="mt-8 font-mono text-[9px] text-[#555555] uppercase tracking-[0.15em] text-center">
+            No wallet required to read · Solana-powered prediction markets
+          </p>
         </div>
       </section>
 
@@ -301,9 +322,7 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-16 mb-24">
             <div className="md:col-span-2">
               <div className="flex items-center gap-3 mb-8">
-                <div className="w-6 h-6 rounded-full bg-[#f4f4f5] flex items-center justify-center">
-                  <div className="w-1.5 h-1.5 bg-[#000000] rounded-full" />
-                </div>
+                <Image src="/logo.png" alt="Midnight" width={32} height={32} className="rounded-lg" />
                 <span className="text-lg font-brand font-medium tracking-tight text-[#f4f4f5]">
                   Midnight
                 </span>
@@ -401,12 +420,12 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="border-t border-[#ffffff10] pt-8 flex flex-col md:flex-row justify-between items-center gap-4 font-mono text-[9px] text-[#555555] uppercase tracking-[0.2em]">
+          <div className="border-t border-[#4C8BD0]/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 font-mono text-[9px] text-[#555555] uppercase tracking-[0.2em]">
             <div className="flex items-center gap-3">
-              <span>&copy; 2024 Midnight Tech. All rights reserved.</span>
+              <span>&copy; 2025 Midnight Tech. All rights reserved.</span>
             </div>
             <div className="flex items-center gap-2 text-[#888888]">
-              <div className="w-1.5 h-1.5 bg-[#f4f4f5] rounded-full opacity-50" />
+              <div className="w-1.5 h-1.5 bg-[#00D4AA] rounded-full" />
               Systems Operational
             </div>
           </div>
