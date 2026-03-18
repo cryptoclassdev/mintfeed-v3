@@ -7,6 +7,19 @@ body {
   color: #f4f4f5;
 }
 
+h1, h2, h3, h4, h5, h6 {
+  text-wrap: balance;
+}
+p {
+  text-wrap: pretty;
+}
+
+a:focus-visible,
+button:focus-visible {
+  outline: 2px solid #4C8BD0;
+  outline-offset: 2px;
+}
+
 ::selection {
   background-color: #f4f4f5;
   color: #000000;

@@ -76,6 +76,11 @@
       "sourceType": "github",
       "computedHash": "39569d63ffcc0c880490aae660e413419fa20800d7cc9fb740f74d1ec961f3f2"
     },
+    "make-interfaces-feel-better": {
+      "source": "jakubkrehel/make-interfaces-feel-better",
+      "sourceType": "github",
+      "computedHash": "5f6e56c5c21945b635e1078243e38be5315730fd0980ce402f37dd6e5fe04ced"
+    },
     "normalize": {
       "source": "pbakaus/impeccable",
       "sourceType": "github",
@@ -105,6 +110,11 @@
       "source": "pbakaus/impeccable",
       "sourceType": "github",
       "computedHash": "139b3e3c9d43b79b4e6ccffaeb874265bc916d7d90662950e9f05581d6e0c06a"
+    },
+    "react-native-testing": {
+      "source": "callstack/react-native-testing-library",
+      "sourceType": "github",
+      "computedHash": "e6beef7078f84b041306394c89141344e7a88f83b06b53e26a0ea8615ca2a703"
     },
     "sleek-design-mobile-apps": {
       "source": "sleekdotdesign/agent-skills",

@@ -13,6 +13,7 @@ dist/
 
 # Environment
 .env
+.env.txt
 .env.local
 .env.staging
 .env.*.local
@@ -53,3 +54,4 @@ Thumbs.db
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+.vercel

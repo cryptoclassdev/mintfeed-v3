@@ -4,7 +4,7 @@ export default function PhoneMockup() {
   return (
     <div className="relative w-[340px] h-[748px] rounded-[2.5rem] shadow-[0_0_80px_rgba(0,0,0,0.8)] overflow-hidden z-20">
       {/* Bezel border ring */}
-      <div className="absolute inset-0 rounded-[2.5rem] border border-[#ffffff15] z-50 pointer-events-none" />
+      <div className="absolute inset-0 rounded-[2.5rem] border-[0.5px] border-[#ffffff15] z-50 pointer-events-none" />
 
       {/* Screenshot — edge-to-edge, crops Android status bar */}
       <Image
@@ -12,7 +12,7 @@ export default function PhoneMockup() {
         alt="Midnight app preview showing crypto news feed with prediction markets"
         width={1080}
         height={2400}
-        className="absolute inset-0 w-full h-full object-cover"
+        className="absolute inset-0 w-full h-full object-cover outline outline-1 -outline-offset-1 outline-white/10 rounded-[2.5rem]"
         style={{ objectPosition: "center 2.6%" }}
         priority
       />

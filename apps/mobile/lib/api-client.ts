@@ -1,6 +1,6 @@
 import ky from "ky";
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:3000";
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? "https://mintfeed-api-staging.up.railway.app";
 
 if (__DEV__) console.log("[api-client] API_BASE_URL:", API_BASE_URL);
 

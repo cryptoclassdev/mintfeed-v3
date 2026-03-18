@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(powershell.exe -Command \"[System.Environment]::SetEnvironmentVariable\\('ANTHROPIC_API_KEY', \\\\$null, 'User'\\); [System.Environment]::SetEnvironmentVariable\\('ANTHROPIC_API_KEY', \\\\$null, 'Machine'\\)\" 2>&1)",
+      "Bash(powershell.exe -Command \"[System.Environment]::SetEnvironmentVariable\\('ANTHROPIC_API_KEY', [NullString]::Value, 'User'\\); [System.Environment]::SetEnvironmentVariable\\('ANTHROPIC_API_KEY', [NullString]::Value, 'Machine'\\)\" 2>&1)"
+    ]
+  }
+}

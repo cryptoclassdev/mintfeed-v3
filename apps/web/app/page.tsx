@@ -27,7 +27,7 @@ export default function Home() {
           <div className="hidden md:flex items-center gap-10 font-sans text-xs font-medium">
             <a
               href="#download"
-              className="bg-[#f4f4f5] text-[#000000] px-5 py-2 rounded-full hover:bg-white transition-colors"
+              className="bg-[#f4f4f5] text-[#000000] px-5 py-2 rounded-full hover:bg-white active:scale-[0.97] transition-[transform,background-color] duration-150"
             >
               Get App
             </a>
@@ -63,14 +63,14 @@ export default function Home() {
             <div className="flex flex-col sm:flex-row gap-4 mt-8">
               <a
                 href="#download"
-                className="bg-[#f4f4f5] text-[#000000] font-sans font-medium text-sm py-4 px-8 rounded-full hover:bg-white transition-all flex items-center justify-center gap-2"
+                className="bg-[#f4f4f5] text-[#000000] font-sans font-medium text-sm py-4 px-8 rounded-full hover:bg-white active:scale-[0.97] transition-[transform,background-color] duration-150 flex items-center justify-center gap-2"
               >
                 <AppleLogo weight="fill" className="text-lg" />
                 App Store
               </a>
               <a
                 href="#download"
-                className="bg-transparent border border-[#ffffff20] text-[#f4f4f5] font-sans font-medium text-sm py-4 px-8 rounded-full hover:bg-[#ffffff05] transition-all flex items-center justify-center gap-2"
+                className="bg-transparent border border-[#ffffff20] text-[#f4f4f5] font-sans font-medium text-sm py-4 px-8 rounded-full hover:bg-[#ffffff05] active:scale-[0.97] transition-[transform,background-color] duration-150 flex items-center justify-center gap-2"
               >
                 <GooglePlayLogo weight="fill" className="text-lg" />
                 Google Play
@@ -90,7 +90,7 @@ export default function Home() {
                 </div>
               </div>
               <div>
-                <span className="text-[#f4f4f5]">50K+</span> Traders already
+                <span className="text-[#f4f4f5] tabular-nums">50K+</span> Traders already
                 predicting
               </div>
             </div>
@@ -167,7 +167,7 @@ export default function Home() {
         id="how-it-works"
         className="w-full bg-[#000000] py-40 border-b border-[#ffffff10] relative"
       >
-        <div className="absolute inset-0 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:32px_32px] opacity-[0.03] pointer-events-none" />
+        <div className="absolute inset-0 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:32px_32px] opacity-[0.04] pointer-events-none" />
 
         <div className="max-w-[1440px] mx-auto px-8 relative z-10">
           <div className="mb-24 flex flex-col md:flex-row justify-between items-end gap-8">
@@ -182,7 +182,7 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 bg-transparent border-none">
             {/* Step 1 */}
             <div className="p-12 bg-[#ffffff03] border border-[#ffffff0a] rounded-3xl relative group hover:bg-[#ffffff05] transition-colors duration-300 overflow-hidden">
-              <div className="absolute top-10 right-10 text-[10px] font-mono text-[#555555] uppercase tracking-widest">
+              <div className="absolute top-10 right-10 text-[10px] font-mono text-[#555555] uppercase tracking-[0.2em]">
                 No. 01
               </div>
               <div className="relative z-10 flex flex-col h-full mt-10">
@@ -201,7 +201,7 @@ export default function Home() {
 
             {/* Step 2 */}
             <div className="p-12 bg-[#ffffff03] border border-[#ffffff0a] rounded-3xl relative group hover:bg-[#ffffff05] transition-colors duration-300 overflow-hidden">
-              <div className="absolute top-10 right-10 text-[10px] font-mono text-[#555555] uppercase tracking-widest">
+              <div className="absolute top-10 right-10 text-[10px] font-mono text-[#555555] uppercase tracking-[0.2em]">
                 No. 02
               </div>
               <div className="relative z-10 flex flex-col h-full mt-10">
@@ -221,7 +221,7 @@ export default function Home() {
 
             {/* Step 3 */}
             <div className="p-12 bg-[#ffffff03] border border-[#ffffff0a] rounded-3xl relative group hover:bg-[#ffffff05] transition-colors duration-300 overflow-hidden">
-              <div className="absolute top-10 right-10 text-[10px] font-mono text-[#555555] uppercase tracking-widest">
+              <div className="absolute top-10 right-10 text-[10px] font-mono text-[#555555] uppercase tracking-[0.2em]">
                 No. 03
               </div>
               <div className="relative z-10 flex flex-col h-full mt-10">
@@ -273,7 +273,7 @@ export default function Home() {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 w-full max-w-md justify-center">
-            <button className="flex-1 bg-[#f4f4f5] text-[#000000] font-sans font-medium text-sm py-4 px-6 rounded-full hover:bg-white transition-all flex items-center justify-center gap-3 border-none shadow-none">
+            <button className="flex-1 bg-[#f4f4f5] text-[#000000] font-sans font-medium text-sm py-4 px-6 rounded-full hover:bg-white active:scale-[0.97] transition-[transform,background-color] duration-150 flex items-center justify-center gap-3 border-none shadow-none">
               <AppleLogo weight="fill" className="text-xl" />
               <div className="flex flex-col items-start text-left leading-none">
                 <span className="font-mono text-[8px] tracking-[0.15em] text-[#555555] mb-0.5 uppercase">
@@ -282,7 +282,7 @@ export default function Home() {
                 <span>App Store</span>
               </div>
             </button>
-            <button className="flex-1 bg-transparent border border-[#ffffff20] text-[#f4f4f5] font-sans font-medium text-sm py-4 px-6 rounded-full hover:bg-[#ffffff05] transition-all flex items-center justify-center gap-3 shadow-none">
+            <button className="flex-1 bg-transparent border border-[#ffffff20] text-[#f4f4f5] font-sans font-medium text-sm py-4 px-6 rounded-full hover:bg-[#ffffff05] active:scale-[0.97] transition-[transform,background-color] duration-150 flex items-center justify-center gap-3 shadow-none">
               <GooglePlayLogo weight="fill" className="text-xl" />
               <div className="flex flex-col items-start text-left leading-none">
                 <span className="font-mono text-[8px] tracking-[0.15em] text-[#888888] mb-0.5 uppercase">
@@ -315,13 +315,13 @@ export default function Home() {
               <div className="flex gap-3">
                 <a
                   href="#"
-                  className="w-10 h-10 rounded-full border border-[#ffffff10] flex items-center justify-center text-[#888888] hover:text-[#f4f4f5] hover:bg-[#ffffff05] transition-colors bg-transparent"
+                  className="w-11 h-11 rounded-full border border-[#ffffff10] flex items-center justify-center text-[#888888] hover:text-[#f4f4f5] hover:bg-[#ffffff05] transition-colors bg-transparent"
                 >
                   <TwitterLogo weight="fill" className="text-lg" />
                 </a>
                 <a
                   href="#"
-                  className="w-10 h-10 rounded-full border border-[#ffffff10] flex items-center justify-center text-[#888888] hover:text-[#f4f4f5] hover:bg-[#ffffff05] transition-colors bg-transparent"
+                  className="w-11 h-11 rounded-full border border-[#ffffff10] flex items-center justify-center text-[#888888] hover:text-[#f4f4f5] hover:bg-[#ffffff05] transition-colors bg-transparent"
                 >
                   <DiscordLogo weight="fill" className="text-lg" />
                 </a>
