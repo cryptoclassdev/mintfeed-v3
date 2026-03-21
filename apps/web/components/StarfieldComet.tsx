@@ -44,20 +44,21 @@ float fbm(vec2 p){
   return v;
 }
 
-/* ── procedural starfield (2 density layers) ── */
+/* ── procedural starfield (3 density layers) ── */
 vec3 stars(vec2 uv, float t, float bright){
   vec3 c = vec3(0.0);
-  for(float L = 0.0; L < 2.0; L++){
-    float sc = 110.0 + L * 160.0;
+  for(float L = 0.0; L < 3.0; L++){
+    float sc = 80.0 + L * 130.0;
     vec2 id = floor(uv * sc);
     vec2 gv = fract(uv * sc) - 0.5;
     float h = hash(id + L * 137.0);
-    if(h > 0.93 - L * 0.015){
+    if(h > 0.88 - L * 0.02){
       vec2 o = vec2(hash(id*1.1+10.0), hash(id*1.1+20.0)) * 0.6 - 0.3;
       float d = length(gv - o);
       float tw = sin(t * (0.7 + h*3.0) + h*6.283) * 0.35 + 0.65;
-      float pt = smoothstep(0.04+L*0.01, 0.0, d) * h * tw;
-      float gl = smoothstep(0.13, 0.0, d) * h * tw * 0.12;
+      float sz = 0.04 + L * 0.008;
+      float pt = smoothstep(sz, 0.0, d) * h * tw;
+      float gl = smoothstep(0.14, 0.0, d) * h * tw * 0.12;
       vec3 sc2 = mix(vec3(0.75,0.82,1.0), vec3(1.0,0.92,0.8), h*h);
       c += (pt + gl) * sc2 * bright;
     }
