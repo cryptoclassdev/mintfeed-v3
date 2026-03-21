@@ -5,35 +5,12 @@ import {
   ClientScrollExperience,
   ClientWaitlistForm,
 } from "@/components/ClientExperience";
+import Navbar from "@/components/Navbar";
 
 export default function Home() {
   return (
     <>
-      {/* Nav — always visible above the scroll experience */}
-      <nav className="w-full border-b border-white/[0.04] bg-[#030303]/80 backdrop-blur-xl z-50 fixed top-0">
-        <div className="max-w-[1400px] mx-auto px-6 md:px-8 h-16 flex justify-between items-center">
-          <Link href="/" className="flex items-center gap-2.5">
-            <Image
-              src="/logo.png"
-              alt="Midnight"
-              width={28}
-              height={28}
-              className="rounded-lg"
-            />
-            <span className="text-base font-brand font-medium tracking-tight text-[#f4f4f5]">
-              Midnight
-            </span>
-          </Link>
-          <a
-            href="https://form.typeform.com/to/lAIai6px"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="bg-[#4C8BD0] text-white font-sans font-medium text-xs px-5 py-2.5 rounded-full hover:bg-[#5a9de0] active:translate-y-px active:scale-[0.97] transition-all duration-150"
-          >
-            Join Waitlist
-          </a>
-        </div>
-      </nav>
+      <Navbar />
 
       {/* Starfield + comet background (fixed, behind everything) */}
       <ClientStarfield />
