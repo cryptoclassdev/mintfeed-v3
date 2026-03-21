@@ -41,9 +41,9 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`scroll-smooth bg-[#000000] antialiased ${inter.variable} ${jetbrainsMono.variable} ${blauerNue.variable} ${anton.variable}`}
+      className={`scroll-smooth bg-[#030303] antialiased ${inter.variable} ${jetbrainsMono.variable} ${blauerNue.variable} ${anton.variable}`}
     >
-      <body className="font-sans overflow-x-hidden w-full min-h-screen flex flex-col bg-[#000000] selection:bg-white selection:text-black">
+      <body className="font-sans overflow-x-hidden w-full min-h-screen flex flex-col bg-[#030303]">
         {children}
       </body>
     </html>
