@@ -40,14 +40,14 @@ export default function Navbar() {
           </span>
         </Link>
 
-        <div className="hidden md:flex items-center gap-8">
-          <a href="#features" className="text-sm text-[#666] hover:text-[#111] transition-colors duration-200">
+        <div className="hidden md:flex items-center gap-1 bg-white border border-black/[0.08] rounded-full px-1.5 py-1 shadow-sm">
+          <a href="#features" className="text-sm text-[#666] hover:text-[#111] hover:bg-black/[0.04] px-4 py-1.5 rounded-full transition-all duration-200">
             Features
           </a>
-          <a href="#how-it-works" className="text-sm text-[#666] hover:text-[#111] transition-colors duration-200">
+          <a href="#how-it-works" className="text-sm text-[#666] hover:text-[#111] hover:bg-black/[0.04] px-4 py-1.5 rounded-full transition-all duration-200">
             How it works
           </a>
-          <a href="#faq" className="text-sm text-[#666] hover:text-[#111] transition-colors duration-200">
+          <a href="#faq" className="text-sm text-[#666] hover:text-[#111] hover:bg-black/[0.04] px-4 py-1.5 rounded-full transition-all duration-200">
             FAQ
           </a>
         </div>

@@ -36,7 +36,7 @@ export default function Home() {
 
           {/* Headline */}
           <div className="text-center max-w-2xl mx-auto mb-6 fade-up fade-up-d1">
-            <h1 className="text-5xl md:text-7xl font-anton tracking-tight text-[#111] leading-[0.95]">
+            <h1 className="text-5xl md:text-7xl font-brand tracking-tight text-[#111] leading-[0.95]">
               Read less.
               <br />
               Predict more.
@@ -160,7 +160,7 @@ export default function Home() {
             <span className="font-mono text-[11px] uppercase tracking-[0.2em] text-[#999] mb-3 block">
               How it works
             </span>
-            <h2 className="text-4xl md:text-5xl font-anton tracking-tight text-[#111]">
+            <h2 className="text-4xl md:text-5xl font-brand tracking-tight text-[#111]">
               Crypto news,
               <br />
               distilled.
@@ -178,7 +178,7 @@ export default function Home() {
                   01 — Feed
                 </span>
               </div>
-              <h3 className="text-3xl md:text-4xl font-anton tracking-tight text-[#111] mb-4 leading-[0.95]">
+              <h3 className="text-3xl md:text-4xl font-brand tracking-tight text-[#111] mb-4 leading-[0.95]">
                 60-word
                 <br />
                 stories.
@@ -209,7 +209,7 @@ export default function Home() {
                   02 — Predict
                 </span>
               </div>
-              <h3 className="text-3xl md:text-4xl font-anton tracking-tight text-[#111] mb-4 leading-[0.95]">
+              <h3 className="text-3xl md:text-4xl font-brand tracking-tight text-[#111] mb-4 leading-[0.95]">
                 Swipe
                 <br />
                 to bet.
@@ -261,7 +261,7 @@ export default function Home() {
                   03 — Market
                 </span>
               </div>
-              <h3 className="text-3xl md:text-4xl font-anton tracking-tight text-[#111] mb-4 leading-[0.95]">
+              <h3 className="text-3xl md:text-4xl font-brand tracking-tight text-[#111] mb-4 leading-[0.95]">
                 All markets.
                 <br />
                 Real-time.
@@ -299,7 +299,7 @@ export default function Home() {
               <span className="font-mono text-[11px] uppercase tracking-[0.2em] text-[#999] mb-3 block">
                 Why Midnight
               </span>
-              <h2 className="text-4xl md:text-5xl font-anton tracking-tight text-[#111] mb-6 leading-[0.95]">
+              <h2 className="text-4xl md:text-5xl font-brand tracking-tight text-[#111] mb-6 leading-[0.95]">
                 Your unfair
                 <br />
                 info advantage.
@@ -343,7 +343,7 @@ export default function Home() {
       <section className="w-full py-16 md:py-24">
         <div className="max-w-[1200px] mx-auto px-6 md:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-anton tracking-tight text-[#111]">
+            <h2 className="text-3xl md:text-4xl font-brand tracking-tight text-[#111]">
               Built for speed.
             </h2>
           </div>
@@ -359,7 +359,7 @@ export default function Home() {
                 key={i}
                 className="bg-white rounded-2xl border border-black/[0.06] p-6 text-center shadow-sm"
               >
-                <div className="font-anton text-3xl md:text-4xl text-[#111] mb-1">
+                <div className="font-brand text-3xl md:text-4xl text-[#111] mb-1">
                   {stat.value}
                   {stat.suffix && (
                     <span className="text-lg text-[#999]"> {stat.suffix}</span>
@@ -374,11 +374,77 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ─── Our Team ─── */}
+      <section className="w-full py-16 md:py-24">
+        <div className="max-w-[1200px] mx-auto px-6 md:px-8">
+          <div className="text-center mb-14">
+            <h2 className="text-4xl md:text-5xl font-brand tracking-tight text-[#111]">
+              Our Team
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 md:gap-8 max-w-3xl mx-auto">
+            {[
+              {
+                name: "SebMonty",
+                role: "Co-Founder",
+                image: "/team-seb.png",
+                twitter: "#",
+              },
+              {
+                name: "Chris",
+                role: "Co-Founder",
+                image: "/team-chris.png",
+                twitter: "#",
+              },
+              {
+                name: "Sublime",
+                role: "Co-Founder",
+                image: "/team-sublime.png",
+                twitter: "#",
+              },
+            ].map((member) => (
+              <div key={member.name} className="group">
+                <div className="aspect-square rounded-2xl overflow-hidden bg-[#f0f0f0] mb-4 border border-black/[0.06]">
+                  <Image
+                    src={member.image}
+                    alt={member.name}
+                    width={400}
+                    height={400}
+                    className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-300"
+                  />
+                </div>
+                <h3 className="text-[15px] font-semibold text-[#111]">
+                  {member.name}
+                </h3>
+                <p className="text-sm text-[#888] mb-3">{member.role}</p>
+                <a
+                  href={member.twitter}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center w-8 h-8 rounded-full border border-black/[0.08] text-[#999] hover:text-[#111] hover:border-black/[0.16] transition-all duration-200"
+                  aria-label={`${member.name} on X`}
+                >
+                  <svg
+                    width="13"
+                    height="13"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                  >
+                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.748l7.73-8.835L1.254 2.25H8.08l4.259 5.622 5.905-5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                  </svg>
+                </a>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ─── FAQ + Waitlist Section ─── */}
       <section id="faq" className="w-full py-16 md:py-24 bg-[#f5f5f5]">
         <div className="max-w-[1200px] mx-auto px-6 md:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-4xl md:text-5xl font-anton tracking-tight text-[#111]">
+            <h2 className="text-4xl md:text-5xl font-brand tracking-tight text-[#111]">
               Got questions?
               <br />
               Here&apos;s the answers.

@@ -22,7 +22,7 @@ export default function WaitlistForm() {
             Early access
           </span>
         </div>
-        <h3 className="text-2xl font-anton tracking-tight text-[#111] mb-2">
+        <h3 className="text-2xl font-brand tracking-tight text-[#111] mb-2">
           Get early access.
         </h3>
         <p className="text-sm text-[#666] leading-relaxed">
