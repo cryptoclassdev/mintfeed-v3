@@ -22,36 +22,41 @@ export default function Navbar() {
     <nav
       className={`w-full z-50 fixed top-0 transition-all duration-300 ${
         scrolled
-          ? "bg-[#030303]/70 backdrop-blur-xl border-b border-white/[0.04]"
+          ? "bg-white/80 backdrop-blur-xl border-b border-black/[0.06] shadow-sm"
           : "bg-transparent border-b border-transparent"
       }`}
     >
-      <div className="max-w-[1400px] mx-auto px-6 md:px-8 h-16 flex justify-between items-center">
+      <div className="max-w-[1200px] mx-auto px-6 md:px-8 h-16 flex justify-between items-center">
         <Link href="/" className="flex items-center gap-2.5">
           <Image
             src="/logo.png"
             alt="Midnight"
             width={28}
             height={28}
-            className={`rounded-lg transition-all duration-300 ${
-              scrolled ? "w-9 h-9" : "w-7 h-7"
-            }`}
+            className="rounded-lg w-7 h-7"
           />
-          <span
-            className={`font-brand font-medium tracking-tight text-[#f4f4f5] transition-all duration-300 ${
-              scrolled
-                ? "opacity-0 w-0 overflow-hidden"
-                : "opacity-100 text-base"
-            }`}
-          >
+          <span className="font-brand font-medium tracking-tight text-[#111] text-base">
             Midnight
           </span>
         </Link>
+
+        <div className="hidden md:flex items-center gap-8">
+          <a href="#features" className="text-sm text-[#666] hover:text-[#111] transition-colors duration-200">
+            Features
+          </a>
+          <a href="#how-it-works" className="text-sm text-[#666] hover:text-[#111] transition-colors duration-200">
+            How it works
+          </a>
+          <a href="#faq" className="text-sm text-[#666] hover:text-[#111] transition-colors duration-200">
+            FAQ
+          </a>
+        </div>
+
         <a
           href="https://form.typeform.com/to/lAIai6px"
           target="_blank"
           rel="noopener noreferrer"
-          className="bg-[#4C8BD0] text-white font-sans font-medium text-xs px-5 py-2.5 rounded-full hover:bg-[#5a9de0] active:translate-y-px active:scale-[0.97] transition-all duration-150"
+          className="bg-[#111] text-white font-sans font-medium text-sm px-5 py-2.5 rounded-full hover:bg-[#333] active:translate-y-px active:scale-[0.97] transition-all duration-150"
         >
           Join Waitlist
         </a>

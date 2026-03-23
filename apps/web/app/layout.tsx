@@ -5,7 +5,7 @@ import "./globals.css";
 
 const inter = Inter({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600"],
+  weight: ["300", "400", "500", "600", "700"],
   variable: "--font-inter",
 });
 
@@ -41,9 +41,9 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`scroll-smooth bg-[#030303] antialiased ${inter.variable} ${jetbrainsMono.variable} ${blauerNue.variable} ${anton.variable}`}
+      className={`scroll-smooth bg-[#fafafa] antialiased ${inter.variable} ${jetbrainsMono.variable} ${blauerNue.variable} ${anton.variable}`}
     >
-      <body className="font-sans overflow-x-hidden w-full min-h-screen flex flex-col bg-[#030303]">
+      <body className="font-sans overflow-x-hidden w-full min-h-screen flex flex-col bg-[#fafafa]">
         {children}
       </body>
     </html>

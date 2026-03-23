@@ -3,8 +3,8 @@
 @tailwind utilities;
 
 body {
-  background-color: #030303;
-  color: #f4f4f5;
+  background-color: #fafafa;
+  color: #111111;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -53,11 +53,28 @@ button:focus-visible {
 .fade-up-d3 { animation-delay: 240ms; }
 .fade-up-d4 { animation-delay: 320ms; }
 
-/* Phone mockup 3D float (pool.day / Phantom pattern) */
+/* Phone mockup float */
 @keyframes phoneFloat {
   0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
+  50% { transform: translateY(-8px); }
 }
 .phone-float {
   animation: phoneFloat 5s ease-in-out infinite;
+}
+.phone-float-delayed {
+  animation: phoneFloat 5s ease-in-out infinite;
+  animation-delay: 1.5s;
+}
+
+/* FAQ accordion */
+.faq-answer {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.3s ease;
+}
+.faq-answer.open {
+  grid-template-rows: 1fr;
+}
+.faq-answer > div {
+  overflow: hidden;
 }
