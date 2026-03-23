@@ -61,13 +61,21 @@ export default function Home() {
             </a>
           </div>
 
-          {/* Phone Mockups */}
-          <div className="flex justify-center items-end gap-6 md:gap-10 fade-up fade-up-d4">
-            <div className="phone-float hidden sm:block">
-              <FeedPhoneMockup className="scale-90 md:scale-100" />
+          {/* Phone Mockups — overlapping, tilted layout */}
+          <div className="relative flex justify-center items-center h-[480px] md:h-[580px] fade-up fade-up-d4">
+            {/* Right phone (behind, tilted right, offset right and slightly down) */}
+            <div
+              className="absolute z-0"
+              style={{ transform: "rotate(6deg) translate(100px, 0px)" }}
+            >
+              <PredictionPhoneMockup className="scale-[0.85] md:scale-100" />
             </div>
-            <div className="phone-float-delayed">
-              <PredictionPhoneMockup className="scale-95 md:scale-105" />
+            {/* Left phone (front, tilted left, offset left) */}
+            <div
+              className="absolute z-10"
+              style={{ transform: "rotate(-5deg) translate(-70px, 0px)" }}
+            >
+              <FeedPhoneMockup className="scale-[0.85] md:scale-100" />
             </div>
           </div>
         </div>

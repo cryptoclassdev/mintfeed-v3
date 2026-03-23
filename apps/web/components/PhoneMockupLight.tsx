@@ -1,9 +1,9 @@
 /**
- * Light-mode phone mockup frames for the landing page.
- * Flat 2D mockups with subtle shadows — no 3D rendering.
+ * Seeker phone mockup frames for the landing page.
+ * Clean dark frame with punch-hole camera — no notch, no gradient.
  */
 
-/* ─── Phone Frame ─── */
+/* ─── Phone Frame (Seeker style) ─── */
 function PhoneFrame({
   children,
   className = "",
@@ -13,19 +13,19 @@ function PhoneFrame({
 }) {
   return (
     <div
-      className={`relative w-[260px] h-[532px] rounded-[40px] bg-[#111] p-[8px] shadow-[0_20px_60px_rgba(0,0,0,0.15),0_8px_20px_rgba(0,0,0,0.08)] ${className}`}
+      className={`relative w-[260px] h-[540px] rounded-[36px] bg-[#1a1a1a] p-[6px] shadow-[0_20px_60px_rgba(0,0,0,0.12),0_8px_20px_rgba(0,0,0,0.06)] ${className}`}
     >
-      {/* Notch */}
-      <div className="absolute top-[8px] left-1/2 -translate-x-1/2 w-[80px] h-[24px] bg-[#111] rounded-b-[14px] z-20" />
       {/* Screen */}
-      <div className="w-full h-full rounded-[32px] overflow-hidden bg-[#030303] relative">
+      <div className="w-full h-full rounded-[30px] overflow-hidden bg-[#030303] relative">
+        {/* Punch-hole camera */}
+        <div className="absolute top-[8px] left-1/2 -translate-x-1/2 w-[8px] h-[8px] rounded-full bg-[#1a1a1a] z-20" />
         {children}
       </div>
     </div>
   );
 }
 
-/* ─── Feed Screen (light landing page version) ─── */
+/* ─── Feed Screen ─── */
 export function FeedPhoneMockup({ className = "" }: { className?: string }) {
   return (
     <PhoneFrame className={className}>
@@ -78,7 +78,9 @@ export function FeedPhoneMockup({ className = "" }: { className?: string }) {
             <span className="font-mono text-[5.5px] uppercase tracking-[0.7px] text-[#888]">
               CoinDesk
             </span>
-            <span className="font-mono text-[5.5px] text-[#444]">&middot;</span>
+            <span className="font-mono text-[5.5px] text-[#444]">
+              &middot;
+            </span>
             <span className="font-mono text-[5.5px] uppercase tracking-[0.7px] text-[#888]">
               2h ago
             </span>
