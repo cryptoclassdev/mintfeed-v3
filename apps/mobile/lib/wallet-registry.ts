@@ -13,7 +13,7 @@ export interface WalletInfo {
   name: string;
   icon: ImageSourcePropType;
   scheme: string;
-  packageName: string;
+  packageName: string | null;
 }
 
 export const WALLET_REGISTRY: WalletInfo[] = [
@@ -53,5 +53,5 @@ export const SEEKER_WALLET: WalletInfo = {
   name: "Seeker Wallet",
   icon: require("@/assets/wallet-logos/seeker.png"),
   scheme: "solana-wallet://",
-  packageName: "com.solana.seeker",
+  packageName: null, // Seed Vault responds to standard MWA intent — no targeting needed
 };
