@@ -26,7 +26,7 @@ export default function WaitlistForm() {
           Get early access.
         </h3>
         <p className="text-sm text-[#666] leading-relaxed">
-          Join the waitlist. Be first when Midnight launches on iOS and Android.
+          Join the waitlist. Be first when Midnight launches on Android.
         </p>
       </div>
 

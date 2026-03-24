@@ -21,7 +21,7 @@ const FAQS = [
   {
     question: "What platforms will Midnight be available on?",
     answer:
-      "Midnight will launch on both iOS and Android. Join the waitlist to be first when we launch.",
+      "Midnight will launch on Android. Join the waitlist to be first when we launch.",
   },
   {
     question: "Is Midnight free to use?",

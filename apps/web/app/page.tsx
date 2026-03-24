@@ -63,19 +63,33 @@ export default function Home() {
 
           {/* Phone Mockups — overlapping, tilted layout */}
           <div className="relative flex justify-center items-center h-[480px] md:h-[580px] fade-up fade-up-d4">
-            {/* Right phone (behind, tilted right, offset right and slightly down) */}
+            {/* Right phone (behind, tilted right) */}
             <div
               className="absolute z-0"
               style={{ transform: "rotate(6deg) translate(100px, 0px)" }}
             >
-              <PredictionPhoneMockup className="scale-[0.85] md:scale-100" />
+              <Image
+                src="/mockup-market.png"
+                alt="Midnight market screen"
+                width={260}
+                height={540}
+                className="w-[220px] md:w-[260px] h-auto drop-shadow-2xl"
+                priority
+              />
             </div>
-            {/* Left phone (front, tilted left, offset left) */}
+            {/* Left phone (front, tilted left) */}
             <div
               className="absolute z-10"
               style={{ transform: "rotate(-5deg) translate(-70px, 0px)" }}
             >
-              <FeedPhoneMockup className="scale-[0.85] md:scale-100" />
+              <Image
+                src="/mockup-feed.png"
+                alt="Midnight news feed screen"
+                width={260}
+                height={540}
+                className="w-[220px] md:w-[260px] h-auto drop-shadow-2xl"
+                priority
+              />
             </div>
           </div>
         </div>
@@ -135,7 +149,13 @@ export default function Home() {
           {/* Step 1 — Feed */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center mb-24 md:mb-32">
             <div className="order-2 lg:order-1 flex justify-center">
-              <FeedPhoneMockup className="phone-float" />
+              <Image
+                src="/mockup-feed-no.png"
+                alt="Midnight 60-word news feed"
+                width={260}
+                height={540}
+                className="w-[240px] md:w-[280px] h-auto drop-shadow-2xl phone-float"
+              />
             </div>
             <div className="order-1 lg:order-2">
               <div className="inline-flex items-center gap-2 mb-4">
@@ -208,14 +228,26 @@ export default function Home() {
               </div>
             </div>
             <div className="flex justify-center">
-              <PredictionPhoneMockup className="phone-float-delayed" />
+              <Image
+                src="/mockup-feed.png"
+                alt="Midnight swipe to bet"
+                width={260}
+                height={540}
+                className="w-[240px] md:w-[280px] h-auto drop-shadow-2xl phone-float-delayed"
+              />
             </div>
           </div>
 
           {/* Step 3 — Market */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
             <div className="order-2 lg:order-1 flex justify-center">
-              <MarketPhoneMockup className="phone-float" />
+              <Image
+                src="/mockup-market.png"
+                alt="Midnight market screen"
+                width={260}
+                height={540}
+                className="w-[240px] md:w-[280px] h-auto drop-shadow-2xl phone-float"
+              />
             </div>
             <div className="order-1 lg:order-2">
               <div className="inline-flex items-center gap-2 mb-4">
@@ -283,7 +315,13 @@ export default function Home() {
               </div>
             </div>
             <div className="flex justify-center">
-              <PredictionPhoneMockup className="phone-float-delayed" />
+              <Image
+                src="/mockup-wallet.png"
+                alt="Midnight connect wallet"
+                width={260}
+                height={540}
+                className="w-[240px] md:w-[280px] h-auto drop-shadow-2xl phone-float-delayed"
+              />
             </div>
           </div>
         </div>
