@@ -21,9 +21,11 @@ export function useTargetedConnect() {
   const { connect } = useMobileWallet();
 
   const connectToWallet = useCallback(
-    async (packageName: string) => {
+    async (packageName: string | null) => {
       try {
-        WalletTarget?.setTargetPackage(packageName);
+        if (packageName) {
+          WalletTarget?.setTargetPackage(packageName);
+        }
         return await connect();
       } finally {
         WalletTarget?.setTargetPackage(null);

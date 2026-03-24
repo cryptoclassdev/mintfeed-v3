@@ -22,18 +22,32 @@ class MainActivity : ReactActivity() {
   }
 
   /**
-   * Intercept MWA's startActivityForResult call. When a target wallet
-   * package is set, route the solana-wallet:// intent to that specific
-   * app instead of letting Android pick the default handler.
+   * Intercept MWA's startActivityForResult call.
+   *
+   * - When a target package is set: route the solana-wallet:// intent
+   *   directly to that wallet app via intent.setPackage().
+   * - When no target is set (Seeker / default MWA): wrap the intent
+   *   with createChooser() so Android shows the wallet picker instead
+   *   of silently routing to the default handler.
    */
   override fun startActivityForResult(intent: Intent, requestCode: Int) {
-    val target = targetWalletPackage
-    if (target != null &&
-        intent.action == Intent.ACTION_VIEW &&
-        intent.data?.scheme == "solana-wallet") {
-      intent.setPackage(target)
+    val isMwaIntent = intent.action == Intent.ACTION_VIEW &&
+        intent.data?.scheme == "solana-wallet"
+
+    if (isMwaIntent) {
+      val target = targetWalletPackage
       targetWalletPackage = null
+
+      if (target != null) {
+        intent.setPackage(target)
+        super.startActivityForResult(intent, requestCode)
+      } else {
+        val chooser = Intent.createChooser(intent, "Choose wallet")
+        super.startActivityForResult(chooser, requestCode)
+      }
+      return
     }
+
     super.startActivityForResult(intent, requestCode)
   }
 
