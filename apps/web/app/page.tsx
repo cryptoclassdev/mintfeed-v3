@@ -136,7 +136,7 @@ export default function Home() {
       <section id="how-it-works" className="w-full py-16 md:py-24">
         <div className="max-w-[1200px] mx-auto px-6 md:px-8">
           <div className="text-center mb-16">
-            <span className="font-mono text-[11px] uppercase tracking-[0.2em] text-[#999] mb-3 block">
+            <span className="font-brand text-[11px] uppercase tracking-[0.2em] text-[#999] mb-3 block">
               How it works
             </span>
             <h2 className="text-4xl md:text-5xl font-brand tracking-tight text-[#111]">
@@ -159,7 +159,7 @@ export default function Home() {
             </div>
             <div className="order-1 lg:order-2">
               <div className="inline-flex items-center gap-2 mb-4">
-                <span className="font-mono text-[11px] text-[#4C8BD0] uppercase tracking-[0.2em] font-medium">
+                <span className="font-brand text-[11px] text-[#4C8BD0] uppercase tracking-[0.2em]">
                   01 — Feed
                 </span>
               </div>
@@ -173,10 +173,10 @@ export default function Home() {
                 zero fluff. Swipe up to the next story instantly.
               </p>
               <div className="mt-6 flex flex-wrap gap-3">
-                <span className="px-3 py-1.5 rounded-full bg-[#F0F4FF] text-[#4C8BD0] font-mono text-[10px] uppercase tracking-wider">
+                <span className="px-3 py-1.5 rounded-full bg-[#F0F4FF] text-[#4C8BD0] font-brand text-[10px] uppercase tracking-wider">
                   Crypto
                 </span>
-                <span className="px-3 py-1.5 rounded-full bg-[#F0F4FF] text-[#4C8BD0] font-mono text-[10px] uppercase tracking-wider">
+                <span className="px-3 py-1.5 rounded-full bg-[#F0F4FF] text-[#4C8BD0] font-brand text-[10px] uppercase tracking-wider">
                   AI
                 </span>
               </div>
@@ -187,7 +187,7 @@ export default function Home() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center mb-24 md:mb-32">
             <div>
               <div className="inline-flex items-center gap-2 mb-4">
-                <span className="font-mono text-[11px] text-[#00D4AA] uppercase tracking-[0.2em] font-medium">
+                <span className="font-brand text-[11px] text-[#00D4AA] uppercase tracking-[0.2em]">
                   02 — Predict
                 </span>
               </div>
@@ -251,7 +251,7 @@ export default function Home() {
             </div>
             <div className="order-1 lg:order-2">
               <div className="inline-flex items-center gap-2 mb-4">
-                <span className="font-mono text-[11px] text-[#4C8BD0] uppercase tracking-[0.2em] font-medium">
+                <span className="font-brand text-[11px] text-[#4C8BD0] uppercase tracking-[0.2em]">
                   03 — Market
                 </span>
               </div>
@@ -360,7 +360,7 @@ export default function Home() {
               <span className="text-sm text-[#666]">Words per story</span>
             </div>
             <div className="bg-[#EDFAF6] rounded-2xl border border-[#00D4AA]/[0.08] p-7 text-center shadow-sm">
-              <div className="font-brand text-3xl md:text-4xl text-[#111] mb-1">&lt; 2 <span className="text-lg text-[#999]">min</span></div>
+              <div className="font-brand text-3xl md:text-4xl text-[#111] mb-1">&lt; 2</div>
               <span className="text-sm text-[#666]">Minutes to catch up</span>
             </div>
             <div className="bg-[#EDF4FB] rounded-2xl border border-[#4C8BD0]/[0.08] p-7 text-center shadow-sm">
