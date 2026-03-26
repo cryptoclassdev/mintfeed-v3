@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import {
   FeedPhoneMockup,
@@ -523,10 +524,10 @@ export default function Home() {
             <span className="font-mono text-[9px] text-white/20 uppercase tracking-[0.2em]">
               &copy; 2026 Midnight Tech. All rights reserved.
             </span>
-            <div className="flex items-center gap-2 font-mono text-[9px] text-white/30 uppercase tracking-[0.2em]">
+            <Link href="/status" className="flex items-center gap-2 font-mono text-[9px] text-white/30 uppercase tracking-[0.2em] hover:text-white/50 transition-colors">
               <div className="w-1.5 h-1.5 bg-[#00D4AA] rounded-full" />
               Systems operational
-            </div>
+            </Link>
           </div>
         </div>
       </footer>
