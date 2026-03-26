@@ -376,6 +376,38 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ─── Seeker Section ─── */}
+      <section className="w-full py-20 md:py-28 bg-[#0a0a0a] overflow-hidden">
+        <div className="max-w-[1200px] mx-auto px-6 md:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div>
+              <div className="inline-flex items-center gap-2 bg-white/[0.06] border border-white/[0.08] rounded-full px-4 py-2 mb-6">
+                <div className="w-2 h-2 bg-[#00D4AA] rounded-full" />
+                <span className="font-brand text-[11px] uppercase tracking-[0.15em] text-[#888]">
+                  Coming Soon
+                </span>
+              </div>
+              <h2 className="text-4xl md:text-5xl font-brand tracking-tight text-[#f4f4f5] mb-4">
+                Built for Seeker.
+              </h2>
+              <p className="text-base text-[#888] leading-relaxed max-w-md">
+                Midnight will be available on the Solana Seeker dApp Store. The
+                best crypto news experience, built for the best crypto phone.
+              </p>
+            </div>
+            <div className="flex justify-center lg:justify-end">
+              <Image
+                src="/seeker-press.png"
+                alt="Solana Seeker phone"
+                width={800}
+                height={450}
+                className="w-full max-w-[500px] h-auto rounded-2xl"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ─── Our Team ─── */}
       <section className="w-full py-16 md:py-24">
         <div className="max-w-[1200px] mx-auto px-6 md:px-8">
