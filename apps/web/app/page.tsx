@@ -99,7 +99,7 @@ export default function Home() {
       <section id="features" className="w-full py-16 md:py-24">
         <div className="max-w-[1200px] mx-auto px-6 md:px-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            <div className="bg-[#f0f5f3] rounded-2xl border border-black/[0.04] p-7 shadow-sm hover:shadow-md transition-shadow duration-300 text-center">
+            <div className="bg-[#EDF4FB] rounded-2xl border border-[#4C8BD0]/[0.08] p-7 shadow-sm hover:shadow-md transition-shadow duration-300 text-center">
               <h3 className="text-lg font-brand text-[#111] mb-2">
                 60-word stories
               </h3>
@@ -109,7 +109,7 @@ export default function Home() {
               </p>
             </div>
 
-            <div className="bg-[#eef4fb] rounded-2xl border border-black/[0.04] p-7 shadow-sm hover:shadow-md transition-shadow duration-300 text-center">
+            <div className="bg-[#EDFAF6] rounded-2xl border border-[#00D4AA]/[0.08] p-7 shadow-sm hover:shadow-md transition-shadow duration-300 text-center">
               <h3 className="text-lg font-brand text-[#111] mb-2">
                 On-chain predictions
               </h3>
@@ -119,7 +119,7 @@ export default function Home() {
               </p>
             </div>
 
-            <div className="bg-[#f5f0eb] rounded-2xl border border-black/[0.04] p-7 shadow-sm hover:shadow-md transition-shadow duration-300 text-center">
+            <div className="bg-[#EDF4FB] rounded-2xl border border-[#4C8BD0]/[0.08] p-7 shadow-sm hover:shadow-md transition-shadow duration-300 text-center">
               <h3 className="text-lg font-brand text-[#111] mb-2">
                 Real-time markets
               </h3>
@@ -355,19 +355,19 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
-            <div className="bg-[#f0f5f3] rounded-2xl border border-black/[0.04] p-7 text-center shadow-sm">
+            <div className="bg-[#EDF4FB] rounded-2xl border border-[#4C8BD0]/[0.08] p-7 text-center shadow-sm">
               <div className="font-brand text-3xl md:text-4xl text-[#111] mb-1">60</div>
               <span className="text-sm text-[#666]">Words per story</span>
             </div>
-            <div className="bg-[#eef4fb] rounded-2xl border border-black/[0.04] p-7 text-center shadow-sm">
+            <div className="bg-[#EDFAF6] rounded-2xl border border-[#00D4AA]/[0.08] p-7 text-center shadow-sm">
               <div className="font-brand text-3xl md:text-4xl text-[#111] mb-1">&lt; 2 <span className="text-lg text-[#999]">min</span></div>
               <span className="text-sm text-[#666]">Minutes to catch up</span>
             </div>
-            <div className="bg-[#f5f0eb] rounded-2xl border border-black/[0.04] p-7 text-center shadow-sm">
+            <div className="bg-[#EDF4FB] rounded-2xl border border-[#4C8BD0]/[0.08] p-7 text-center shadow-sm">
               <div className="font-brand text-3xl md:text-4xl text-[#111] mb-1">20+</div>
               <span className="text-sm text-[#666]">News sources</span>
             </div>
-            <div className="bg-[#f3f0f5] rounded-2xl border border-black/[0.04] p-7 text-center shadow-sm">
+            <div className="bg-[#EDFAF6] rounded-2xl border border-[#00D4AA]/[0.08] p-7 text-center shadow-sm">
               <div className="font-brand text-3xl md:text-4xl text-[#111] mb-1">24/7</div>
               <span className="text-sm text-[#666]">Market coverage</span>
             </div>
