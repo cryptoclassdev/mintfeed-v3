@@ -9,9 +9,9 @@ export default function Navbar() {
           <Image
             src="/logo.png"
             alt="Midnight"
-            width={28}
-            height={28}
-            className="rounded-lg w-7 h-7"
+            width={36}
+            height={36}
+            className="rounded-lg w-9 h-9"
           />
           <span className="font-brand font-medium tracking-tight text-[#111] text-base">
             Midnight

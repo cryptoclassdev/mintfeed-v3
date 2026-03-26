@@ -12,7 +12,6 @@ interface AppState {
   hapticsEnabled: boolean;
   readArticleIds: Record<string, true>;
   hasCompletedOnboarding: boolean;
-  preferredWalletId: string | null;
   quickBetAmount: QuickBetAmount;
   setCategory: (category: "all" | "crypto" | "ai") => void;
   setTheme: (theme: ThemeMode) => void;
@@ -20,7 +19,6 @@ interface AppState {
   toggleHaptics: () => void;
   markAsRead: (id: string) => void;
   completeOnboarding: () => void;
-  setPreferredWallet: (walletId: string | null) => void;
   setQuickBetAmount: (amount: QuickBetAmount) => void;
 }
 
@@ -32,7 +30,6 @@ export const useAppStore = create<AppState>()(
       hapticsEnabled: true,
       readArticleIds: {},
       hasCompletedOnboarding: false,
-      preferredWalletId: null,
       quickBetAmount: 5,
 
       setCategory: (category) => set({ selectedCategory: category }),
@@ -54,8 +51,6 @@ export const useAppStore = create<AppState>()(
 
       completeOnboarding: () => set({ hasCompletedOnboarding: true }),
 
-      setPreferredWallet: (walletId) => set({ preferredWalletId: walletId }),
-
       setQuickBetAmount: (amount) => set({ quickBetAmount: amount }),
     }),
     {
@@ -66,7 +61,6 @@ export const useAppStore = create<AppState>()(
         hapticsEnabled: state.hapticsEnabled,
         readArticleIds: state.readArticleIds,
         hasCompletedOnboarding: state.hasCompletedOnboarding,
-        preferredWalletId: state.preferredWalletId,
         quickBetAmount: state.quickBetAmount,
       }),
     },

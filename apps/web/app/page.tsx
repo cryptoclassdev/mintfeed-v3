@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import {
   FeedPhoneMockup,
@@ -62,7 +63,7 @@ export default function Home() {
           </div>
 
           {/* Phone Mockups — overlapping, tilted layout */}
-          <div className="relative flex justify-center items-center h-[480px] md:h-[580px] fade-up fade-up-d4">
+          <div className="relative flex justify-center items-center h-[480px] md:h-[580px] 2xl:h-[720px] fade-up fade-up-d4">
             {/* Right phone (behind, tilted right) */}
             <div
               className="absolute z-0"
@@ -73,7 +74,7 @@ export default function Home() {
                 alt="Midnight market screen"
                 width={260}
                 height={540}
-                className="w-[220px] md:w-[260px] h-auto drop-shadow-2xl"
+                className="w-[220px] md:w-[260px] lg:w-[300px] 2xl:w-[340px] h-auto drop-shadow-2xl"
                 priority
               />
             </div>
@@ -87,7 +88,7 @@ export default function Home() {
                 alt="Midnight news feed screen"
                 width={260}
                 height={540}
-                className="w-[220px] md:w-[260px] h-auto drop-shadow-2xl"
+                className="w-[220px] md:w-[260px] lg:w-[300px] 2xl:w-[340px] h-auto drop-shadow-2xl"
                 priority
               />
             </div>
@@ -99,7 +100,7 @@ export default function Home() {
       <section id="features" className="w-full py-16 md:py-24">
         <div className="max-w-[1200px] mx-auto px-6 md:px-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            <div className="bg-[#f0f5f3] rounded-2xl border border-black/[0.04] p-7 shadow-sm hover:shadow-md transition-shadow duration-300 text-center">
+            <div className="bg-[#EDF4FB] rounded-2xl border border-[#4C8BD0]/[0.08] p-7 shadow-sm hover:shadow-md transition-shadow duration-300 text-center">
               <h3 className="text-lg font-brand text-[#111] mb-2">
                 60-word stories
               </h3>
@@ -109,7 +110,7 @@ export default function Home() {
               </p>
             </div>
 
-            <div className="bg-[#eef4fb] rounded-2xl border border-black/[0.04] p-7 shadow-sm hover:shadow-md transition-shadow duration-300 text-center">
+            <div className="bg-[#EDFAF6] rounded-2xl border border-[#00D4AA]/[0.08] p-7 shadow-sm hover:shadow-md transition-shadow duration-300 text-center">
               <h3 className="text-lg font-brand text-[#111] mb-2">
                 On-chain predictions
               </h3>
@@ -119,7 +120,7 @@ export default function Home() {
               </p>
             </div>
 
-            <div className="bg-[#f5f0eb] rounded-2xl border border-black/[0.04] p-7 shadow-sm hover:shadow-md transition-shadow duration-300 text-center">
+            <div className="bg-[#EDF4FB] rounded-2xl border border-[#4C8BD0]/[0.08] p-7 shadow-sm hover:shadow-md transition-shadow duration-300 text-center">
               <h3 className="text-lg font-brand text-[#111] mb-2">
                 Real-time markets
               </h3>
@@ -136,7 +137,7 @@ export default function Home() {
       <section id="how-it-works" className="w-full py-16 md:py-24">
         <div className="max-w-[1200px] mx-auto px-6 md:px-8">
           <div className="text-center mb-16">
-            <span className="font-mono text-[11px] uppercase tracking-[0.2em] text-[#999] mb-3 block">
+            <span className="font-brand text-[11px] uppercase tracking-[0.2em] text-[#999] mb-3 block">
               How it works
             </span>
             <h2 className="text-4xl md:text-5xl font-brand tracking-tight text-[#111]">
@@ -154,12 +155,12 @@ export default function Home() {
                 alt="Midnight 60-word news feed"
                 width={260}
                 height={540}
-                className="w-[240px] md:w-[280px] h-auto drop-shadow-2xl phone-float"
+                className="w-[240px] md:w-[280px] lg:w-[320px] 2xl:w-[360px] h-auto drop-shadow-2xl phone-float"
               />
             </div>
             <div className="order-1 lg:order-2">
               <div className="inline-flex items-center gap-2 mb-4">
-                <span className="font-mono text-[11px] text-[#4C8BD0] uppercase tracking-[0.2em] font-medium">
+                <span className="font-brand text-[11px] text-[#4C8BD0] uppercase tracking-[0.2em]">
                   01 — Feed
                 </span>
               </div>
@@ -173,10 +174,10 @@ export default function Home() {
                 zero fluff. Swipe up to the next story instantly.
               </p>
               <div className="mt-6 flex flex-wrap gap-3">
-                <span className="px-3 py-1.5 rounded-full bg-[#F0F4FF] text-[#4C8BD0] font-mono text-[10px] uppercase tracking-wider">
+                <span className="px-3 py-1.5 rounded-full bg-[#F0F4FF] text-[#4C8BD0] font-brand text-[10px] uppercase tracking-wider">
                   Crypto
                 </span>
-                <span className="px-3 py-1.5 rounded-full bg-[#F0F4FF] text-[#4C8BD0] font-mono text-[10px] uppercase tracking-wider">
+                <span className="px-3 py-1.5 rounded-full bg-[#F0F4FF] text-[#4C8BD0] font-brand text-[10px] uppercase tracking-wider">
                   AI
                 </span>
               </div>
@@ -187,7 +188,7 @@ export default function Home() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center mb-24 md:mb-32">
             <div>
               <div className="inline-flex items-center gap-2 mb-4">
-                <span className="font-mono text-[11px] text-[#00D4AA] uppercase tracking-[0.2em] font-medium">
+                <span className="font-brand text-[11px] text-[#00D4AA] uppercase tracking-[0.2em]">
                   02 — Predict
                 </span>
               </div>
@@ -233,7 +234,7 @@ export default function Home() {
                 alt="Midnight swipe to bet"
                 width={260}
                 height={540}
-                className="w-[240px] md:w-[280px] h-auto drop-shadow-2xl phone-float-delayed"
+                className="w-[240px] md:w-[280px] lg:w-[320px] 2xl:w-[360px] h-auto drop-shadow-2xl phone-float-delayed"
               />
             </div>
           </div>
@@ -246,12 +247,12 @@ export default function Home() {
                 alt="Midnight market screen"
                 width={260}
                 height={540}
-                className="w-[240px] md:w-[280px] h-auto drop-shadow-2xl phone-float"
+                className="w-[240px] md:w-[280px] lg:w-[320px] 2xl:w-[360px] h-auto drop-shadow-2xl phone-float"
               />
             </div>
             <div className="order-1 lg:order-2">
               <div className="inline-flex items-center gap-2 mb-4">
-                <span className="font-mono text-[11px] text-[#4C8BD0] uppercase tracking-[0.2em] font-medium">
+                <span className="font-brand text-[11px] text-[#4C8BD0] uppercase tracking-[0.2em]">
                   03 — Market
                 </span>
               </div>
@@ -270,7 +271,7 @@ export default function Home() {
       </section>
 
       {/* ─── Highlight / CTA Section (colored background, like coverage in design) ─── */}
-      <section className="w-full py-20 md:py-28 bg-gradient-to-br from-[#FDF2EF] via-[#FEF8F5] to-[#F0F7F4] relative overflow-hidden">
+      <section className="w-full py-20 md:py-28 bg-[#fafafa] relative overflow-hidden">
         {/* Subtle decorative elements */}
         <div className="absolute top-10 right-[15%] w-[200px] h-[200px] rounded-full bg-[#FDDDD5]/30 blur-[60px] pointer-events-none" />
         <div className="absolute bottom-10 left-[10%] w-[180px] h-[180px] rounded-full bg-[#D5F0E8]/30 blur-[60px] pointer-events-none" />
@@ -315,13 +316,31 @@ export default function Home() {
               </div>
             </div>
             <div className="flex justify-center">
-              <Image
-                src="/mockup-wallet.png"
-                alt="Midnight connect wallet"
-                width={260}
-                height={540}
-                className="w-[240px] md:w-[280px] h-auto drop-shadow-2xl phone-float-delayed"
-              />
+              <div className="relative w-[240px] md:w-[280px] lg:w-[320px] 2xl:w-[360px]" style={{ aspectRatio: "1080 / 1920" }}>
+                {/* Video positioned at the screen area behind the frame */}
+                <video
+                  src="/seeker-loop.mp4"
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  className="absolute object-cover"
+                  style={{
+                    top: "5%",
+                    left: "14.26%",
+                    width: "71.67%",
+                    height: "89.79%",
+                  }}
+                />
+                {/* Phone frame: #fafafa outside, transparent screen, opaque bezel */}
+                <Image
+                  src="/seeker-frame-overlay.png"
+                  alt=""
+                  width={1080}
+                  height={1920}
+                  className="relative z-10 w-full h-full pointer-events-none"
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -337,21 +356,53 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
-            <div className="bg-[#f0f5f3] rounded-2xl border border-black/[0.04] p-7 text-center shadow-sm">
+            <div className="bg-[#EDF4FB] rounded-2xl border border-[#4C8BD0]/[0.08] p-7 text-center shadow-sm">
               <div className="font-brand text-3xl md:text-4xl text-[#111] mb-1">60</div>
               <span className="text-sm text-[#666]">Words per story</span>
             </div>
-            <div className="bg-[#eef4fb] rounded-2xl border border-black/[0.04] p-7 text-center shadow-sm">
-              <div className="font-brand text-3xl md:text-4xl text-[#111] mb-1">&lt; 2 <span className="text-lg text-[#999]">min</span></div>
+            <div className="bg-[#EDFAF6] rounded-2xl border border-[#00D4AA]/[0.08] p-7 text-center shadow-sm">
+              <div className="font-brand text-3xl md:text-4xl text-[#111] mb-1">&lt; 2</div>
               <span className="text-sm text-[#666]">Minutes to catch up</span>
             </div>
-            <div className="bg-[#f5f0eb] rounded-2xl border border-black/[0.04] p-7 text-center shadow-sm">
+            <div className="bg-[#EDF4FB] rounded-2xl border border-[#4C8BD0]/[0.08] p-7 text-center shadow-sm">
               <div className="font-brand text-3xl md:text-4xl text-[#111] mb-1">20+</div>
               <span className="text-sm text-[#666]">News sources</span>
             </div>
-            <div className="bg-[#f3f0f5] rounded-2xl border border-black/[0.04] p-7 text-center shadow-sm">
+            <div className="bg-[#EDFAF6] rounded-2xl border border-[#00D4AA]/[0.08] p-7 text-center shadow-sm">
               <div className="font-brand text-3xl md:text-4xl text-[#111] mb-1">24/7</div>
               <span className="text-sm text-[#666]">Market coverage</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ─── Seeker Section ─── */}
+      <section className="w-full py-20 md:py-28 bg-[#0a0a0a] overflow-hidden">
+        <div className="max-w-[1200px] mx-auto px-6 md:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div>
+              <div className="inline-flex items-center gap-2 bg-white/[0.06] border border-white/[0.08] rounded-full px-4 py-2 mb-6">
+                <div className="w-2 h-2 bg-[#00D4AA] rounded-full" />
+                <span className="font-brand text-[11px] uppercase tracking-[0.15em] text-[#888]">
+                  Coming Soon
+                </span>
+              </div>
+              <h2 className="text-4xl md:text-5xl font-brand tracking-tight text-[#f4f4f5] mb-4">
+                Built for Seeker.
+              </h2>
+              <p className="text-base text-[#888] leading-relaxed max-w-md">
+                Midnight will be available on the Solana Seeker dApp Store. The
+                best crypto news experience, built for the best crypto phone.
+              </p>
+            </div>
+            <div className="flex justify-center lg:justify-end">
+              <Image
+                src="/seeker-press.png"
+                alt="Solana Seeker phone"
+                width={800}
+                height={450}
+                className="w-full max-w-[500px] h-auto rounded-2xl"
+              />
             </div>
           </div>
         </div>
@@ -462,8 +513,8 @@ export default function Home() {
               <Image
                 src="/logo.png"
                 alt="Midnight"
-                width={24}
-                height={24}
+                width={32}
+                height={32}
                 className="rounded-lg"
               />
               <span className="text-sm font-brand font-medium tracking-tight text-white/80">
@@ -505,10 +556,10 @@ export default function Home() {
             <span className="font-mono text-[9px] text-white/20 uppercase tracking-[0.2em]">
               &copy; 2026 Midnight Tech. All rights reserved.
             </span>
-            <div className="flex items-center gap-2 font-mono text-[9px] text-white/30 uppercase tracking-[0.2em]">
+            <Link href="/status" className="flex items-center gap-2 font-mono text-[9px] text-white/30 uppercase tracking-[0.2em] hover:text-white/50 transition-colors">
               <div className="w-1.5 h-1.5 bg-[#00D4AA] rounded-full" />
               Systems operational
-            </div>
+            </Link>
           </div>
         </div>
       </footer>

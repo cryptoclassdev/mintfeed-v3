@@ -5,19 +5,37 @@ import {
   Pressable,
   StyleSheet,
   Platform,
+  ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useMobileWallet } from "@wallet-ui/react-native-web3js";
 import { colors } from "@/constants/theme";
 import { fonts, fontSize } from "@/constants/typography";
 import { useAppStore } from "@/lib/store";
-import { WalletPicker } from "@/components/wallet/WalletPicker";
+import { showToast } from "@/lib/toast";
 
 export default function LoginScreen() {
   const theme = useAppStore((s) => s.theme);
   const themeColors = colors[theme];
-  const [pickerVisible, setPickerVisible] = useState(false);
+  const { connect } = useMobileWallet();
+  const [connecting, setConnecting] = useState(false);
 
   const isAndroid = Platform.OS === "android";
+
+  const handleConnect = async () => {
+    setConnecting(true);
+    try {
+      await connect();
+      showToast("success", "Wallet Connected", "Your wallet is now connected.");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Connection failed";
+      if (!/user (rejected|cancelled)/i.test(msg)) {
+        showToast("error", "Connection Failed", msg);
+      }
+    } finally {
+      setConnecting(false);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -32,22 +50,22 @@ export default function LoginScreen() {
       </Text>
 
       {isAndroid ? (
-        <>
-          <Pressable
-            style={[styles.button, { backgroundColor: themeColors.accent }]}
-            onPress={() => setPickerVisible(true)}
-            accessibilityRole="button"
-            accessibilityLabel="Connect Solana wallet"
-          >
+        <Pressable
+          style={[styles.button, { backgroundColor: themeColors.accent }]}
+          onPress={handleConnect}
+          disabled={connecting}
+          accessibilityRole="button"
+          accessibilityLabel="Connect Solana wallet"
+        >
+          {connecting ? (
+            <ActivityIndicator size="small" color="#FFFFFF" />
+          ) : (
             <Ionicons name="wallet-outline" size={18} color="#FFFFFF" />
-            <Text style={styles.buttonText}>Connect Wallet</Text>
-          </Pressable>
-
-          <WalletPicker
-            visible={pickerVisible}
-            onClose={() => setPickerVisible(false)}
-          />
-        </>
+          )}
+          <Text style={styles.buttonText}>
+            {connecting ? "Connecting..." : "Connect Wallet"}
+          </Text>
+        </Pressable>
       ) : (
         <Text
           style={[styles.unavailableText, { color: themeColors.textMuted }]}

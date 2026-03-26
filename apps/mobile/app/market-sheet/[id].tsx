@@ -32,7 +32,6 @@ import {
 import { showToast } from "@/lib/toast";
 import * as haptics from "@/lib/haptics";
 import { buildResolutionRulePreview, formatResolveDateTime } from "./utils";
-import { WalletPicker } from "@/components/wallet/WalletPicker";
 
 const STATUS_COLORS = {
   open: "#00ff66",
@@ -46,7 +45,7 @@ export default function MarketSheet() {
   const theme = useAppStore((s) => s.theme);
   const { account } = useMobileWallet();
   const walletAddress = account?.address.toString() ?? null;
-  const [walletPickerVisible, setWalletPickerVisible] = useState(false);
+  const { connect } = useMobileWallet();
   const themeColors = colors[theme];
 
   const { data: market, isLoading: marketLoading } = usePredictionMarketDetail(marketId);
@@ -88,10 +87,14 @@ export default function MarketSheet() {
     return Math.floor(usd / price);
   }, [amount, selectedSide, yesPrice, noPrice]);
 
-  const handleConnectWallet = useCallback(() => {
+  const handleConnectWallet = useCallback(async () => {
     haptics.mediumImpact();
-    setWalletPickerVisible(true);
-  }, []);
+    try {
+      await connect();
+    } catch {
+      // user cancelled or connection failed — handled by MWA
+    }
+  }, [connect]);
 
   const handlePlaceBet = useCallback(async () => {
     if (!walletAddress || !marketId) return;
@@ -424,10 +427,6 @@ export default function MarketSheet() {
         )}
       </View>
 
-      <WalletPicker
-        visible={walletPickerVisible}
-        onClose={() => setWalletPickerVisible(false)}
-      />
     </SafeAreaView>
   );
 }

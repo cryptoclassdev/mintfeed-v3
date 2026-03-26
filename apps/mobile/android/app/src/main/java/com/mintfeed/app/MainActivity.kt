@@ -1,7 +1,6 @@
 package com.mintfeed.app
 import expo.modules.splashscreen.SplashScreenManager
 
-import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 
@@ -13,44 +12,6 @@ import com.facebook.react.defaults.DefaultReactActivityDelegate
 import expo.modules.ReactActivityDelegateWrapper
 
 class MainActivity : ReactActivity() {
-
-  companion object {
-    /** Set by WalletTargetModule from JS before calling MWA connect(). */
-    @JvmStatic
-    @Volatile
-    var targetWalletPackage: String? = null
-  }
-
-  /**
-   * Intercept MWA's startActivityForResult call.
-   *
-   * - When a target package is set: route the solana-wallet:// intent
-   *   directly to that wallet app via intent.setPackage().
-   * - When no target is set (Seeker / default MWA): wrap the intent
-   *   with createChooser() so Android shows the wallet picker instead
-   *   of silently routing to the default handler.
-   */
-  override fun startActivityForResult(intent: Intent, requestCode: Int) {
-    val isMwaIntent = intent.action == Intent.ACTION_VIEW &&
-        intent.data?.scheme == "solana-wallet"
-
-    if (isMwaIntent) {
-      val target = targetWalletPackage
-      targetWalletPackage = null
-
-      if (target != null) {
-        intent.setPackage(target)
-        super.startActivityForResult(intent, requestCode)
-      } else {
-        val chooser = Intent.createChooser(intent, "Choose wallet")
-        super.startActivityForResult(chooser, requestCode)
-      }
-      return
-    }
-
-    super.startActivityForResult(intent, requestCode)
-  }
-
   override fun onCreate(savedInstanceState: Bundle?) {
     // Set the theme to AppTheme BEFORE onCreate to support
     // coloring the background, status bar, and navigation bar.
