@@ -1,5 +1,5 @@
 import { useRef, useCallback } from "react";
-import { Tabs, usePathname, useRouter } from "expo-router";
+import { Tabs, usePathname, useRouter, useNavigationContainerRef } from "expo-router";
 import { View, StyleSheet } from "react-native";
 import { Gesture, GestureDetector, Directions } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -33,6 +33,10 @@ export default function TabLayout() {
     },
     [router],
   );
+
+  const onTabPress = useCallback(() => {
+    haptics.selection();
+  }, []);
 
   const flingLeft = Gesture.Fling()
     .direction(Directions.LEFT)
@@ -83,6 +87,11 @@ export default function TabLayout() {
             <Ionicons name="grid-outline" size={size} color={color} />
           ),
         }}
+        listeners={() => ({
+          tabPress: (e) => {
+            onTabPress();
+          },
+        })}
       />
       <Tabs.Screen
         name="market"
@@ -92,6 +101,11 @@ export default function TabLayout() {
             <Ionicons name="trending-up-outline" size={size} color={color} />
           ),
         }}
+        listeners={() => ({
+          tabPress: (e) => {
+            onTabPress();
+          },
+        })}
       />
       <Tabs.Screen
         name="settings"
@@ -101,6 +115,11 @@ export default function TabLayout() {
             <Ionicons name="person-outline" size={size} color={color} />
           ),
         }}
+        listeners={() => ({
+          tabPress: (e) => {
+            onTabPress();
+          },
+        })}
       />
     </Tabs>
     </View>
