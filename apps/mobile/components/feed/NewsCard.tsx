@@ -104,7 +104,7 @@ interface NewsCardProps {
   walletConnected: boolean;
 }
 
-const MAX_VISIBLE_MARKETS = 3;
+const MAX_VISIBLE_MARKETS = 2; // Limit to 2 relevant markets per card for cleaner UX
 
 export const NewsCard = memo(function NewsCard({ article, onSwipeBet, walletConnected }: NewsCardProps) {
   const { height: screenHeight } = useWindowDimensions();
