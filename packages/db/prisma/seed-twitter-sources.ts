@@ -3,24 +3,23 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 const twitterSources = [
-  // CRYPTO TIER_1 - On-chain intelligence & protocol updates
-  { handle: "lookonchain", displayName: "Lookonchain", tier: "TIER_1" as const, category: "CRYPTO" as const },
-  { handle: "whale_alert", displayName: "Whale Alert", tier: "TIER_1" as const, category: "CRYPTO" as const },
-  { handle: "JupiterExchange", displayName: "Jupiter", tier: "TIER_1" as const, category: "CRYPTO" as const },
-  { handle: "RaydiumProtocol", displayName: "Raydium", tier: "TIER_1" as const, category: "CRYPTO" as const },
-  { handle: "phantom", displayName: "Phantom", tier: "TIER_1" as const, category: "CRYPTO" as const },
-  { handle: "MagicEden", displayName: "Magic Eden", tier: "TIER_1" as const, category: "CRYPTO" as const },
-  { handle: "solana", displayName: "Solana", tier: "TIER_1" as const, category: "CRYPTO" as const },
+  // CRYPTO TIER_1 - Major news outlets and data platforms
+  { handle: "WatcherGuru", displayName: "Watcher.Guru", tier: "TIER_1" as const, category: "CRYPTO" as const },
+  { handle: "Cointelegraph", displayName: "Cointelegraph", tier: "TIER_1" as const, category: "CRYPTO" as const },
+  { handle: "CoinDesk", displayName: "CoinDesk", tier: "TIER_1" as const, category: "CRYPTO" as const },
+  { handle: "TheBlockCo", displayName: "The Block", tier: "TIER_1" as const, category: "CRYPTO" as const },
+  { handle: "glassnode", displayName: "glassnode", tier: "TIER_1" as const, category: "CRYPTO" as const },
+  { handle: "unusual_whales", displayName: "unusual_whales", tier: "TIER_1" as const, category: "CRYPTO" as const },
+  { handle: "coinbureau", displayName: "Coin Bureau", tier: "TIER_1" as const, category: "CRYPTO" as const },
+  { handle: "KobeissiLetter", displayName: "The Kobeissi Letter", tier: "TIER_1" as const, category: "CRYPTO" as const },
 
-  // CRYPTO TIER_2 - Builders, analysts, and thought leaders
-  { handle: "VitalikButerin", displayName: "Vitalik Buterin", tier: "TIER_2" as const, category: "CRYPTO" as const },
-  { handle: "CryptoHayes", displayName: "Arthur Hayes", tier: "TIER_2" as const, category: "CRYPTO" as const },
-  { handle: "zachxbt", displayName: "ZachXBT", tier: "TIER_2" as const, category: "CRYPTO" as const },
-  { handle: "CoinDesk", displayName: "CoinDesk", tier: "TIER_2" as const, category: "CRYPTO" as const },
-  { handle: "Cointelegraph", displayName: "Cointelegraph", tier: "TIER_2" as const, category: "CRYPTO" as const },
-  { handle: "TheBlock__", displayName: "The Block", tier: "TIER_2" as const, category: "CRYPTO" as const },
-  { handle: "dcbuilder", displayName: "DCBuilder", tier: "TIER_2" as const, category: "CRYPTO" as const },
-  { handle: "MessariCrypto", displayName: "Messari", tier: "TIER_2" as const, category: "CRYPTO" as const },
+  // CRYPTO TIER_2 - Prediction markets, analysts, niche feeds
+  { handle: "Polymarket", displayName: "Polymarket", tier: "TIER_2" as const, category: "CRYPTO" as const },
+  { handle: "PolymarketTrade", displayName: "Polymarket Traders", tier: "TIER_2" as const, category: "CRYPTO" as const },
+  { handle: "MilkRoadAI", displayName: "Milk Road AI", tier: "TIER_2" as const, category: "CRYPTO" as const },
+  { handle: "DegenerateNews", displayName: "DEGEN NEWS", tier: "TIER_2" as const, category: "CRYPTO" as const },
+  { handle: "FabianoSolana", displayName: "fabiano.sol", tier: "TIER_2" as const, category: "CRYPTO" as const },
+  { handle: "intocryptoverse", displayName: "Benjamin Cowen", tier: "TIER_2" as const, category: "CRYPTO" as const },
 
   // AI TIER_1 - Major AI lab announcements
   { handle: "OpenAI", displayName: "OpenAI", tier: "TIER_1" as const, category: "AI" as const },
