@@ -123,7 +123,7 @@ export default function Home() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center mb-24 md:mb-32">
             <div className="order-2 lg:order-1 flex justify-center">
               <Image
-                src="/mockup-feed-no.png"
+                src="/claude-ss-mockup.png"
                 alt="Midnight 60-word news feed"
                 width={260}
                 height={540}
@@ -202,7 +202,7 @@ export default function Home() {
             </div>
             <div className="flex justify-center">
               <Image
-                src="/mockup-feed.png"
+                src="/elon-musk-yes.png"
                 alt="Midnight swipe to bet"
                 width={260}
                 height={540}
@@ -215,7 +215,7 @@ export default function Home() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
             <div className="order-2 lg:order-1 flex justify-center">
               <Image
-                src="/mockup-market.png"
+                src="/extreme-fear-13-mockup.png"
                 alt="Midnight market screen"
                 width={260}
                 height={540}
