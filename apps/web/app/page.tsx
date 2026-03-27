@@ -8,6 +8,7 @@ import {
 } from "@/components/PhoneMockupLight";
 import FAQ from "@/components/FAQ";
 import WaitlistForm from "@/components/WaitlistForm";
+import HeroMockups from "@/components/HeroMockups";
 
 export default function Home() {
   return (
@@ -62,37 +63,8 @@ export default function Home() {
             </a>
           </div>
 
-          {/* Phone Mockups — overlapping, tilted layout */}
-          <div className="relative flex justify-center items-center h-[480px] md:h-[580px] 2xl:h-[720px] fade-up fade-up-d4">
-            {/* Right phone (behind, tilted right) */}
-            <div
-              className="absolute z-0"
-              style={{ transform: "rotate(6deg) translate(100px, 0px)" }}
-            >
-              <Image
-                src="/mockup-market.png"
-                alt="Midnight market screen"
-                width={260}
-                height={540}
-                className="w-[220px] md:w-[260px] lg:w-[300px] 2xl:w-[340px] h-auto drop-shadow-2xl"
-                priority
-              />
-            </div>
-            {/* Left phone (front, tilted left) */}
-            <div
-              className="absolute z-10"
-              style={{ transform: "rotate(-5deg) translate(-70px, 0px)" }}
-            >
-              <Image
-                src="/mockup-feed.png"
-                alt="Midnight news feed screen"
-                width={260}
-                height={540}
-                className="w-[220px] md:w-[260px] lg:w-[300px] 2xl:w-[340px] h-auto drop-shadow-2xl"
-                priority
-              />
-            </div>
-          </div>
+          {/* Phone Mockups — overlapping, tilted layout (click to swap) */}
+          <HeroMockups />
         </div>
       </section>
 
@@ -120,7 +92,7 @@ export default function Home() {
               </p>
             </div>
 
-            <div className="bg-[#EDF4FB] rounded-2xl border border-[#4C8BD0]/[0.08] p-7 shadow-sm hover:shadow-md transition-shadow duration-300 text-center">
+            <div className="bg-[#E8F4F8] rounded-2xl border border-[#2A9BB5]/[0.08] p-7 shadow-sm hover:shadow-md transition-shadow duration-300 text-center">
               <h3 className="text-lg font-brand text-[#111] mb-2">
                 Real-time markets
               </h3>
@@ -364,11 +336,11 @@ export default function Home() {
               <div className="font-brand text-3xl md:text-4xl text-[#111] mb-1">&lt; 2</div>
               <span className="text-sm text-[#666]">Minutes to catch up</span>
             </div>
-            <div className="bg-[#EDF4FB] rounded-2xl border border-[#4C8BD0]/[0.08] p-7 text-center shadow-sm">
+            <div className="bg-[#E8F4F8] rounded-2xl border border-[#2A9BB5]/[0.08] p-7 text-center shadow-sm">
               <div className="font-brand text-3xl md:text-4xl text-[#111] mb-1">20+</div>
               <span className="text-sm text-[#666]">News sources</span>
             </div>
-            <div className="bg-[#EDFAF6] rounded-2xl border border-[#00D4AA]/[0.08] p-7 text-center shadow-sm">
+            <div className="bg-[#ECF0FB] rounded-2xl border border-[#5B6BBF]/[0.08] p-7 text-center shadow-sm">
               <div className="font-brand text-3xl md:text-4xl text-[#111] mb-1">24/7</div>
               <span className="text-sm text-[#666]">Market coverage</span>
             </div>
