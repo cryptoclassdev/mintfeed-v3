@@ -1,7 +1,8 @@
-import { View, Text, StyleSheet, ScrollView, Pressable } from "react-native";
+import { useState, useRef } from "react";
+import { View, Text, StyleSheet, ScrollView, Pressable, TextInput, Keyboard } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useMobileWallet } from "@wallet-ui/react-native-web3js";
-import { useAppStore, QUICK_BET_OPTIONS, type QuickBetAmount } from "@/lib/store";
+import { useAppStore, QUICK_BET_OPTIONS, QUICK_BET_MIN } from "@/lib/store";
 import { colors } from "@/constants/theme";
 import { fonts, fontSize, letterSpacing } from "@/constants/typography";
 import * as haptics from "@/lib/haptics";
@@ -16,9 +17,34 @@ export default function ProfileScreen() {
   const { account } = useMobileWallet();
   const walletAddress = account?.address.toString() ?? null;
 
-  const handleQuickBetChange = (amount: QuickBetAmount) => {
+  const isPreset = (QUICK_BET_OPTIONS as readonly number[]).includes(quickBetAmount);
+  const [showCustomInput, setShowCustomInput] = useState(!isPreset);
+  const [customText, setCustomText] = useState(isPreset ? "" : String(quickBetAmount));
+  const inputRef = useRef<TextInput>(null);
+
+  const handlePresetChange = (amount: number) => {
     haptics.selection();
     setQuickBetAmount(amount);
+    setShowCustomInput(false);
+    setCustomText("");
+    Keyboard.dismiss();
+  };
+
+  const handleCustomTap = () => {
+    haptics.selection();
+    setShowCustomInput(true);
+    setTimeout(() => inputRef.current?.focus(), 100);
+  };
+
+  const handleCustomSubmit = () => {
+    const parsed = parseInt(customText, 10);
+    if (!isNaN(parsed) && parsed >= QUICK_BET_MIN) {
+      setQuickBetAmount(parsed);
+    } else {
+      setCustomText(quickBetAmount >= QUICK_BET_MIN && !isPreset ? String(quickBetAmount) : "");
+      if (isPreset) setShowCustomInput(false);
+    }
+    Keyboard.dismiss();
   };
 
   return (
@@ -50,22 +76,22 @@ export default function ProfileScreen() {
             {QUICK_BET_OPTIONS.map((amount) => (
               <Pressable
                 key={amount}
-                onPress={() => handleQuickBetChange(amount)}
+                onPress={() => handlePresetChange(amount)}
                 style={[
                   styles.quickBetChip,
                   {
                     backgroundColor:
-                      quickBetAmount === amount
+                      quickBetAmount === amount && !showCustomInput
                         ? themeColors.accentMint + "20"
                         : themeColors.card,
                     borderColor:
-                      quickBetAmount === amount
+                      quickBetAmount === amount && !showCustomInput
                         ? themeColors.accentMint
                         : themeColors.cardBorder,
                   },
                 ]}
                 accessibilityRole="radio"
-                accessibilityState={{ selected: quickBetAmount === amount }}
+                accessibilityState={{ selected: quickBetAmount === amount && !showCustomInput }}
                 accessibilityLabel={`Set quick bet to ${amount} dollars`}
               >
                 <Text
@@ -73,7 +99,7 @@ export default function ProfileScreen() {
                     styles.quickBetText,
                     {
                       color:
-                        quickBetAmount === amount
+                        quickBetAmount === amount && !showCustomInput
                           ? themeColors.accentMint
                           : themeColors.textMuted,
                     },
@@ -83,7 +109,58 @@ export default function ProfileScreen() {
                 </Text>
               </Pressable>
             ))}
+            <Pressable
+              onPress={handleCustomTap}
+              style={[
+                styles.quickBetChip,
+                {
+                  backgroundColor: showCustomInput
+                    ? themeColors.accentMint + "20"
+                    : themeColors.card,
+                  borderColor: showCustomInput
+                    ? themeColors.accentMint
+                    : themeColors.cardBorder,
+                },
+              ]}
+              accessibilityRole="radio"
+              accessibilityState={{ selected: showCustomInput }}
+              accessibilityLabel="Set a custom bet amount"
+            >
+              <Text
+                style={[
+                  styles.quickBetText,
+                  {
+                    color: showCustomInput
+                      ? themeColors.accentMint
+                      : themeColors.textMuted,
+                  },
+                ]}
+              >
+                Custom
+              </Text>
+            </Pressable>
           </View>
+          {showCustomInput && (
+            <View style={[styles.customInputRow, { borderColor: themeColors.cardBorder }]}>
+              <Text style={[styles.customInputPrefix, { color: themeColors.textMuted }]}>$</Text>
+              <TextInput
+                ref={inputRef}
+                style={[
+                  styles.customInput,
+                  { color: themeColors.text, borderColor: themeColors.cardBorder, backgroundColor: themeColors.card },
+                ]}
+                value={customText}
+                onChangeText={setCustomText}
+                onSubmitEditing={handleCustomSubmit}
+                onBlur={handleCustomSubmit}
+                keyboardType="number-pad"
+                returnKeyType="done"
+                placeholder={`Min $${QUICK_BET_MIN}`}
+                placeholderTextColor={themeColors.textFaint}
+                maxLength={5}
+              />
+            </View>
+          )}
         </View>
 
         {/* About */}
@@ -176,6 +253,27 @@ const styles = StyleSheet.create({
     fontFamily: fonts.mono.bold,
     fontSize: fontSize.base,
     letterSpacing: letterSpacing.wide,
+  },
+  customInputRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 10,
+    gap: 8,
+  },
+  customInputPrefix: {
+    fontFamily: fonts.mono.bold,
+    fontSize: fontSize.lg,
+  },
+  customInput: {
+    flex: 1,
+    fontFamily: fonts.mono.bold,
+    fontSize: fontSize.base,
+    letterSpacing: letterSpacing.wide,
+    borderWidth: 1.5,
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    minHeight: 44,
   },
   row: {
     flexDirection: "row",

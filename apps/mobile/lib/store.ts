@@ -5,7 +5,7 @@ import type { ThemeMode } from "@/constants/theme";
 
 export const QUICK_BET_OPTIONS = [5, 10, 25, 50] as const;
 export const QUICK_BET_MIN = 5;
-export type QuickBetAmount = (typeof QUICK_BET_OPTIONS)[number];
+export type QuickBetPreset = (typeof QUICK_BET_OPTIONS)[number];
 
 interface AppState {
   selectedCategory: "all" | "crypto" | "ai";
@@ -13,14 +13,14 @@ interface AppState {
   hapticsEnabled: boolean;
   readArticleIds: Record<string, true>;
   hasCompletedOnboarding: boolean;
-  quickBetAmount: QuickBetAmount;
+  quickBetAmount: number;
   setCategory: (category: "all" | "crypto" | "ai") => void;
   setTheme: (theme: ThemeMode) => void;
   toggleTheme: () => void;
   toggleHaptics: () => void;
   markAsRead: (id: string) => void;
   completeOnboarding: () => void;
-  setQuickBetAmount: (amount: QuickBetAmount) => void;
+  setQuickBetAmount: (amount: number) => void;
 }
 
 export const useAppStore = create<AppState>()(
@@ -52,7 +52,8 @@ export const useAppStore = create<AppState>()(
 
       completeOnboarding: () => set({ hasCompletedOnboarding: true }),
 
-      setQuickBetAmount: (amount) => set({ quickBetAmount: amount }),
+      setQuickBetAmount: (amount) =>
+        set({ quickBetAmount: Math.max(QUICK_BET_MIN, Math.floor(amount)) }),
     }),
     {
       name: "mintfeed-app-store",
@@ -64,6 +65,11 @@ export const useAppStore = create<AppState>()(
         hasCompletedOnboarding: state.hasCompletedOnboarding,
         quickBetAmount: state.quickBetAmount,
       }),
+      onRehydrateStorage: () => (state) => {
+        if (state && state.quickBetAmount < QUICK_BET_MIN) {
+          state.setQuickBetAmount(QUICK_BET_MIN);
+        }
+      },
     },
   ),
 );
