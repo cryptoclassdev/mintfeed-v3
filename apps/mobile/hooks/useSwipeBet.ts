@@ -1,6 +1,6 @@
 import { useCallback, useRef } from "react";
 import { useMobileWallet } from "@wallet-ui/react-native-web3js";
-import { useAppStore } from "@/lib/store";
+import { useAppStore, QUICK_BET_MIN } from "@/lib/store";
 import { useCreateOrder } from "@/hooks/usePredictionTrading";
 import { usdToMicro, USDC_MINT } from "@mintfeed/shared";
 import { showToast } from "@/lib/toast";
@@ -33,6 +33,12 @@ export function useSwipeBet() {
   const executeBet = useCallback(
     async (marketId: string, side: "yes" | "no", amount: number) => {
       if (!walletAddress) return;
+
+      // Validate minimum bet amount
+      if (amount < QUICK_BET_MIN) {
+        showToast("error", "Bet Too Small", `Minimum bet is $${QUICK_BET_MIN}`);
+        return;
+      }
 
       try {
         await createOrder.mutateAsync({

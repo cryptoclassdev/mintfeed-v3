@@ -3,7 +3,8 @@ import { persist, createJSONStorage } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { ThemeMode } from "@/constants/theme";
 
-export const QUICK_BET_OPTIONS = [1, 2, 5, 10, 25] as const;
+export const QUICK_BET_OPTIONS = [5, 10, 25, 50] as const;
+export const QUICK_BET_MIN = 5;
 export type QuickBetAmount = (typeof QUICK_BET_OPTIONS)[number];
 
 interface AppState {
