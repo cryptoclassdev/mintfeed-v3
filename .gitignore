@@ -24,6 +24,8 @@ packages/db/prisma/migrations/
 # Expo
 apps/mobile/ios/
 apps/mobile/android/
+google-services.json
+GoogleService-Info.plist
 *.jks
 *.p8
 *.p12

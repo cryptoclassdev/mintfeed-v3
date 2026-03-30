@@ -11,6 +11,34 @@ const SESSIONS_BEFORE_PROMPT = 3;
 const MAX_REGISTRATION_RETRIES = 3;
 const RETRY_BASE_DELAY_MS = 2_000;
 
+// Android notification channels — lets users mute per type in system settings
+async function setupAndroidChannels() {
+  if (Platform.OS !== "android") return;
+
+  await Notifications.setNotificationChannelAsync("breaking-news", {
+    name: "Breaking News",
+    description: "Critical market and regulatory news",
+    importance: Notifications.AndroidImportance.HIGH,
+    sound: "default",
+    vibrationPattern: [0, 250, 250, 250],
+  });
+
+  await Notifications.setNotificationChannelAsync("market-movers", {
+    name: "Market Movers",
+    description: "Price swings over 5% on major coins",
+    importance: Notifications.AndroidImportance.DEFAULT,
+    sound: "default",
+  });
+
+  await Notifications.setNotificationChannelAsync("settlements", {
+    name: "Bet Settlements",
+    description: "Your prediction market results",
+    importance: Notifications.AndroidImportance.HIGH,
+    sound: "default",
+    vibrationPattern: [0, 250, 250, 250],
+  });
+}
+
 // Show notifications when app is in foreground
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -90,9 +118,10 @@ export function useNotifications() {
     [router],
   );
 
-  // Increment session count on mount
+  // Increment session count and set up Android channels on mount
   useEffect(() => {
     incrementSession();
+    setupAndroidChannels();
   }, []);
 
   // Handle notification tap (warm start)

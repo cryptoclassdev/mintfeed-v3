@@ -6,6 +6,12 @@ const expo = new Expo();
 const DAILY_CAP = 3;
 const COOLDOWN_MS = 30 * 60 * 1000; // 30 minutes
 
+const ANDROID_CHANNEL_IDS: Record<NotificationType, string> = {
+  BREAKING_NEWS: "breaking-news",
+  MARKET_MOVER: "market-movers",
+  PREDICTION_SETTLED: "settlements",
+};
+
 // ─── Throttling ───
 
 function getDeviceLocalHour(timezoneOffset: number): number {
@@ -99,6 +105,7 @@ async function sendToDevice(params: SendParams): Promise<void> {
     sound: "default",
     title,
     body,
+    channelId: ANDROID_CHANNEL_IDS[type],
     data: {
       ...data,
       ...(imageUrl ? { image: imageUrl } : {}),
