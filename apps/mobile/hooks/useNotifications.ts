@@ -199,11 +199,22 @@ export function useNotifications() {
     }
   }, [walletAddress, pushToken, permission]);
 
-  // Re-register when app returns to foreground (catches token refresh + timezone drift)
+  // Re-check permission and re-register when app returns to foreground
+  // Catches: user granting permission in system settings, token refresh, timezone drift
   useEffect(() => {
-    const subscription = AppState.addEventListener("change", (state) => {
-      if (state === "active" && pushToken && permission === "granted") {
+    const subscription = AppState.addEventListener("change", async (nextState) => {
+      if (nextState !== "active") return;
+
+      if (pushToken && permission === "granted") {
         registerTokenWithRetry(pushToken, walletAddress);
+        return;
+      }
+
+      // User may have granted permission in system settings while app was backgrounded
+      const { status } = await Notifications.getPermissionsAsync();
+      if (status === "granted" && !pushToken) {
+        setPermission("granted");
+        await acquireTokenAndRegister(walletAddress);
       }
     });
 
