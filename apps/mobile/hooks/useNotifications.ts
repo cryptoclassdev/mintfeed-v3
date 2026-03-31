@@ -1,7 +1,7 @@
 import { useEffect, useRef, useCallback } from "react";
 import { AppState, Platform } from "react-native";
 import * as Notifications from "expo-notifications";
-import { useRouter } from "expo-router";
+import { useRouter, useRootNavigationState } from "expo-router";
 import { useMobileWallet } from "@wallet-ui/react-native-web3js";
 import { useAppStore } from "@/lib/store";
 import { api } from "@/lib/api-client";
@@ -91,35 +91,57 @@ export function useNotifications() {
   const setPushToken = useAppStore((s) => s.setExpoPushToken);
   const incrementSession = useAppStore((s) => s.incrementFeedSession);
 
+  const navState = useRootNavigationState();
+  const isNavReady = navState?.key != null;
+
   const responseListener = useRef<Notifications.Subscription | null>(null);
   const registrationInFlight = useRef(false);
+  const pendingRoute = useRef<Record<string, unknown> | null>(null);
 
   const setPendingArticleId = useAppStore((s) => s.setPendingArticleId);
 
-  // Stable deep-link handler that always uses current router
-  const routeFromNotification = useCallback(
+  // Route to screen once navigation is ready
+  const executeRoute = useCallback(
     (data: Record<string, unknown>) => {
       const screen = data.screen as string | undefined;
       const id = data.id as string | undefined;
       if (!screen) return;
 
-      setTimeout(() => {
-        switch (screen) {
-          case "article":
-            if (id) setPendingArticleId(id);
-            navigate("/(tabs)");
-            break;
-          case "market-sheet":
-            if (id) push(`/market-sheet/${id}`);
-            break;
-          case "market":
-            navigate("/(tabs)/market");
-            break;
-        }
-      }, 500);
+      switch (screen) {
+        case "article":
+          if (id) setPendingArticleId(id);
+          navigate("/(tabs)");
+          break;
+        case "market-sheet":
+          if (id) push(`/market-sheet/${id}`);
+          break;
+        case "market":
+          navigate("/(tabs)/market");
+          break;
+      }
     },
     [navigate, push, setPendingArticleId],
   );
+
+  // Queue route if nav isn't ready, execute immediately if it is
+  const routeFromNotification = useCallback(
+    (data: Record<string, unknown>) => {
+      if (isNavReady) {
+        executeRoute(data);
+      } else {
+        pendingRoute.current = data;
+      }
+    },
+    [isNavReady, executeRoute],
+  );
+
+  // Flush queued route when navigation becomes ready
+  useEffect(() => {
+    if (isNavReady && pendingRoute.current) {
+      executeRoute(pendingRoute.current);
+      pendingRoute.current = null;
+    }
+  }, [isNavReady, executeRoute]);
 
   // Increment session count and set up Android channels on mount
   useEffect(() => {
@@ -143,12 +165,14 @@ export function useNotifications() {
 
   // Handle cold start — check if app was opened via notification
   useEffect(() => {
-    Notifications.getLastNotificationResponseAsync().then((response) => {
-      if (response) {
-        const data = response.notification.request.content.data ?? {};
-        routeFromNotification(data);
-      }
-    });
+    Notifications.getLastNotificationResponseAsync()
+      .then((response) => {
+        if (response) {
+          const data = response.notification.request.content.data ?? {};
+          routeFromNotification(data);
+        }
+      })
+      .catch((err) => console.warn("[Notifications] Cold start check failed:", err));
   }, [routeFromNotification]);
 
   // Core permission + registration flow

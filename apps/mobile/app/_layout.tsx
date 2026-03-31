@@ -22,6 +22,7 @@ import { colors } from "@/constants/theme";
 import { APP_IDENTITY, SOLANA_MWA_CHAIN, SOLANA_RPC_URL } from "@/lib/solana";
 import { OnboardingFlow } from "@/components/onboarding/OnboardingFlow";
 import { ToastProvider } from "@/components/ui/Toast";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { useNotifications } from "@/hooks/useNotifications";
 
 SplashScreen.preventAutoHideAsync();
@@ -70,55 +71,59 @@ export default function RootLayout() {
 
   if (!hasCompletedOnboarding) {
     return (
-      <QueryClientProvider client={queryClient}>
-        <MobileWalletProvider
-          chain={SOLANA_MWA_CHAIN}
-          endpoint={SOLANA_RPC_URL}
-          identity={APP_IDENTITY}
-        >
-          <StatusBar style={theme === "dark" ? "light" : "dark"} />
-          <NotificationBootstrap />
-          <OnboardingFlow />
-        </MobileWalletProvider>
-      </QueryClientProvider>
+      <ErrorBoundary>
+        <QueryClientProvider client={queryClient}>
+          <MobileWalletProvider
+            chain={SOLANA_MWA_CHAIN}
+            endpoint={SOLANA_RPC_URL}
+            identity={APP_IDENTITY}
+          >
+            <StatusBar style={theme === "dark" ? "light" : "dark"} />
+            <NotificationBootstrap />
+            <OnboardingFlow />
+          </MobileWalletProvider>
+        </QueryClientProvider>
+      </ErrorBoundary>
     );
   }
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <QueryClientProvider client={queryClient}>
-        <MobileWalletProvider
-          chain={SOLANA_MWA_CHAIN}
-          endpoint={SOLANA_RPC_URL}
-          identity={APP_IDENTITY}
-        >
-          <StatusBar style={theme === "dark" ? "light" : "dark"} />
-          <NotificationBootstrap />
-          <Stack
-            screenOptions={{
-              headerShown: false,
-              contentStyle: { backgroundColor: themeColors.background },
-            }}
+    <ErrorBoundary>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <QueryClientProvider client={queryClient}>
+          <MobileWalletProvider
+            chain={SOLANA_MWA_CHAIN}
+            endpoint={SOLANA_RPC_URL}
+            identity={APP_IDENTITY}
           >
-            <Stack.Screen name="(tabs)" />
-            <Stack.Screen
-              name="article/[id]"
-              options={{
-                presentation: "modal",
-                animation: "slide_from_bottom",
+            <StatusBar style={theme === "dark" ? "light" : "dark"} />
+            <NotificationBootstrap />
+            <Stack
+              screenOptions={{
+                headerShown: false,
+                contentStyle: { backgroundColor: themeColors.background },
               }}
-            />
-            <Stack.Screen
-              name="market-sheet/[id]"
-              options={{
-                presentation: "modal",
-                animation: "slide_from_bottom",
-              }}
-            />
-          </Stack>
-          <ToastProvider />
-        </MobileWalletProvider>
-      </QueryClientProvider>
-    </GestureHandlerRootView>
+            >
+              <Stack.Screen name="(tabs)" />
+              <Stack.Screen
+                name="article/[id]"
+                options={{
+                  presentation: "modal",
+                  animation: "slide_from_bottom",
+                }}
+              />
+              <Stack.Screen
+                name="market-sheet/[id]"
+                options={{
+                  presentation: "modal",
+                  animation: "slide_from_bottom",
+                }}
+              />
+            </Stack>
+            <ToastProvider />
+          </MobileWalletProvider>
+        </QueryClientProvider>
+      </GestureHandlerRootView>
+    </ErrorBoundary>
   );
 }
