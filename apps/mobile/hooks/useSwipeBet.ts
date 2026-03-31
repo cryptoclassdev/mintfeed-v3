@@ -55,7 +55,7 @@ export function useSwipeBet() {
       });
 
       try {
-        await createOrder.mutateAsync({
+        const result = await createOrder.mutateAsync({
           ownerPubkey: walletAddress,
           marketId,
           isYes: side === "yes",
@@ -63,13 +63,24 @@ export function useSwipeBet() {
           depositAmount: usdToMicro(amount),
           depositMint: USDC_MINT,
         });
-        haptics.success();
-        updateToast(toastId, {
-          variant: "success",
-          title: "Bet Placed",
-          message: `$${amount} on ${side.toUpperCase()} submitted.`,
-          duration: 2500,
-        });
+
+        if (result.status === "pending") {
+          haptics.lightImpact();
+          updateToast(toastId, {
+            variant: "info",
+            title: "Transaction Pending",
+            message: `$${amount} on ${side.toUpperCase()} sent. Confirming\u2026`,
+            duration: 5000,
+          });
+        } else {
+          haptics.success();
+          updateToast(toastId, {
+            variant: "success",
+            title: "Bet Placed",
+            message: `$${amount} on ${side.toUpperCase()} confirmed.`,
+            duration: 2500,
+          });
+        }
       } catch (err: unknown) {
         haptics.error();
         const message = err instanceof Error ? err.message : String(err);

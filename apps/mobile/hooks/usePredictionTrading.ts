@@ -49,18 +49,23 @@ export async function toRelayActionError(error: unknown): Promise<Error> {
   return new Error(message);
 }
 
+interface RelayResult {
+  signature: string;
+  status: "confirmed" | "pending";
+}
+
 async function signAndRelay(
   signFn: SignFn,
   unsignedTransaction: string,
   txMeta: TransactionMeta,
-): Promise<string> {
+): Promise<RelayResult> {
   const signedTransaction = await signPredictionTransaction(
     signFn,
     unsignedTransaction,
     txMeta,
   );
   const result = await submitSignedTransaction({ signedTransaction, txMeta });
-  return result.signature;
+  return { signature: result.signature, status: result.status ?? "confirmed" };
 }
 
 export function useTradingStatus() {
@@ -76,7 +81,7 @@ export function useCreateOrder() {
   const { account, signTransactions } = useMobileWallet();
   const walletAddress = account?.address.toString() ?? null;
 
-  return useMutation<string, Error, CreateOrderRequest>({
+  return useMutation<RelayResult, Error, CreateOrderRequest>({
     mutationFn: async (request) => {
       if (!walletAddress) {
         throw new Error("Wallet not connected");
@@ -140,17 +145,22 @@ export function useCreateOrder() {
         }));
 
       try {
-        const signature = await signAndRelay(
+        const result = await signAndRelay(
           (tx) => signTransactions(tx),
           response.transaction,
           response.txMeta,
         );
-        if (__DEV__) console.log("[createOrder] TX signature:", signature);
-        return signature;
+        if (__DEV__) console.log("[createOrder] TX signature:", result.signature, "status:", result.status);
+        return result;
       } catch (err: unknown) {
         if (isWalletError(err)) {
           if (__DEV__) console.warn("[createOrder] MWA sign failed:", err);
           throw toWalletActionError(err);
+        }
+        if (isTransactionExpired(err)) {
+          const error = new Error("Transaction expired. Please try again.");
+          (error as any).retryable = true;
+          throw error;
         }
         if (__DEV__) console.warn("[createOrder] Relay failed:", err);
         throw await toRelayActionError(err);
@@ -175,7 +185,7 @@ export function useClosePosition() {
   const walletAddress = account?.address.toString() ?? null;
 
   return useMutation<
-    string,
+    RelayResult,
     Error,
     { positionPubkey: string; ownerPubkey: string; isYes: boolean; contracts: string }
   >({
@@ -224,12 +234,8 @@ export function useClosePosition() {
     },
     onSuccess: () => {
       if (walletAddress) {
-        queryClient.invalidateQueries({
-          queryKey: ["prediction-positions", walletAddress],
-        });
-        queryClient.invalidateQueries({
-          queryKey: ["prediction-orders", walletAddress],
-        });
+        queryClient.invalidateQueries({ queryKey: ["prediction-positions", walletAddress] });
+        queryClient.invalidateQueries({ queryKey: ["prediction-orders", walletAddress] });
       }
     },
   });
@@ -252,12 +258,12 @@ export function useCloseAllPositions() {
 
       for (const r of responses) {
         try {
-          const signature = await signAndRelay(
+          const result = await signAndRelay(
             (tx) => signTransactions(tx),
             r.transaction,
             r.txMeta,
           );
-          signatures.push(signature);
+          signatures.push(result.signature);
         } catch (error) {
           if (isWalletError(error)) {
             // User rejected — stop processing remaining
@@ -301,7 +307,7 @@ export function useClaimPosition() {
   const walletAddress = account?.address.toString() ?? null;
 
   return useMutation<
-    string,
+    RelayResult,
     Error,
     { positionPubkey: string; ownerPubkey: string; claimable?: boolean }
   >({

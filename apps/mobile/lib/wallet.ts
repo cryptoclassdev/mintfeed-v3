@@ -101,6 +101,21 @@ export async function ensureTransactionValid(
 
 // --- Sign prediction transaction via SDK ---
 
+const WALLET_SIGN_TIMEOUT_MS = 60_000;
+
+function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(
+      () => reject(new Error(`${label} timed out after ${ms / 1000}s`)),
+      ms,
+    );
+    promise.then(
+      (v) => { clearTimeout(timer); resolve(v); },
+      (e) => { clearTimeout(timer); reject(e); },
+    );
+  });
+}
+
 export async function signPredictionTransaction(
   signFn: (tx: VersionedTransaction) => Promise<VersionedTransaction>,
   base64Transaction: string,
@@ -113,7 +128,11 @@ export async function signPredictionTransaction(
 
   let signedTx: VersionedTransaction;
   try {
-    signedTx = await signFn(transaction);
+    signedTx = await withTimeout(
+      signFn(transaction),
+      WALLET_SIGN_TIMEOUT_MS,
+      "Wallet signing",
+    );
   } catch (error) {
     if (isUserRejection(error)) {
       throw walletError("WALLET_APPROVAL_REJECTED", error);

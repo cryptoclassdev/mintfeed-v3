@@ -48,6 +48,21 @@ async function sleep(ms: number): Promise<void> {
   await new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+const RPC_TIMEOUT_MS = 15_000;
+
+// --- Idempotency cache: prevents double-submission of the same signed transaction ---
+const DEDUP_TTL_MS = 60_000;
+const recentRelays = new Map<string, { signature: string; promise: Promise<SubmitSignedTransactionResponse> }>();
+
+function pruneDedupCache() {
+  // Keep cache bounded — entries are removed after TTL via setTimeout,
+  // but this is a safety sweep in case timers are delayed.
+  if (recentRelays.size > 200) {
+    const keysToDelete = [...recentRelays.keys()].slice(0, recentRelays.size - 100);
+    for (const key of keysToDelete) recentRelays.delete(key);
+  }
+}
+
 async function rpcRequest<T>(
   rpcUrl: string,
   method: string,
@@ -64,6 +79,7 @@ async function rpcRequest<T>(
       method,
       params,
     }),
+    signal: AbortSignal.timeout(RPC_TIMEOUT_MS),
   });
 
   if (!response.ok) {
@@ -98,17 +114,55 @@ function validateTransaction(base64Tx: string): void {
     }
   }
 
+  // Reject transactions that use address lookup tables — programs referenced via
+  // ALTs bypass our static allow-list. Jupiter prediction transactions currently
+  // use only static accounts. If this changes, we'll need to resolve ALTs via RPC.
+  if (tx.message.addressTableLookups.length > 0) {
+    throw new Error("Transaction uses address lookup tables, which are not supported");
+  }
+
   if (tx.signatures.length === 0) {
     throw new Error("Transaction has no signatures");
   }
 }
 
-export async function relaySignedTransaction(
+export function relaySignedTransaction(
   request: SubmitSignedTransactionRequest,
   options: RelayOptions = {},
 ): Promise<SubmitSignedTransactionResponse> {
   validateTransaction(request.signedTransaction);
+  pruneDedupCache();
 
+  // Idempotency: if the same signed transaction is already in-flight or recently
+  // completed, return the existing promise to prevent double-execution.
+  const txKey = request.signedTransaction;
+  const cached = recentRelays.get(txKey);
+  if (cached) {
+    console.log("[Solana Relay] Dedup hit — returning cached result");
+    return cached.promise;
+  }
+
+  const promise = executeRelay(request, options);
+
+  // Store a placeholder immediately so concurrent calls get the same promise.
+  // The signature isn't known yet, so we store "" until sendTransaction returns.
+  const entry = { signature: "", promise };
+  recentRelays.set(txKey, entry);
+  setTimeout(() => recentRelays.delete(txKey), DEDUP_TTL_MS);
+
+  // Update the signature once known (for logging only)
+  promise.then((result) => { entry.signature = result.signature; }).catch(() => {
+    // On failure, remove from cache so the user can retry with a fresh request
+    recentRelays.delete(txKey);
+  });
+
+  return promise;
+}
+
+async function executeRelay(
+  request: SubmitSignedTransactionRequest,
+  options: RelayOptions,
+): Promise<SubmitSignedTransactionResponse> {
   const rpcUrl = options.rpcUrl ?? DEFAULT_SOLANA_RPC_URL;
   const pollIntervalMs = options.confirmationPollIntervalMs ?? 1_500;
   const maxChecks = options.maxConfirmationChecks ?? 20;
