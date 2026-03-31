@@ -1,5 +1,5 @@
-import { memo, useCallback } from "react";
-import { View, Text, StyleSheet, Pressable } from "react-native";
+import { memo, useCallback, useMemo, useState } from "react";
+import { View, Text, StyleSheet, Pressable, TextInput } from "react-native";
 import { FlashList } from "@shopify/flash-list";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Image } from "expo-image";
@@ -8,6 +8,7 @@ import { useAppStore } from "@/lib/store";
 import { colors } from "@/constants/theme";
 import { fonts, fontSize, letterSpacing } from "@/constants/typography";
 import { FearGreedCard } from "@/components/market/FearGreedCard";
+import { Ionicons } from "@expo/vector-icons";
 import type { MarketCoin } from "@mintfeed/shared";
 
 const priceFormatter = new Intl.NumberFormat("en-US", {
@@ -37,9 +38,10 @@ function formatMarketCap(cap: number): string {
   return `$${cap.toFixed(0)}`;
 }
 
+type RankedCoin = MarketCoin & { rank: number };
+
 interface CoinRowProps {
-  item: MarketCoin;
-  index: number;
+  item: RankedCoin;
   borderColor: string;
   textColor: string;
   mutedColor: string;
@@ -51,7 +53,6 @@ interface CoinRowProps {
 
 const CoinRow = memo(function CoinRow({
   item,
-  index,
   borderColor,
   textColor,
   mutedColor,
@@ -65,7 +66,7 @@ const CoinRow = memo(function CoinRow({
   return (
     <View style={[styles.row, { borderBottomColor: borderColor }]}>
       <Text style={[styles.rank, { color: mutedColor }]}>
-        {String(index + 1).padStart(2, "0")}
+        {item.rank}
       </Text>
       {item.imageUrl ? (
         <Image
@@ -109,18 +110,33 @@ const CoinRow = memo(function CoinRow({
 
 const EMPTY_COINS: MarketCoin[] = [];
 
-const keyExtractor = (item: MarketCoin) => item.id;
+const keyExtractor = (item: RankedCoin) => item.id;
 
 export default function MarketScreen() {
   const theme = useAppStore((s) => s.theme);
   const themeColors = colors[theme];
   const { data, isLoading, isError, refetch } = useMarket();
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const rankedCoins: RankedCoin[] = useMemo(() => {
+    const coins = data?.data ?? EMPTY_COINS;
+    return coins.map((coin, i) => ({ ...coin, rank: i + 1 }));
+  }, [data?.data]);
+
+  const filteredCoins = useMemo(() => {
+    if (!searchQuery.trim()) return rankedCoins;
+    const query = searchQuery.toLowerCase();
+    return rankedCoins.filter(
+      (coin) =>
+        coin.name.toLowerCase().includes(query) ||
+        coin.symbol.toLowerCase().includes(query),
+    );
+  }, [rankedCoins, searchQuery]);
 
   const renderItem = useCallback(
-    ({ item, index }: { item: MarketCoin; index: number }) => (
+    ({ item }: { item: RankedCoin }) => (
       <CoinRow
         item={item}
-        index={index}
         borderColor={themeColors.border}
         textColor={themeColors.text}
         mutedColor={themeColors.textMuted}
@@ -147,14 +163,32 @@ export default function MarketScreen() {
           </Text>
         </View>
       </View>
+      <View style={[styles.searchContainer, { borderColor: themeColors.cardBorder }]}>
+        <Ionicons name="search-outline" size={16} color={themeColors.textMuted} />
+        <TextInput
+          style={[styles.searchInput, { color: themeColors.text }]}
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          placeholder="Search tokens..."
+          placeholderTextColor={themeColors.textFaint}
+          returnKeyType="search"
+          autoCorrect={false}
+          autoCapitalize="none"
+        />
+        {searchQuery.length > 0 && (
+          <Pressable onPress={() => setSearchQuery("")} hitSlop={8}>
+            <Ionicons name="close-circle" size={16} color={themeColors.textMuted} />
+          </Pressable>
+        )}
+      </View>
       <FlashList
-        data={data?.data ?? EMPTY_COINS}
+        data={filteredCoins}
         keyExtractor={keyExtractor}
         renderItem={renderItem}
         onRefresh={refetch}
         refreshing={isLoading}
         contentContainerStyle={styles.list}
-        ListHeaderComponent={FearGreedCard}
+        ListHeaderComponent={searchQuery ? undefined : FearGreedCard}
         ListEmptyComponent={
           !isLoading ? (
             <View style={styles.emptyState}>
@@ -199,6 +233,23 @@ const styles = StyleSheet.create({
     fontSize: fontSize.xs,
     letterSpacing: letterSpacing.wider,
   },
+  searchContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginHorizontal: 16,
+    marginBottom: 8,
+    paddingHorizontal: 12,
+    height: 40,
+    borderRadius: 10,
+    borderWidth: 0.5,
+    gap: 8,
+  },
+  searchInput: {
+    flex: 1,
+    fontFamily: fonts.mono.regular,
+    fontSize: fontSize.sm,
+    padding: 0,
+  },
   list: {
     paddingHorizontal: 16,
     paddingBottom: 100,
@@ -213,8 +264,8 @@ const styles = StyleSheet.create({
   rank: {
     fontFamily: fonts.mono.regular,
     fontSize: fontSize.xs,
-    width: 24,
-    textAlign: "center",
+    minWidth: 28,
+    textAlign: "right",
   },
   coinIcon: {
     width: 32,

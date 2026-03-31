@@ -5,7 +5,6 @@ import {
   Pressable,
   StyleSheet,
   ActivityIndicator,
-  Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useAppStore } from "@/lib/store";
@@ -22,6 +21,7 @@ import {
   getPositionFees,
 } from "@mintfeed/shared";
 import type { PredictionPosition } from "@mintfeed/shared";
+import { ClosePositionSheet } from "./ClosePositionSheet";
 
 type ProgressState = "idle" | "signing" | "broadcasting" | "confirming";
 
@@ -42,6 +42,7 @@ export const PositionCard = memo(function PositionCard({
   );
   const [progressState, setProgressState] = useState<ProgressState>("idle");
   const [lastError, setLastError] = useState<{ message: string; retryable: boolean } | null>(null);
+  const [sheetVisible, setSheetVisible] = useState(false);
 
   const contracts = Number(position.contracts);
   const avgPrice = getPositionAvgPrice(position);
@@ -68,42 +69,33 @@ export const PositionCard = memo(function PositionCard({
       : null;
   const pricePercent = currentPrice !== null ? Math.round(currentPrice * 100) : null;
 
-  const handleClose = useCallback(async () => {
-    Alert.alert(
-      "Close Position",
-      `Sell ${contracts} ${position.isYes ? "YES" : "NO"} shares?`,
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Close",
-          style: "destructive",
-          onPress: async () => {
-            setActionLoading("close");
-            setLastError(null);
-            setProgressState("signing");
-            try {
-              await closePos.mutateAsync({
-                positionPubkey: position.pubkey,
-                ownerPubkey: position.ownerPubkey,
-                isYes: position.isYes,
-                contracts: position.contracts,
-              });
-              setProgressState("idle");
-              showToast("success", "Position Closed", "Your position has been sold.");
-            } catch (err: unknown) {
-              setProgressState("idle");
-              const msg = err instanceof Error ? err.message : String(err);
-              const retryable = !!(err as any)?.retryable;
-              setLastError({ message: msg, retryable });
-              showToast("error", "Failed", msg);
-            } finally {
-              setActionLoading(null);
-            }
-          },
-        },
-      ],
-    );
-  }, [closePos, position, contracts]);
+  const handleClose = useCallback(() => {
+    setSheetVisible(true);
+  }, []);
+
+  const executeClose = useCallback(async () => {
+    setActionLoading("close");
+    setLastError(null);
+    setProgressState("signing");
+    try {
+      await closePos.mutateAsync({
+        positionPubkey: position.pubkey,
+        ownerPubkey: position.ownerPubkey,
+        isYes: position.isYes,
+        contracts: position.contracts,
+      });
+      setProgressState("idle");
+      setSheetVisible(false);
+      showToast("success", "Position Closed", "Your position has been sold.");
+    } catch (err: unknown) {
+      setProgressState("idle");
+      const msg = err instanceof Error ? err.message : String(err);
+      const retryable = !!(err as any)?.retryable;
+      setLastError({ message: msg, retryable });
+    } finally {
+      setActionLoading(null);
+    }
+  }, [closePos, position]);
 
   const handleClaim = useCallback(async () => {
     setActionLoading("claim");
@@ -131,14 +123,13 @@ export const PositionCard = memo(function PositionCard({
   const handleRetry = useCallback(() => {
     setLastError(null);
     if (actionLoading === null && lastError?.retryable) {
-      // Retry the last action
       if (position.claimable) {
         handleClaim();
       } else {
-        handleClose();
+        executeClose();
       }
     }
-  }, [actionLoading, lastError, position.claimable, handleClaim, handleClose]);
+  }, [actionLoading, lastError, position.claimable, handleClaim, executeClose]);
 
   return (
     <View
@@ -392,6 +383,23 @@ export const PositionCard = memo(function PositionCard({
           </Pressable>
         )}
       </View>
+
+      {/* Close Position Sheet */}
+      <ClosePositionSheet
+        visible={sheetVisible}
+        onDismiss={() => setSheetVisible(false)}
+        position={position}
+        contracts={contracts}
+        costBasis={costBasis}
+        currentValue={currentValue}
+        pnl={pnl}
+        pnlPercent={pnlPercent}
+        onConfirm={executeClose}
+        progressState={progressState}
+        isLoading={actionLoading === "close"}
+        lastError={lastError}
+        onRetry={handleRetry}
+      />
     </View>
   );
 });

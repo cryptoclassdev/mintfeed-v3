@@ -16,12 +16,12 @@ import { useAppStore } from "@/lib/store";
 import { colors } from "@/constants/theme";
 import { fonts, fontSize, letterSpacing } from "@/constants/typography";
 import { SwipeBetCard } from "./SwipeBetCard";
-import { getNewsCardBottomPadding } from "./news-card-layout";
+import { getNewsCardBottomPadding, getImageHeightRatio, getMaxSummaryLines } from "./news-card-layout";
 import type { Article } from "@mintfeed/shared";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
-const IMAGE_HEIGHT_RATIO = 0.28;
+// IMAGE_HEIGHT_RATIO now computed dynamically via getImageHeightRatio()
 
 const NEGATIVE_KEYWORDS = [
   "crash", "drop", "fall", "dump", "panic", "hack", "ban", "plunge",
@@ -111,7 +111,7 @@ export const NewsCard = memo(function NewsCard({ article, onSwipeBet, walletConn
   const { bottom: safeBottom } = useSafeAreaInsets();
   const theme = useAppStore((s) => s.theme);
   const themeColors = colors[theme];
-  const imageHeight = screenHeight * IMAGE_HEIGHT_RATIO;
+  const imageHeight = screenHeight * getImageHeightRatio(screenHeight);
   const bottomPadding = getNewsCardBottomPadding(safeBottom);
 
   // Animation values
@@ -147,6 +147,13 @@ export const NewsCard = memo(function NewsCard({ article, onSwipeBet, walletConn
       const op = m.outcomePrices as Record<string, unknown> | null;
       return op && "Yes" in op && "No" in op;
     });
+
+  const visibleMarketCount = Math.min(markets.length, MAX_VISIBLE_MARKETS);
+  const maxSummaryLines = getMaxSummaryLines({
+    screenHeight,
+    safeBottom,
+    marketCount: visibleMarketCount,
+  });
 
   // Animated styles
   const linkAnimatedStyle = useAnimatedStyle(() => ({
@@ -247,14 +254,16 @@ export const NewsCard = memo(function NewsCard({ article, onSwipeBet, walletConn
         <View style={[styles.accentLine, { backgroundColor: sentimentColor }]} />
 
         {/* Title with better typography */}
-        <Text style={[
-          styles.title, 
-          { 
-            color: themeColors.text,
-            // Text balancing for better wrapping
-            textAlign: 'left',
-          }
-        ]}>
+        <Text
+          numberOfLines={3}
+          style={[
+            styles.title,
+            {
+              color: themeColors.text,
+              textAlign: 'left',
+            }
+          ]}
+        >
           {cleanTitle}
         </Text>
 
@@ -297,15 +306,17 @@ export const NewsCard = memo(function NewsCard({ article, onSwipeBet, walletConn
           </AnimatedPressable>
         </View>
 
-        {/* Summary with better text wrapping */}
-        <Text style={[
-          styles.summary, 
-          { 
-            color: themeColors.textSecondary,
-            // Better text wrapping to avoid orphans
-            textAlign: 'left',
-          }
-        ]}>
+        {/* Summary — dynamically truncated to fit available space */}
+        <Text
+          numberOfLines={maxSummaryLines}
+          style={[
+            styles.summary,
+            {
+              color: themeColors.textSecondary,
+              textAlign: 'left',
+            }
+          ]}
+        >
           {cleanSummary}
         </Text>
 
@@ -438,6 +449,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 24,
     paddingTop: 8,
+    overflow: "hidden",
     // paddingBottom set dynamically via safeAreaInsets
   },
   accentLine: {

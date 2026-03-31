@@ -81,6 +81,13 @@ export async function fetchMarketData(): Promise<void> {
       "CoinGecko",
     );
 
+    // Remove coins that dropped out of the top list
+    const currentIds = coins.map((c) => c.id);
+    await withRetry(
+      () => prisma.marketCoin.deleteMany({ where: { id: { notIn: currentIds } } }),
+      "CoinGecko:cleanup",
+    );
+
     console.log(`[CoinGecko] Updated ${coins.length} coins`);
 
     // Write price snapshots + detect market movers

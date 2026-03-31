@@ -5,6 +5,7 @@ import type { ThemeMode } from "@/constants/theme";
 
 export const QUICK_BET_OPTIONS = [5, 10, 25, 50] as const;
 export const QUICK_BET_MIN = 5;
+export const QUICK_BET_MAX = 500;
 export type QuickBetPreset = (typeof QUICK_BET_OPTIONS)[number];
 
 type NotificationPermission = "undetermined" | "granted" | "denied";
@@ -67,7 +68,7 @@ export const useAppStore = create<AppState>()(
       completeOnboarding: () => set({ hasCompletedOnboarding: true }),
 
       setQuickBetAmount: (amount) =>
-        set({ quickBetAmount: Math.max(QUICK_BET_MIN, Math.floor(amount)) }),
+        set({ quickBetAmount: Math.max(QUICK_BET_MIN, Math.min(QUICK_BET_MAX, Math.floor(amount))) }),
 
       setNotificationPermission: (status) => set({ notificationPermission: status }),
       setExpoPushToken: (token) => set({ expoPushToken: token }),

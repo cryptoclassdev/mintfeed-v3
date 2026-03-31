@@ -3,7 +3,7 @@ import { useMobileWallet } from "@wallet-ui/react-native-web3js";
 import { useAppStore, QUICK_BET_MIN } from "@/lib/store";
 import { useCreateOrder } from "@/hooks/usePredictionTrading";
 import { usdToMicro, USDC_MINT } from "@mintfeed/shared";
-import { showToast } from "@/lib/toast";
+import { showToast, updateToast } from "@/lib/toast";
 import * as haptics from "@/lib/haptics";
 
 const UNDO_WINDOW_MS = 3000;
@@ -13,14 +13,15 @@ interface PendingBet {
   side: "yes" | "no";
   amount: number;
   timer: ReturnType<typeof setTimeout>;
+  toastId: string;
 }
 
 /**
  * Hook that manages swipe-to-bet with a 3-second undo window.
  *
  * Flow:
- * 1. User swipes → shows confirmation toast with undo button
- * 2. After 3 seconds, the bet is submitted
+ * 1. User swipes -> shows toast with undo countdown
+ * 2. After 3 seconds, toast updates to "Signing..." then "Bet Placed" or error
  * 3. If user taps undo, the bet is cancelled
  */
 export function useSwipeBet() {
@@ -31,14 +32,27 @@ export function useSwipeBet() {
   const pendingRef = useRef<PendingBet | null>(null);
 
   const executeBet = useCallback(
-    async (marketId: string, side: "yes" | "no", amount: number) => {
+    async (marketId: string, side: "yes" | "no", amount: number, toastId: string) => {
       if (!walletAddress) return;
 
-      // Validate minimum bet amount
       if (amount < QUICK_BET_MIN) {
-        showToast("error", "Bet Too Small", `Minimum bet is $${QUICK_BET_MIN}`);
+        updateToast(toastId, {
+          variant: "error",
+          title: "Bet Too Small",
+          message: `Minimum bet is $${QUICK_BET_MIN}`,
+          duration: 3000,
+          onTap: null,
+        });
         return;
       }
+
+      updateToast(toastId, {
+        variant: "info",
+        title: "Signing...",
+        message: `$${amount} on ${side.toUpperCase()}`,
+        duration: 0,
+        onTap: null,
+      });
 
       try {
         await createOrder.mutateAsync({
@@ -50,15 +64,21 @@ export function useSwipeBet() {
           depositMint: USDC_MINT,
         });
         haptics.success();
-        showToast(
-          "success",
-          "Bet Placed",
-          `$${amount} on ${side.toUpperCase()} submitted.`,
-        );
+        updateToast(toastId, {
+          variant: "success",
+          title: "Bet Placed",
+          message: `$${amount} on ${side.toUpperCase()} submitted.`,
+          duration: 2500,
+        });
       } catch (err: unknown) {
         haptics.error();
         const message = err instanceof Error ? err.message : String(err);
-        showToast("error", "Trade Failed", message);
+        updateToast(toastId, {
+          variant: "error",
+          title: "Trade Failed",
+          message,
+          duration: 4000,
+        });
       }
     },
     [walletAddress, createOrder],
@@ -67,9 +87,16 @@ export function useSwipeBet() {
   const cancelPending = useCallback(() => {
     if (pendingRef.current) {
       clearTimeout(pendingRef.current.timer);
+      const { toastId } = pendingRef.current;
       pendingRef.current = null;
       haptics.lightImpact();
-      showToast("info", "Bet Cancelled", "Quick bet was undone.");
+      updateToast(toastId, {
+        variant: "info",
+        title: "Bet Cancelled",
+        message: "Quick bet was undone.",
+        duration: 1500,
+        onTap: null,
+      });
     }
   }, []);
 
@@ -93,24 +120,24 @@ export function useSwipeBet() {
 
       const amount = quickBetAmount;
 
-      // Set up deferred execution
-      const timer = setTimeout(() => {
-        pendingRef.current = null;
-        executeBet(marketId, side, amount);
-      }, UNDO_WINDOW_MS);
-
-      pendingRef.current = { marketId, side, amount, timer };
-
-      // Show confirmation toast with undo callback
-      showToast(
+      // Show undo toast and capture its ID
+      const toastId = showToast(
         "info",
         `${side.toUpperCase()} $${amount}`,
-        "Placing bet in 3s… Tap to undo.",
+        "Placing bet in 3s\u2026 Tap to undo.",
         UNDO_WINDOW_MS,
         cancelPending,
       );
+
+      // Set up deferred execution
+      const timer = setTimeout(() => {
+        pendingRef.current = null;
+        executeBet(marketId, side, amount, toastId);
+      }, UNDO_WINDOW_MS);
+
+      pendingRef.current = { marketId, side, amount, timer, toastId };
     },
-    [walletAddress, quickBetAmount, executeBet],
+    [walletAddress, quickBetAmount, executeBet, cancelPending],
   );
 
   return {
