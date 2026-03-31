@@ -19,6 +19,7 @@ interface AppState {
   notificationPermission: NotificationPermission;
   expoPushToken: string | null;
   feedSessionCount: number;
+  pendingArticleId: string | null;
   setCategory: (category: "all" | "crypto" | "ai") => void;
   setTheme: (theme: ThemeMode) => void;
   toggleTheme: () => void;
@@ -29,6 +30,7 @@ interface AppState {
   setNotificationPermission: (status: NotificationPermission) => void;
   setExpoPushToken: (token: string | null) => void;
   incrementFeedSession: () => void;
+  setPendingArticleId: (id: string | null) => void;
 }
 
 export const useAppStore = create<AppState>()(
@@ -43,6 +45,7 @@ export const useAppStore = create<AppState>()(
       notificationPermission: "undetermined",
       expoPushToken: null,
       feedSessionCount: 0,
+      pendingArticleId: null,
 
       setCategory: (category) => set({ selectedCategory: category }),
 
@@ -70,6 +73,7 @@ export const useAppStore = create<AppState>()(
       setExpoPushToken: (token) => set({ expoPushToken: token }),
       incrementFeedSession: () =>
         set((state) => ({ feedSessionCount: state.feedSessionCount + 1 })),
+      setPendingArticleId: (id) => set({ pendingArticleId: id }),
     }),
     {
       name: "mintfeed-app-store",

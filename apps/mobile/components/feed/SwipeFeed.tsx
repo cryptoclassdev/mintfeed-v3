@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { View, StyleSheet, ActivityIndicator, Text, Pressable } from "react-native";
 import PagerView, {
   type PagerViewOnPageSelectedEvent,
@@ -33,6 +33,9 @@ export function SwipeFeed() {
   const themeColors = colors[theme];
   const pagerRef = useRef<PagerView>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const pendingArticleId = useAppStore((s) => s.pendingArticleId);
+  const setPendingArticleId = useAppStore((s) => s.setPendingArticleId);
+  const setCategory = useAppStore((s) => s.setCategory);
 
   // Swipe-to-bet hook
   const { swipeBet, walletConnected } = useSwipeBet();
@@ -55,6 +58,30 @@ export function SwipeFeed() {
 
   const articlesRef = useRef(articles);
   articlesRef.current = articles;
+
+  // Navigate to article from notification deep-link
+  // Resets category to "all", refetches, then scrolls to the article
+  const pendingHandled = useRef<string | null>(null);
+  useEffect(() => {
+    if (!pendingArticleId) return;
+
+    // On first trigger: reset category and refetch to ensure article is available
+    if (pendingHandled.current !== pendingArticleId) {
+      pendingHandled.current = pendingArticleId;
+      setCategory("all");
+      refetch();
+      return;
+    }
+
+    // After refetch: find and scroll to the article
+    if (articles.length === 0) return;
+    const index = articles.findIndex((a) => a.id === pendingArticleId);
+    if (index !== -1) {
+      pagerRef.current?.setPageWithoutAnimation(index);
+      setCurrentIndex(index);
+      setPendingArticleId(null);
+    }
+  }, [pendingArticleId, articles, setPendingArticleId, setCategory, refetch]);
 
   const onPageSelected = useCallback(
     (e: PagerViewOnPageSelectedEvent) => {

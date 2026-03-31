@@ -80,7 +80,7 @@ async function registerTokenWithRetry(
 }
 
 export function useNotifications() {
-  const router = useRouter();
+  const { navigate, push } = useRouter();
   const { account } = useMobileWallet();
   const walletAddress = account?.address.toString() ?? null;
 
@@ -94,6 +94,8 @@ export function useNotifications() {
   const responseListener = useRef<Notifications.Subscription | null>(null);
   const registrationInFlight = useRef(false);
 
+  const setPendingArticleId = useAppStore((s) => s.setPendingArticleId);
+
   // Stable deep-link handler that always uses current router
   const routeFromNotification = useCallback(
     (data: Record<string, unknown>) => {
@@ -104,18 +106,19 @@ export function useNotifications() {
       setTimeout(() => {
         switch (screen) {
           case "article":
-            if (id) router.push(`/article/${id}`);
+            if (id) setPendingArticleId(id);
+            navigate("/(tabs)");
             break;
           case "market-sheet":
-            if (id) router.push(`/market-sheet/${id}`);
+            if (id) push(`/market-sheet/${id}`);
             break;
           case "market":
-            router.navigate("/(tabs)/market");
+            navigate("/(tabs)/market");
             break;
         }
       }, 500);
     },
-    [router],
+    [navigate, push, setPendingArticleId],
   );
 
   // Increment session count and set up Android channels on mount
