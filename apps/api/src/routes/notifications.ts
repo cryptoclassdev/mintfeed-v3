@@ -3,6 +3,16 @@ import Expo from "expo-server-sdk";
 import { prisma } from "@mintfeed/db";
 
 const expo = new Expo();
+const ADMIN_SECRET = process.env.ADMIN_SECRET;
+
+function requireAdmin(c: any): Response | null {
+  if (!ADMIN_SECRET) return c.json({ error: "Admin endpoints disabled" }, 404);
+  const auth = c.req.header("authorization");
+  if (auth !== `Bearer ${ADMIN_SECRET}`) {
+    return c.json({ error: "Unauthorized" }, 401);
+  }
+  return null;
+}
 
 export const notificationRoutes = new Hono();
 
@@ -131,8 +141,11 @@ notificationRoutes.get("/notifications/preferences", async (c) => {
   }
 });
 
-// Debug: list registered devices and recent notification logs
+// Debug: list registered devices and recent notification logs (admin only)
 notificationRoutes.get("/notifications/debug", async (c) => {
+  const denied = requireAdmin(c);
+  if (denied) return denied;
+
   try {
     const devices = await prisma.pushDevice.findMany({
       select: {
@@ -178,8 +191,11 @@ notificationRoutes.get("/notifications/debug", async (c) => {
   }
 });
 
-// Test: send a test notification to all active devices
+// Test: send a test notification to all active devices (admin only)
 notificationRoutes.post("/notifications/test", async (c) => {
+  const denied = requireAdmin(c);
+  if (denied) return denied;
+
   try {
     const devices = await prisma.pushDevice.findMany({
       where: { isActive: true },

@@ -1,7 +1,13 @@
 import sharp from "sharp";
 import ky from "ky";
+import { isUrlSafe } from "../middleware/url-validator";
 
 export async function generateBlurhash(imageUrl: string): Promise<string | null> {
+  if (!isUrlSafe(imageUrl)) {
+    console.warn(`[Image] Rejected unsafe URL: ${imageUrl}`);
+    return null;
+  }
+
   try {
     const response = await ky.get(imageUrl, { timeout: 10_000 }).arrayBuffer();
     const buffer = Buffer.from(response);

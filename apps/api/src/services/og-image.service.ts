@@ -1,4 +1,5 @@
 import ky from "ky";
+import { isUrlSafe } from "../middleware/url-validator";
 
 /**
  * Fetches a URL and extracts the og:image meta tag value.
@@ -6,6 +7,8 @@ import ky from "ky";
  * Returns null on any failure.
  */
 export async function extractOgImage(url: string): Promise<string | null> {
+  if (!isUrlSafe(url)) return null;
+
   try {
     const response = await ky.get(url, {
       timeout: 5_000,

@@ -1,9 +1,19 @@
+import { VersionedTransaction, PublicKey } from "@solana/web3.js";
 import type { SubmitSignedTransactionRequest, SubmitSignedTransactionResponse } from "@mintfeed/shared";
 
 const DEFAULT_SOLANA_RPC_URL =
   process.env.SOLANA_RPC_URL
   ?? process.env.EXPO_PUBLIC_SOLANA_RPC_URL
   ?? "https://api.mainnet-beta.solana.com";
+
+// Jupiter Prediction Market program + system programs allowed in relayed transactions
+const ALLOWED_PROGRAM_IDS = new Set([
+  "JUPPMpMCRpMSq2foLgsCMCnHoWLpnMBEZEjKThJGAJr", // Jupiter Prediction Market
+  "11111111111111111111111111111111",                 // System Program
+  "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",    // Token Program
+  "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL",  // Associated Token Program
+  "ComputeBudget111111111111111111111111111111",      // Compute Budget
+]);
 
 type JsonRpcSuccess<T> = {
   jsonrpc: "2.0";
@@ -68,10 +78,37 @@ async function rpcRequest<T>(
   return body.result;
 }
 
+function validateTransaction(base64Tx: string): void {
+  let tx: VersionedTransaction;
+  try {
+    const buffer = Buffer.from(base64Tx, "base64");
+    tx = VersionedTransaction.deserialize(buffer);
+  } catch {
+    throw new Error("Invalid transaction: failed to deserialize");
+  }
+
+  const programIds = tx.message.staticAccountKeys
+    .filter((_, i) => tx.message.compiledInstructions.some((ix) => ix.programIdIndex === i))
+    .map((key) => key.toBase58());
+
+  // Also check address lookup tables — any program ID could be in the lookup
+  for (const programId of programIds) {
+    if (!ALLOWED_PROGRAM_IDS.has(programId)) {
+      throw new Error(`Transaction contains unauthorized program: ${programId}`);
+    }
+  }
+
+  if (tx.signatures.length === 0) {
+    throw new Error("Transaction has no signatures");
+  }
+}
+
 export async function relaySignedTransaction(
   request: SubmitSignedTransactionRequest,
   options: RelayOptions = {},
 ): Promise<SubmitSignedTransactionResponse> {
+  validateTransaction(request.signedTransaction);
+
   const rpcUrl = options.rpcUrl ?? DEFAULT_SOLANA_RPC_URL;
   const pollIntervalMs = options.confirmationPollIntervalMs ?? 1_500;
   const maxChecks = options.maxConfirmationChecks ?? 20;
