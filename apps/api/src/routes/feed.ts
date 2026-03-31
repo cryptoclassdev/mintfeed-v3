@@ -71,10 +71,17 @@ function dedupeMappedArticles<T extends ReturnType<typeof mapArticle>>(articles:
   return dedupeArticlesByContent(articles);
 }
 
+const VALID_CATEGORIES = new Set(["all", "crypto", "ai"]);
+
 feedRoutes.get("/feed", async (c) => {
-  const categoryParam = c.req.query("category") ?? "all";
+  const categoryParam = (c.req.query("category") ?? "all").toLowerCase();
   const cursor = c.req.query("cursor");
-  const limit = Math.min(Number(c.req.query("limit")) || DEFAULT_PAGE_SIZE, 50);
+  const rawLimit = Number(c.req.query("limit"));
+  const limit = Math.min(Number.isFinite(rawLimit) && rawLimit > 0 ? rawLimit : DEFAULT_PAGE_SIZE, 50);
+
+  if (!VALID_CATEGORIES.has(categoryParam)) {
+    return c.json({ error: "Invalid category. Must be: all, crypto, or ai" }, 400);
+  }
 
   const where =
     categoryParam === "all"

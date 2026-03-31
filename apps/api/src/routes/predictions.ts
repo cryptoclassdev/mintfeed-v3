@@ -23,9 +23,11 @@ const jupiter = ky.create({
 async function forwardJupiterError(err: unknown, c: any) {
   if (err instanceof HTTPError) {
     const status = err.response.status;
-    const body = await err.response.json().catch(() => ({ message: err.message }));
+    const body = await err.response.json().catch(() => null);
     console.error("[Jupiter]", status, body);
-    return c.json(body, status);
+    // Return sanitized error — don't leak internal Jupiter API details
+    const message = typeof body?.message === "string" ? body.message : "Request failed. Please try again.";
+    return c.json({ error: message }, status >= 400 && status < 500 ? status : 502);
   }
   throw err;
 }
@@ -99,14 +101,8 @@ predictionRoutes.post("/predictions/orders", async (c) => {
     return c.json(data);
   } catch (err: any) {
     const raw = await err?.response?.text?.().catch(() => null);
-    console.error("[Orders] Jupiter raw error:", err?.response?.status, raw);
-    try {
-      const parsed = JSON.parse(raw ?? "{}");
-      console.error("[Orders] Jupiter parsed error:", parsed);
-      return c.json(parsed, err?.response?.status ?? 500);
-    } catch {
-      return forwardJupiterError(err, c);
-    }
+    console.error("[Orders] Jupiter error:", err?.response?.status, raw);
+    return forwardJupiterError(err, c);
   }
 });
 

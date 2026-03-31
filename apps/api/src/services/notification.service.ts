@@ -143,7 +143,10 @@ interface BroadcastParams {
 export async function broadcastNotification(params: BroadcastParams): Promise<void> {
   const { type, title, body, imageUrl, data, referenceId } = params;
 
-  // Dedup: skip if we already sent a notification for this referenceId
+  // Dedup: skip if we already sent a notification for this referenceId.
+  // Note: small race window exists between check and send if two cron runs
+  // overlap, but the window is sub-second and the worst case is a duplicate
+  // notification (not data loss). Acceptable trade-off vs. added complexity.
   if (referenceId) {
     const alreadySent = await prisma.notificationLog.findFirst({
       where: { referenceId, type },

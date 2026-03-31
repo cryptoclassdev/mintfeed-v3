@@ -145,7 +145,7 @@ export async function relaySignedTransaction(
       status?.confirmationStatus === "confirmed"
       || status?.confirmationStatus === "finalized"
     ) {
-      return { signature };
+      return { signature, status: "confirmed" };
     }
 
     // Check block height sparingly to avoid extra RPC calls
@@ -161,8 +161,8 @@ export async function relaySignedTransaction(
     }
   }
 
-  // Transaction was sent successfully but confirmation timed out.
-  // Return the signature anyway — the tx is likely landing.
-  console.warn("[Solana Relay] Confirmation timed out, returning signature optimistically:", signature);
-  return { signature };
+  // Transaction was sent but confirmation timed out.
+  // Return as pending so the client can poll for status.
+  console.warn("[Solana Relay] Confirmation timed out, returning as pending:", signature);
+  return { signature, status: "pending" };
 }

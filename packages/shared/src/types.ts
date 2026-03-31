@@ -153,6 +153,7 @@ export interface SubmitSignedTransactionRequest {
 
 export interface SubmitSignedTransactionResponse {
   signature: string;
+  status: "confirmed" | "pending";
 }
 
 export interface PredictionPosition {

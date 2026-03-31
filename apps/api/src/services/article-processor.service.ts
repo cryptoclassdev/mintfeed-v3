@@ -46,34 +46,21 @@ interface ProcessItemOptions {
   tweetId?: string;
 }
 
+function isPrismaUniqueViolation(error: unknown): boolean {
+  return error instanceof Error && error.message.includes("Unique constraint");
+}
+
 async function processItem(item: ParsedFeedItem, options: ProcessItemOptions = {}): Promise<void> {
   const { sourceType = "RSS", tweetId } = options;
 
-  // Dedup by tweetId for Twitter items
-  if (tweetId) {
-    const tweetExists = await prisma.article.findUnique({
-      where: { tweetId },
-      select: { id: true },
-    });
-    if (tweetExists) return;
-  }
-
   const sourceUrlHash = hashUrl(item.link);
-
-  const exists = await prisma.article.findUnique({
-    where: { sourceUrlHash },
-    select: { id: true },
-  });
-
-  if (exists) return;
-
-  // Check for duplicate titles from different sources (same story, different outlet)
   const titleHash = hashTitle(item.title);
+
+  // Quick title dedup check (non-unique field, so we keep this pre-check)
   const titleDuplicate = await prisma.article.findFirst({
     where: { titleHash },
     select: { id: true },
   });
-
   if (titleDuplicate) return;
 
   const { title, summary, breaking } = await rewriteArticle(item.title, item.content);
@@ -81,25 +68,31 @@ async function processItem(item: ParsedFeedItem, options: ProcessItemOptions = {
     ? await generateBlurhash(item.imageUrl)
     : null;
 
-  const article = await prisma.article.create({
-    data: {
-      sourceUrl: item.link,
-      sourceUrlHash,
-      titleHash: hashTitle(item.title),
-      sourceName: item.sourceName,
-      category: item.category,
-      originalTitle: item.title,
-      originalBody: item.content,
-      title,
-      summary: truncateToWordLimit(summary, 60),
-      imageUrl: item.imageUrl,
-      imageBlurhash,
-      isBreaking: breaking,
-      publishedAt: new Date(item.pubDate),
-      sourceType,
-      tweetId: tweetId ?? null,
-    },
-  });
+  let article;
+  try {
+    article = await prisma.article.create({
+      data: {
+        sourceUrl: item.link,
+        sourceUrlHash,
+        titleHash,
+        sourceName: item.sourceName,
+        category: item.category,
+        originalTitle: item.title,
+        originalBody: item.content,
+        title,
+        summary: truncateToWordLimit(summary, 60),
+        imageUrl: item.imageUrl,
+        imageBlurhash,
+        isBreaking: breaking,
+        publishedAt: new Date(item.pubDate),
+        sourceType,
+        tweetId: tweetId ?? null,
+      },
+    });
+  } catch (error) {
+    if (isPrismaUniqueViolation(error)) return; // Duplicate caught by DB constraint
+    throw error;
+  }
 
   // Match prediction market in the background — don't block article processing
   matchMarketForArticle(article.id, item.title, title).catch((err) => {
@@ -142,14 +135,8 @@ export async function processArticles(): Promise<void> {
       await processItem(item);
       processed++;
     } catch (error) {
-      const isDuplicate =
-        error instanceof Error &&
-        error.message.includes("Unique constraint");
-      if (isDuplicate) {
-        skipped++;
-      } else {
-        console.error(`[ArticleProcessor] Failed to process "${item.title}":`, error);
-      }
+      console.error(`[ArticleProcessor] Failed to process "${item.title}":`, error);
+      skipped++;
     }
   }
 
@@ -185,14 +172,8 @@ export async function processTwitterItems(): Promise<void> {
       await processItem(item, { sourceType: "TWITTER", tweetId: tweetId ?? undefined });
       processed++;
     } catch (error) {
-      const isDuplicate =
-        error instanceof Error &&
-        error.message.includes("Unique constraint");
-      if (isDuplicate) {
-        skipped++;
-      } else {
-        console.error(`[ArticleProcessor] Failed to process tweet "${item.title.slice(0, 60)}":`, error);
-      }
+      console.error(`[ArticleProcessor] Failed to process tweet "${item.title.slice(0, 60)}":`, error);
+      skipped++;
     }
   }
 
