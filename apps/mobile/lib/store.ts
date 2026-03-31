@@ -92,6 +92,18 @@ export const useAppStore = create<AppState>()(
         if (state && state.quickBetAmount < QUICK_BET_MIN) {
           state.setQuickBetAmount(QUICK_BET_MIN);
         }
+        // Prune readArticleIds to prevent unbounded AsyncStorage growth.
+        // CUIDs are time-sortable, so reverse-sorting keeps the most recent.
+        const MAX_READ_IDS = 500;
+        if (state && Object.keys(state.readArticleIds).length > MAX_READ_IDS) {
+          const pruned = Object.keys(state.readArticleIds)
+            .sort()
+            .reverse()
+            .slice(0, MAX_READ_IDS);
+          const kept: Record<string, true> = {};
+          for (const id of pruned) kept[id] = true;
+          state.readArticleIds = kept;
+        }
       },
     },
   ),

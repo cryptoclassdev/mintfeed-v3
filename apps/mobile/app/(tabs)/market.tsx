@@ -1,5 +1,6 @@
 import { memo, useCallback } from "react";
-import { View, Text, FlatList, StyleSheet, Pressable } from "react-native";
+import { View, Text, StyleSheet, Pressable } from "react-native";
+import { FlashList } from "@shopify/flash-list";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Image } from "expo-image";
 import { useMarket } from "@/hooks/useMarket";
@@ -146,7 +147,7 @@ export default function MarketScreen() {
           </Text>
         </View>
       </View>
-      <FlatList
+      <FlashList
         data={data?.data ?? EMPTY_COINS}
         keyExtractor={keyExtractor}
         renderItem={renderItem}

@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import { View, Text, StyleSheet, ScrollView, Pressable, TextInput, Keyboard, Switch, Linking } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useMobileWallet } from "@wallet-ui/react-native-web3js";
@@ -19,6 +19,21 @@ export default function ProfileScreen() {
   const { account } = useMobileWallet();
   const walletAddress = account?.address.toString() ?? null;
   const { preferences: notifPrefs, updatePreference } = useNotificationPreferences();
+
+  const handleMarketMoversToggle = useCallback((v: boolean) => {
+    haptics.selection();
+    updatePreference({ marketMovers: v });
+  }, [updatePreference]);
+
+  const handleBreakingNewsToggle = useCallback((v: boolean) => {
+    haptics.selection();
+    updatePreference({ breakingNews: v });
+  }, [updatePreference]);
+
+  const handleSettlementsToggle = useCallback((v: boolean) => {
+    haptics.selection();
+    updatePreference({ predictionSettled: v });
+  }, [updatePreference]);
 
   const isPreset = (QUICK_BET_OPTIONS as readonly number[]).includes(quickBetAmount);
   const [showCustomInput, setShowCustomInput] = useState(!isPreset);
@@ -193,7 +208,7 @@ export default function ProfileScreen() {
                 </View>
                 <Switch
                   value={notifPrefs.marketMovers}
-                  onValueChange={(v) => { haptics.selection(); updatePreference({ marketMovers: v }); }}
+                  onValueChange={handleMarketMoversToggle}
                   trackColor={{ false: themeColors.trackBg, true: themeColors.accentMint + "60" }}
                   thumbColor={notifPrefs.marketMovers ? themeColors.accentMint : themeColors.textMuted}
                 />
@@ -207,7 +222,7 @@ export default function ProfileScreen() {
                 </View>
                 <Switch
                   value={notifPrefs.breakingNews}
-                  onValueChange={(v) => { haptics.selection(); updatePreference({ breakingNews: v }); }}
+                  onValueChange={handleBreakingNewsToggle}
                   trackColor={{ false: themeColors.trackBg, true: themeColors.accentMint + "60" }}
                   thumbColor={notifPrefs.breakingNews ? themeColors.accentMint : themeColors.textMuted}
                 />
@@ -221,7 +236,7 @@ export default function ProfileScreen() {
                 </View>
                 <Switch
                   value={notifPrefs.predictionSettled}
-                  onValueChange={(v) => { haptics.selection(); updatePreference({ predictionSettled: v }); }}
+                  onValueChange={handleSettlementsToggle}
                   trackColor={{ false: themeColors.trackBg, true: themeColors.accentMint + "60" }}
                   thumbColor={notifPrefs.predictionSettled ? themeColors.accentMint : themeColors.textMuted}
                 />
