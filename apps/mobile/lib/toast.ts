@@ -17,6 +17,8 @@ interface ToastUpdate {
   message?: string | null;
   duration?: number;
   onTap?: (() => void) | null;
+  /** Trigger a horizontal shake animation on the toast */
+  shake?: boolean;
 }
 
 type ToastListener = (toast: ToastMessage) => void;

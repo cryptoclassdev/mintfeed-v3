@@ -6,6 +6,7 @@ import Animated, {
   useAnimatedStyle,
   withTiming,
   withSpring,
+  withSequence,
   runOnJS,
   Easing,
 } from "react-native-reanimated";
@@ -34,6 +35,7 @@ export function ToastProvider() {
   const [current, setCurrent] = useState<ToastMessage | null>(null);
 
   const translateY = useSharedValue(-120);
+  const translateX = useSharedValue(0);
   const opacity = useSharedValue(0);
   const scale = useSharedValue(0.9);
   const dismissTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -102,6 +104,18 @@ export function ToastProvider() {
       if (update.duration !== undefined && update.duration > 0) {
         dismissTimer.current = setTimeout(dismiss, update.duration);
       }
+
+      // Shake animation — quick horizontal oscillation like shaking head "no"
+      if (update.shake) {
+        translateX.value = withSequence(
+          withTiming(-8, { duration: 60 }),
+          withTiming(8, { duration: 60 }),
+          withTiming(-6, { duration: 50 }),
+          withTiming(6, { duration: 50 }),
+          withTiming(-3, { duration: 40 }),
+          withTiming(0, { duration: 40 }),
+        );
+      }
     },
     [dismiss, clearDismissTimer],
   );
@@ -111,6 +125,7 @@ export function ToastProvider() {
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [
+      { translateX: translateX.value },
       { translateY: translateY.value },
       { scale: scale.value },
     ],

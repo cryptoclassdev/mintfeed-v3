@@ -42,6 +42,7 @@ export function useSwipeBet() {
           message: `Minimum bet is $${QUICK_BET_MIN}`,
           duration: 3000,
           onTap: null,
+          shake: true,
         });
         return;
       }
@@ -89,6 +90,7 @@ export function useSwipeBet() {
           title: "Trade Failed",
           message,
           duration: 4000,
+          shake: true,
         });
       }
     },
@@ -131,12 +133,14 @@ export function useSwipeBet() {
 
       const amount = quickBetAmount;
 
-      // Show undo toast and capture its ID
+      // Show undo toast — duration 0 (no auto-dismiss) so the toast stays
+      // alive for executeBet to update. It will be dismissed or updated by
+      // executeBet/cancelPending after the countdown.
       const toastId = showToast(
         "info",
         `${side.toUpperCase()} $${amount}`,
         "Placing bet in 3s\u2026 Tap to undo.",
-        UNDO_WINDOW_MS,
+        0,
         cancelPending,
       );
 
