@@ -1,5 +1,5 @@
 diff --git a/dist/index.native.mjs b/dist/index.native.mjs
-index a06650f72a4fce416579175db4c4719437b76950..2a23223b5f38cdcc548b161bf85d9cee48a33d79 100644
+index a06650f72a4fce416579175db4c4719437b76950..0fc60b4122b0506d816652b0a98e163369b466c0 100644
 --- a/dist/index.native.mjs
 +++ b/dist/index.native.mjs
 @@ -18,6 +18,7 @@ function createAuthorizationStore(context) {
@@ -71,7 +71,7 @@ index a06650f72a4fce416579175db4c4719437b76950..2a23223b5f38cdcc548b161bf85d9cee
      ]
    );
  }
-@@ -283,17 +290,24 @@ function useMobileWallet() {
+@@ -283,23 +290,37 @@ function useMobileWallet() {
      deauthorizeSessions,
      selectedAccount,
      accounts,
@@ -99,7 +99,21 @@ index a06650f72a4fce416579175db4c4719437b76950..2a23223b5f38cdcc548b161bf85d9cee
    );
    const signIn = useCallback(
      async (signInPayload) => await transact(async (wallet) => await authorizeSessionWithSignIn(wallet, signInPayload)),
-@@ -309,8 +323,8 @@ function useMobileWallet() {
+     [authorizeSessionWithSignIn]
+   );
+-  const disconnect = useCallback(async () => await deauthorizeSessions(), [deauthorizeSessions]);
++  const disconnect = useCallback(async () => {
++    try {
++      await transact(async (wallet) => await deauthorizeSession(wallet), txConfig);
++    } catch {
++      // Wallet app unavailable or user rejected — clear local state anyway
++      await deauthorizeSessions();
++    }
++  }, [deauthorizeSession, deauthorizeSessions, txConfig]);
+   const signAndSendTransactions = useCallback(
+     async (transaction, minContextSlot) => await transact(async (wallet) => {
+       await authorizeSession(wallet);
+@@ -309,8 +330,8 @@ function useMobileWallet() {
          transactions: isTransactionsArray ? transaction : [transaction]
        });
        return isTransactionsArray ? signatures : signatures[0];
@@ -110,7 +124,7 @@ index a06650f72a4fce416579175db4c4719437b76950..2a23223b5f38cdcc548b161bf85d9cee
    );
    const signMessages = useCallback(
      async (message) => await transact(async (wallet) => {
-@@ -321,8 +335,8 @@ function useMobileWallet() {
+@@ -321,8 +342,8 @@ function useMobileWallet() {
          payloads
        });
        return Array.isArray(message) ? signed : signed[0];
@@ -121,7 +135,7 @@ index a06650f72a4fce416579175db4c4719437b76950..2a23223b5f38cdcc548b161bf85d9cee
    );
    const signTransactions = useCallback(
      async (transaction) => await transact(async (wallet) => {
-@@ -331,8 +345,8 @@ function useMobileWallet() {
+@@ -331,8 +352,8 @@ function useMobileWallet() {
          transactions: Array.isArray(transaction) ? transaction : [transaction]
        });
        return Array.isArray(transaction) ? signedTxs : signedTxs[0];
