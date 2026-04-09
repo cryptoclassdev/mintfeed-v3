@@ -6,6 +6,7 @@ import Animated, {
   useAnimatedStyle,
   withTiming,
   withSpring,
+  withSequence,
   runOnJS,
   Easing,
 } from "react-native-reanimated";
@@ -14,12 +15,12 @@ import { Ionicons } from "@expo/vector-icons";
 import { useAppStore } from "@/lib/store";
 import { colors } from "@/constants/theme";
 import { fonts, fontSize } from "@/constants/typography";
-import { onToast, type ToastMessage } from "@/lib/toast";
+import { onToast, onToastUpdate, type ToastMessage, type ToastUpdate } from "@/lib/toast";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
-const TOAST_DURATION = 400; // Slightly longer for smoother feel
-const EASING = Easing.bezier(0.2, 0, 0, 1); // Custom easing for better feel
+const TOAST_DURATION = 400;
+const EASING = Easing.bezier(0.2, 0, 0, 1);
 
 const VARIANT_CONFIG = {
   success: { icon: "checkmark-circle" as const, colorKey: "positive" as const },
@@ -32,52 +33,99 @@ export function ToastProvider() {
   const themeColors = colors[theme];
   const insets = useSafeAreaInsets();
   const [current, setCurrent] = useState<ToastMessage | null>(null);
-  
-  // Animation values
+
   const translateY = useSharedValue(-120);
+  const translateX = useSharedValue(0);
   const opacity = useSharedValue(0);
   const scale = useSharedValue(0.9);
   const dismissTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const clearDismissTimer = useCallback(() => {
+    if (dismissTimer.current) {
+      clearTimeout(dismissTimer.current);
+      dismissTimer.current = null;
+    }
+  }, []);
+
   const dismiss = useCallback(() => {
-    // Smooth exit animation
+    clearDismissTimer();
     translateY.value = withTiming(-120, { duration: TOAST_DURATION, easing: EASING });
     opacity.value = withTiming(0, { duration: TOAST_DURATION, easing: EASING });
     scale.value = withTiming(0.9, { duration: TOAST_DURATION, easing: EASING }, () => {
       runOnJS(setCurrent)(null);
     });
-  }, [translateY, opacity, scale]);
+  }, [translateY, opacity, scale, clearDismissTimer]);
 
   const show = useCallback(
     (toast: ToastMessage) => {
-      if (dismissTimer.current) clearTimeout(dismissTimer.current);
-      
-      // Haptic feedback based on toast variant
+      clearDismissTimer();
+
       if (toast.variant === 'success') haptics.success();
       else if (toast.variant === 'error') haptics.error();
       else haptics.lightImpact();
-      
+
       setCurrent(toast);
-      
-      // Reset values
+
       translateY.value = -120;
       opacity.value = 0;
       scale.value = 0.9;
-      
-      // Smooth enter animation with slight bounce
+
       translateY.value = withSpring(0, { damping: 20, stiffness: 300 });
       opacity.value = withTiming(1, { duration: TOAST_DURATION, easing: EASING });
       scale.value = withSpring(1, { damping: 18, stiffness: 300 });
-      
-      dismissTimer.current = setTimeout(dismiss, toast.duration ?? 3000);
+
+      const dur = toast.duration ?? 3000;
+      if (dur > 0) {
+        dismissTimer.current = setTimeout(dismiss, dur);
+      }
     },
-    [translateY, opacity, scale, dismiss],
+    [translateY, opacity, scale, dismiss, clearDismissTimer],
+  );
+
+  const handleUpdate = useCallback(
+    (update: ToastUpdate) => {
+      setCurrent((prev) => {
+        if (!prev || prev.id !== update.id) return prev;
+
+        const updated: ToastMessage = {
+          ...prev,
+          ...(update.variant !== undefined && { variant: update.variant }),
+          ...(update.title !== undefined && { title: update.title }),
+          ...(update.message !== undefined && { message: update.message ?? undefined }),
+          ...(update.duration !== undefined && { duration: update.duration }),
+          ...(update.onTap !== undefined && { onTap: update.onTap ?? undefined }),
+        };
+
+        return updated;
+      });
+
+      // Reset dismiss timer with new duration
+      clearDismissTimer();
+      if (update.duration !== undefined && update.duration > 0) {
+        dismissTimer.current = setTimeout(dismiss, update.duration);
+      }
+
+      // Shake animation — quick horizontal oscillation like shaking head "no"
+      if (update.shake) {
+        translateX.value = withSequence(
+          withTiming(-8, { duration: 60 }),
+          withTiming(8, { duration: 60 }),
+          withTiming(-6, { duration: 50 }),
+          withTiming(6, { duration: 50 }),
+          withTiming(-3, { duration: 40 }),
+          withTiming(0, { duration: 40 }),
+        );
+      }
+    },
+    [dismiss, clearDismissTimer],
   );
 
   useEffect(() => onToast(show), [show]);
+  useEffect(() => onToastUpdate(handleUpdate), [handleUpdate]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [
+      { translateX: translateX.value },
       { translateY: translateY.value },
       { scale: scale.value },
     ],
@@ -93,10 +141,9 @@ export function ToastProvider() {
     <Animated.View
       style={[
         styles.container,
-        { 
+        {
           top: insets.top + 12,
           backgroundColor: themeColors.card,
-          // Using shadows instead of borders for depth
           shadowColor: variantColor,
           shadowOffset: { width: 0, height: 4 },
           shadowOpacity: 0.2,
@@ -107,8 +154,8 @@ export function ToastProvider() {
       ]}
       pointerEvents="box-none"
     >
-      <AnimatedPressable 
-        style={styles.content} 
+      <AnimatedPressable
+        style={styles.content}
         onPress={() => {
           if (current.onTap) {
             current.onTap();
@@ -122,52 +169,50 @@ export function ToastProvider() {
         <View style={[
           styles.iconContainer,
           {
-            backgroundColor: `${variantColor}15`, // Subtle tinted background
-            borderRadius: 8, // Concentric: outer 16 - padding 8 = inner 8
+            backgroundColor: `${variantColor}15`,
+            borderRadius: 8,
           }
         ]}>
           <Ionicons name={config.icon} size={18} color={variantColor} />
         </View>
-        
+
         <View style={styles.textContainer}>
-          <Text 
+          <Text
             style={[
-              styles.title, 
-              { 
+              styles.title,
+              {
                 color: themeColors.text,
-                // Better text wrapping
                 textAlign: 'left',
               }
-            ]} 
+            ]}
             numberOfLines={1}
           >
             {current.title}
           </Text>
-          {current.message && (
-            <Text 
+          {current.message ? (
+            <Text
               style={[
-                styles.message, 
-                { 
+                styles.message,
+                {
                   color: themeColors.textSecondary,
                   textAlign: 'left',
                 }
-              ]} 
+              ]}
               numberOfLines={2}
             >
               {current.message}
             </Text>
-          )}
+          ) : null}
         </View>
 
-        {/* Subtle close indicator */}
         <View style={[
           styles.closeHint,
           { backgroundColor: `${themeColors.textMuted}20` }
         ]}>
-          <Ionicons 
-            name="close" 
-            size={12} 
-            color={themeColors.textMuted} 
+          <Ionicons
+            name="close"
+            size={12}
+            color={themeColors.textMuted}
           />
         </View>
       </AnimatedPressable>
@@ -182,7 +227,6 @@ const styles = StyleSheet.create({
     right: 16,
     borderRadius: 16,
     zIndex: 9999,
-    // Better backdrop blur effect simulation
     overflow: "hidden",
   },
   content: {
@@ -190,7 +234,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 16,
     gap: 12,
-    minHeight: 56, // Minimum touch target
+    minHeight: 56,
   },
   iconContainer: {
     width: 32,

@@ -17,10 +17,15 @@ export function validateTradeAmount(amountStr: string): ValidationResult {
   return { valid: true };
 }
 
+const MAX_DECIMAL_PLACES = 6; // USDC precision
+
 export function parseTradeAmount(amountStr: string): number | null {
   if (!amountStr || amountStr.trim() === "") return null;
   const num = Number(amountStr);
   if (!Number.isFinite(num) || num < 0) return null;
+  // Reject excessive decimal precision
+  const decimalPart = amountStr.split(".")[1];
+  if (decimalPart && decimalPart.length > MAX_DECIMAL_PLACES) return null;
   return num;
 }
 

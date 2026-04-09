@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Midnight",
-    "slug": "midnight",
+    "slug": "mintfeed",
     "version": "1.0.0",
     "scheme": "midnight",
     "orientation": "portrait",
@@ -23,6 +23,8 @@
         "backgroundColor": "#030303"
       },
       "package": "com.mintfeed.app",
+      "googleServicesFile": "./google-services.json",
+      "permissions": ["POST_NOTIFICATIONS"],
       "intentFilters": [
         {
           "action": "VIEW",
@@ -44,7 +46,14 @@
       "expo-font",
       "expo-secure-store",
       "expo-web-browser",
-      "./plugins/wallet-queries"
+      "./plugins/wallet-queries",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/adaptive-icon.png",
+          "color": "#4C8BD0"
+        }
+      ]
     ],
     "experiments": {
       "reactCompiler": true

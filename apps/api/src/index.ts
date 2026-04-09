@@ -39,12 +39,37 @@ import { healthRoutes } from "./routes/health";
 import { predictionRoutes } from "./routes/predictions";
 import { skrRoutes } from "./routes/skr";
 import { seekerRoutes } from "./routes/seeker";
+import { notificationRoutes } from "./routes/notifications";
 import { startCronJobs } from "./cron";
+import { rateLimit } from "./middleware/rate-limit";
 
 const app = new Hono();
 
 app.use("*", logger());
-app.use("*", cors());
+
+const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS ?? "")
+  .split(",")
+  .map((o) => o.trim())
+  .filter(Boolean);
+
+app.use(
+  "*",
+  cors({
+    origin: ALLOWED_ORIGINS.length > 0
+      ? ALLOWED_ORIGINS
+      : ["https://mintfeed-api-production.up.railway.app", "https://mintfeed-api-staging.up.railway.app"],
+    allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowHeaders: ["Content-Type", "Authorization"],
+  }),
+);
+
+// Global rate limit: 100 requests per minute per IP
+app.use("/api/v1/*", rateLimit({ max: 100, keyPrefix: "api" }));
+
+// Stricter limits on sensitive endpoints
+app.use("/api/v1/predictions/transactions/*", rateLimit({ max: 10, keyPrefix: "tx" }));
+app.use("/api/v1/predictions/orders", rateLimit({ max: 20, keyPrefix: "orders" }));
+app.use("/api/v1/notifications/register", rateLimit({ max: 10, keyPrefix: "notif-reg" }));
 
 app.route("/api/v1", feedRoutes);
 app.route("/api/v1", marketRoutes);
@@ -52,6 +77,7 @@ app.route("/api/v1", healthRoutes);
 app.route("/api/v1", predictionRoutes);
 app.route("/api/v1", skrRoutes);
 app.route("/api/v1", seekerRoutes);
+app.route("/api/v1", notificationRoutes);
 
 const PORT = Number(process.env.PORT) || 3000;
 

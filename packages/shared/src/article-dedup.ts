@@ -3,7 +3,8 @@ import type { Article } from "./types";
 function normalizeContent(value: string | null | undefined): string {
   return (value ?? "")
     .toLowerCase()
-    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/[^a-z0-9$%.,]+/g, " ")
+    .replace(/\s+/g, " ")
     .trim();
 }
 

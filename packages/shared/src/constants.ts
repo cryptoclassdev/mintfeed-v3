@@ -10,7 +10,7 @@ export const ARTICLE_FETCH_INTERVAL_MINUTES = 15;
 
 export const MARKET_FETCH_INTERVAL_MINUTES = 5;
 
-export const TOP_COINS_COUNT = 20;
+export const TOP_COINS_COUNT = 100;
 
 export const MINIMUM_TRADE_USD = 1;
 

@@ -98,14 +98,9 @@ export const SwipeBetCard = memo(function SwipeBetCard({
 
   const handleSwipeBet = useCallback(
     (side: "yes" | "no") => {
-      if (!walletConnected) {
-        haptics.warning();
-        return;
-      }
-      haptics.heavyImpact();
       onSwipeBet(market.id, side);
     },
-    [walletConnected, market.id, onSwipeBet],
+    [market.id, onSwipeBet],
   );
 
   const openMarketSheet = useCallback(() => {

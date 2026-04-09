@@ -37,6 +37,7 @@ model Article {
   summary            String                    @db.Text
   imageUrl           String?
   imageBlurhash      String?
+  isBreaking         Boolean                   @default(false)
   sourceType         SourceType                @default(RSS)
   tweetId            String?                   @unique
   publishedAt        DateTime
@@ -59,6 +60,8 @@ model MarketCoin {
   marketCap      Float
   imageUrl       String?
   updatedAt      DateTime @updatedAt
+
+  @@index([symbol])
 }
 
 model PredictionMarket {
@@ -80,6 +83,7 @@ model PredictionMarket {
   articles      ArticlePredictionMarket[]
 
   @@index([eventId])
+  @@index([closed])
 }
 
 model ArticlePredictionMarket {
@@ -87,12 +91,77 @@ model ArticlePredictionMarket {
   articleId          String
   predictionMarketId String
   createdAt          DateTime         @default(now())
-  article            Article          @relation(fields: [articleId], references: [id])
-  predictionMarket   PredictionMarket @relation(fields: [predictionMarketId], references: [id])
+  article            Article          @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  predictionMarket   PredictionMarket @relation(fields: [predictionMarketId], references: [id], onDelete: Cascade)
 
   @@unique([articleId, predictionMarketId])
   @@index([articleId])
+  @@index([predictionMarketId])
 }
+
+// ─── Push Notifications ───
+
+enum NotificationType {
+  MARKET_MOVER
+  BREAKING_NEWS
+  PREDICTION_SETTLED
+}
+
+model PushDevice {
+  id              String                  @id @default(cuid())
+  expoPushToken   String                  @unique
+  walletAddress   String?
+  platform        String?                 // "ios" | "android"
+  timezoneOffset  Int                     @default(0) // UTC offset in minutes
+  isActive        Boolean                 @default(true)
+  createdAt       DateTime                @default(now())
+  updatedAt       DateTime                @updatedAt
+  preferences     NotificationPreference?
+  logs            NotificationLog[]
+
+  @@index([walletAddress])
+  @@index([isActive])
+}
+
+model NotificationPreference {
+  id                 String     @id @default(cuid())
+  deviceId           String     @unique
+  device             PushDevice @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  marketMovers       Boolean    @default(true)
+  breakingNews       Boolean    @default(true)
+  predictionSettled  Boolean    @default(true)
+  quietHoursStart    Int        @default(23) // 0-23, device local time
+  quietHoursEnd      Int        @default(7)
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+}
+
+model NotificationLog {
+  id             String           @id @default(cuid())
+  deviceId       String
+  device         PushDevice       @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  type           NotificationType
+  title          String
+  body           String
+  referenceId    String?          // articleId, coinId, or marketId
+  expoReceiptId  String?
+  sentAt         DateTime         @default(now())
+
+  @@index([deviceId, sentAt(sort: Desc)])
+  @@index([deviceId, type, sentAt(sort: Desc)])
+  @@index([referenceId])
+}
+
+model CoinPriceSnapshot {
+  id      String   @id @default(cuid())
+  coinId  String
+  price   Float
+  takenAt DateTime @default(now())
+
+  @@index([coinId, takenAt(sort: Desc)])
+}
+
+// ─── Feed Sources ───
 
 model FeedSource {
   id          String    @id @default(cuid())
@@ -102,6 +171,7 @@ model FeedSource {
   isActive    Boolean   @default(true)
   lastFetchAt DateTime?
   createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @default(now()) @updatedAt
 }
 
 model TwitterSource {
@@ -115,4 +185,5 @@ model TwitterSource {
   isActive        Boolean           @default(true)
   lastFetchAt     DateTime?
   createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @default(now()) @updatedAt
 }

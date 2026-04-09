@@ -45,6 +45,9 @@ export interface PredictionMarket {
   marketUrl: string;    // Jupiter prediction page URL
   endDate?: string | null;   // ISO 8601 datetime
   volume?: number;           // plain USD from Jupiter
+  closed?: boolean;
+  category?: string | null;
+  result?: string | null;    // "yes" | "no" | null
 }
 
 export interface PaginatedResponse<T> {
@@ -153,6 +156,7 @@ export interface SubmitSignedTransactionRequest {
 
 export interface SubmitSignedTransactionResponse {
   signature: string;
+  status: "confirmed" | "pending";
 }
 
 export interface PredictionPosition {

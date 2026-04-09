@@ -1,0 +1,148 @@
+diff --git a/dist/index.native.mjs b/dist/index.native.mjs
+index a06650f72a4fce416579175db4c4719437b76950..0fc60b4122b0506d816652b0a98e163369b466c0 100644
+--- a/dist/index.native.mjs
++++ b/dist/index.native.mjs
+@@ -18,6 +18,7 @@ function createAuthorizationStore(context) {
+   const $accounts = computed($authorization, (auth) => auth?.accounts ?? null);
+   const $authToken = computed($authorization, (auth) => auth?.authToken);
+   const $selectedAccount = computed($authorization, (auth) => auth?.selectedAccount);
++  const $walletUriBase = computed($authorization, (auth) => auth?.walletUriBase ?? null);
+   async function fetch() {
+     const result = await cache.get();
+     const auth = result ?? null;
+@@ -36,6 +37,7 @@ function createAuthorizationStore(context) {
+     $accounts,
+     $authToken,
+     $selectedAccount,
++    $walletUriBase,
+     fetch,
+     persist
+   };
+@@ -158,6 +160,7 @@ function getAuthorizationFromAuthorizationResult(authorizationResult, previously
+   return {
+     accounts: authorizationResult.accounts.map(getAccountFromAuthorizedAccount),
+     authToken: authorizationResult.auth_token,
++    walletUriBase: authorizationResult.wallet_uri_base ?? null,
+     selectedAccount
+   };
+ }
+@@ -165,20 +168,22 @@ function useAuthorizationStore({ store }) {
+   const accounts = useStore(store.$accounts);
+   const authToken = useStore(store.$authToken);
+   const selectedAccount = useStore(store.$selectedAccount);
++  const walletUriBase = useStore(store.$walletUriBase);
+   return useMemo(
+     () => ({
+       accounts,
+       authToken,
++      walletUriBase,
+       persist: store.persist,
+       selectedAccount
+     }),
+-    [accounts, authToken, store.persist, selectedAccount]
++    [accounts, authToken, walletUriBase, store.persist, selectedAccount]
+   );
+ }
+ 
+ // src/use-authorization.ts
+ function useAuthorization({ chain, identity, store }) {
+-  const { accounts, authToken, persist, selectedAccount } = useAuthorizationStore({
++  const { accounts, authToken, walletUriBase, persist, selectedAccount } = useAuthorizationStore({
+     store
+   });
+   const handleAuthorizationResult = useCallback(
+@@ -263,7 +268,8 @@ function useAuthorization({ chain, identity, store }) {
+       authorizeSessionWithSignIn,
+       deauthorizeSession,
+       deauthorizeSessions,
+-      selectedAccount
++      selectedAccount,
++      walletUriBase
+     }),
+     [
+       accounts,
+@@ -271,7 +277,8 @@ function useAuthorization({ chain, identity, store }) {
+       authorizeSessionWithSignIn,
+       deauthorizeSession,
+       deauthorizeSessions,
+-      selectedAccount
++      selectedAccount,
++      walletUriBase
+     ]
+   );
+ }
+@@ -283,23 +290,37 @@ function useMobileWallet() {
+     deauthorizeSessions,
+     selectedAccount,
+     accounts,
+-    deauthorizeSession
++    deauthorizeSession,
++    walletUriBase
+   } = useAuthorization(ctx);
++  // Build transact config — when walletUriBase is known, pass it as baseUri
++  // to skip the Android wallet picker and go directly to the authorized wallet.
++  const txConfig = useMemo(
++    () => walletUriBase ? { baseUri: walletUriBase } : undefined,
++    [walletUriBase]
++  );
+   const connect = useCallback(
+     async () => await transact(async (wallet) => await authorizeSession(wallet)),
+     [authorizeSession]
+   );
+   const connectAnd = useCallback(
+     async (cb) => {
+-      return await transact(async (wallet) => await cb(wallet));
++      return await transact(async (wallet) => await cb(wallet), txConfig);
+     },
+-    []
++    [txConfig]
+   );
+   const signIn = useCallback(
+     async (signInPayload) => await transact(async (wallet) => await authorizeSessionWithSignIn(wallet, signInPayload)),
+     [authorizeSessionWithSignIn]
+   );
+-  const disconnect = useCallback(async () => await deauthorizeSessions(), [deauthorizeSessions]);
++  const disconnect = useCallback(async () => {
++    try {
++      await transact(async (wallet) => await deauthorizeSession(wallet), txConfig);
++    } catch {
++      // Wallet app unavailable or user rejected — clear local state anyway
++      await deauthorizeSessions();
++    }
++  }, [deauthorizeSession, deauthorizeSessions, txConfig]);
+   const signAndSendTransactions = useCallback(
+     async (transaction, minContextSlot) => await transact(async (wallet) => {
+       await authorizeSession(wallet);
+@@ -309,8 +330,8 @@ function useMobileWallet() {
+         transactions: isTransactionsArray ? transaction : [transaction]
+       });
+       return isTransactionsArray ? signatures : signatures[0];
+-    }),
+-    [authorizeSession]
++    }, txConfig),
++    [authorizeSession, txConfig]
+   );
+   const signMessages = useCallback(
+     async (message) => await transact(async (wallet) => {
+@@ -321,8 +342,8 @@ function useMobileWallet() {
+         payloads
+       });
+       return Array.isArray(message) ? signed : signed[0];
+-    }),
+-    [authorizeSession]
++    }, txConfig),
++    [authorizeSession, txConfig]
+   );
+   const signTransactions = useCallback(
+     async (transaction) => await transact(async (wallet) => {
+@@ -331,8 +352,8 @@ function useMobileWallet() {
+         transactions: Array.isArray(transaction) ? transaction : [transaction]
+       });
+       return Array.isArray(transaction) ? signedTxs : signedTxs[0];
+-    }),
+-    [authorizeSession]
++    }, txConfig),
++    [authorizeSession, txConfig]
+   );
+   const signAndSendTransaction = useCallback(
+     async (transaction, minContextSlot) => {

@@ -5,7 +5,10 @@ import type { ThemeMode } from "@/constants/theme";
 
 export const QUICK_BET_OPTIONS = [5, 10, 25, 50] as const;
 export const QUICK_BET_MIN = 5;
+export const QUICK_BET_MAX = 500;
 export type QuickBetPreset = (typeof QUICK_BET_OPTIONS)[number];
+
+type NotificationPermission = "undetermined" | "granted" | "denied";
 
 interface AppState {
   selectedCategory: "all" | "crypto" | "ai";
@@ -14,6 +17,10 @@ interface AppState {
   readArticleIds: Record<string, true>;
   hasCompletedOnboarding: boolean;
   quickBetAmount: number;
+  notificationPermission: NotificationPermission;
+  expoPushToken: string | null;
+  feedSessionCount: number;
+  pendingArticleId: string | null;
   setCategory: (category: "all" | "crypto" | "ai") => void;
   setTheme: (theme: ThemeMode) => void;
   toggleTheme: () => void;
@@ -21,6 +28,10 @@ interface AppState {
   markAsRead: (id: string) => void;
   completeOnboarding: () => void;
   setQuickBetAmount: (amount: number) => void;
+  setNotificationPermission: (status: NotificationPermission) => void;
+  setExpoPushToken: (token: string | null) => void;
+  incrementFeedSession: () => void;
+  setPendingArticleId: (id: string | null) => void;
 }
 
 export const useAppStore = create<AppState>()(
@@ -32,6 +43,10 @@ export const useAppStore = create<AppState>()(
       readArticleIds: {},
       hasCompletedOnboarding: false,
       quickBetAmount: 5,
+      notificationPermission: "undetermined",
+      expoPushToken: null,
+      feedSessionCount: 0,
+      pendingArticleId: null,
 
       setCategory: (category) => set({ selectedCategory: category }),
 
@@ -53,7 +68,13 @@ export const useAppStore = create<AppState>()(
       completeOnboarding: () => set({ hasCompletedOnboarding: true }),
 
       setQuickBetAmount: (amount) =>
-        set({ quickBetAmount: Math.max(QUICK_BET_MIN, Math.floor(amount)) }),
+        set({ quickBetAmount: Math.max(QUICK_BET_MIN, Math.min(QUICK_BET_MAX, Math.floor(amount))) }),
+
+      setNotificationPermission: (status) => set({ notificationPermission: status }),
+      setExpoPushToken: (token) => set({ expoPushToken: token }),
+      incrementFeedSession: () =>
+        set((state) => ({ feedSessionCount: state.feedSessionCount + 1 })),
+      setPendingArticleId: (id) => set({ pendingArticleId: id }),
     }),
     {
       name: "mintfeed-app-store",
@@ -64,10 +85,25 @@ export const useAppStore = create<AppState>()(
         readArticleIds: state.readArticleIds,
         hasCompletedOnboarding: state.hasCompletedOnboarding,
         quickBetAmount: state.quickBetAmount,
+        notificationPermission: state.notificationPermission,
+        expoPushToken: state.expoPushToken,
+        feedSessionCount: state.feedSessionCount,
       }),
       onRehydrateStorage: () => (state) => {
         if (state && state.quickBetAmount < QUICK_BET_MIN) {
           state.setQuickBetAmount(QUICK_BET_MIN);
+        }
+        // Prune readArticleIds to prevent unbounded AsyncStorage growth.
+        // CUIDs are time-sortable, so reverse-sorting keeps the most recent.
+        const MAX_READ_IDS = 500;
+        if (state && Object.keys(state.readArticleIds).length > MAX_READ_IDS) {
+          const pruned = Object.keys(state.readArticleIds)
+            .sort()
+            .reverse()
+            .slice(0, MAX_READ_IDS);
+          const kept: Record<string, true> = {};
+          for (const id of pruned) kept[id] = true;
+          state.readArticleIds = kept;
         }
       },
     },

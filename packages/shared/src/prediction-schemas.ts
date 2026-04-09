@@ -21,7 +21,7 @@ export const CreateOrderSchema = z
     depositMint: z.string().default(USDC_MINT),
     contracts: z
       .string()
-      .regex(/^\d+$/, "contracts must be a positive integer string")
+      .regex(/^[1-9]\d*$/, "contracts must be a positive integer")
       .optional(),
   })
   .superRefine((data, ctx) => {
@@ -76,7 +76,7 @@ export const ClosePositionSchema = z.object({
   positionPubkey: pubkeySchema,
   ownerPubkey: pubkeySchema,
   isYes: z.boolean(),
-  contracts: z.string().regex(/^\d+$/, "contracts must be a positive integer string"),
+  contracts: z.string().regex(/^[1-9]\d*$/, "contracts must be a positive integer"),
 });
 
 export type ClosePositionInput = z.infer<typeof ClosePositionSchema>;

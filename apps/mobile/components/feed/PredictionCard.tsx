@@ -1,4 +1,4 @@
-import React, { memo } from "react";
+import React, { memo, useMemo } from "react";
 import { View, Text, StyleSheet, Pressable } from "react-native";
 import { useRouter } from "expo-router";
 import * as haptics from '@/lib/haptics';
@@ -45,6 +45,21 @@ export const PredictionCard = memo(function PredictionCard({
   const cardTranslateY = useSharedValue(10);
   const barWidth = useSharedValue(0);
 
+  const cardShadowStyle = useMemo(() => ({
+    backgroundColor: themeColors.card,
+    shadowColor: themeColors.cardBorder,
+    shadowOffset: { width: 0, height: 1 } as const,
+    shadowOpacity: 0.4,
+    shadowRadius: 2,
+    elevation: 2,
+  }), [themeColors.card, themeColors.cardBorder]);
+
+  const resolvedCardStyle = useMemo(() => ({
+    ...cardShadowStyle,
+    shadowOpacity: 0.3,
+    opacity: 0.6,
+  }), [cardShadowStyle]);
+
   const prices = parsePrices(
     livePrices && Object.keys(livePrices).length > 0
       ? livePrices
@@ -72,13 +87,18 @@ export const PredictionCard = memo(function PredictionCard({
   React.useEffect(() => {
     cardOpacity.value = withTiming(1, { duration: 300 });
     cardTranslateY.value = withTiming(0, { duration: 300 });
-    
-    // Animate the progress bar
+
+    // Animate the progress bar with slight delay
+    let timer: ReturnType<typeof setTimeout> | undefined;
     if (hasOdds) {
-      setTimeout(() => {
+      timer = setTimeout(() => {
         barWidth.value = withSpring(yesPercent, { damping: 20, stiffness: 300 });
       }, 150);
     }
+
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
   }, [hasOdds, yesPercent]);
 
   // Animated styles
@@ -110,16 +130,7 @@ export const PredictionCard = memo(function PredictionCard({
       <Animated.View
         style={[
           styles.card,
-          {
-            backgroundColor: themeColors.card,
-            // Using shadows instead of borders for depth
-            shadowColor: themeColors.cardBorder,
-            shadowOffset: { width: 0, height: 1 },
-            shadowOpacity: 0.3,
-            shadowRadius: 2,
-            elevation: 2,
-            opacity: 0.6,
-          },
+          resolvedCardStyle,
           cardAnimatedStyle,
         ]}
         accessibilityLabel={`${market.question}, Resolved: ${winnerSide} won`}
@@ -166,15 +177,7 @@ export const PredictionCard = memo(function PredictionCard({
     <AnimatedPressable
       style={[
         styles.card,
-        {
-          backgroundColor: themeColors.card,
-          // Using shadows instead of solid borders
-          shadowColor: themeColors.cardBorder,
-          shadowOffset: { width: 0, height: 1 },
-          shadowOpacity: 0.4,
-          shadowRadius: 2,
-          elevation: 2,
-        },
+        cardShadowStyle,
         scaleAnimatedStyle,
         cardAnimatedStyle,
       ]}

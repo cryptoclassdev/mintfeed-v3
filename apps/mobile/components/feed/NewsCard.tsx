@@ -4,7 +4,6 @@ import * as haptics from "@/lib/haptics";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
-import { Ionicons } from "@expo/vector-icons";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -21,7 +20,9 @@ import type { Article } from "@mintfeed/shared";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
-const IMAGE_HEIGHT_RATIO = 0.28;
+const IMAGE_HEIGHT_RATIO = 0.24;
+const IMAGE_HEIGHT_RATIO_COMPACT = 0.18;
+const COMPACT_SCREEN_THRESHOLD = 780;
 
 const NEGATIVE_KEYWORDS = [
   "crash", "drop", "fall", "dump", "panic", "hack", "ban", "plunge",
@@ -111,7 +112,8 @@ export const NewsCard = memo(function NewsCard({ article, onSwipeBet, walletConn
   const { bottom: safeBottom } = useSafeAreaInsets();
   const theme = useAppStore((s) => s.theme);
   const themeColors = colors[theme];
-  const imageHeight = screenHeight * IMAGE_HEIGHT_RATIO;
+  const imageRatio = screenHeight < COMPACT_SCREEN_THRESHOLD ? IMAGE_HEIGHT_RATIO_COMPACT : IMAGE_HEIGHT_RATIO;
+  const imageHeight = screenHeight * imageRatio;
   const bottomPadding = getNewsCardBottomPadding(safeBottom);
 
   // Animation values
@@ -147,6 +149,7 @@ export const NewsCard = memo(function NewsCard({ article, onSwipeBet, walletConn
       const op = m.outcomePrices as Record<string, unknown> | null;
       return op && "Yes" in op && "No" in op;
     });
+
 
   // Animated styles
   const linkAnimatedStyle = useAnimatedStyle(() => ({
@@ -247,14 +250,16 @@ export const NewsCard = memo(function NewsCard({ article, onSwipeBet, walletConn
         <View style={[styles.accentLine, { backgroundColor: sentimentColor }]} />
 
         {/* Title with better typography */}
-        <Text style={[
-          styles.title, 
-          { 
-            color: themeColors.text,
-            // Text balancing for better wrapping
-            textAlign: 'left',
-          }
-        ]}>
+        <Text
+          numberOfLines={3}
+          style={[
+            styles.title,
+            {
+              color: themeColors.text,
+              textAlign: 'left',
+            }
+          ]}
+        >
           {cleanTitle}
         </Text>
 
@@ -297,31 +302,19 @@ export const NewsCard = memo(function NewsCard({ article, onSwipeBet, walletConn
           </AnimatedPressable>
         </View>
 
-        {/* Summary with better text wrapping */}
-        <Text style={[
-          styles.summary, 
-          { 
-            color: themeColors.textSecondary,
-            // Better text wrapping to avoid orphans
-            textAlign: 'left',
-          }
-        ]}>
+        {/* Summary */}
+        <Text
+          style={[
+            styles.summary,
+            { color: themeColors.textSecondary },
+          ]}
+        >
           {cleanSummary}
         </Text>
 
         {/* Prediction markets with staggered enter animation */}
         {markets.length > 0 ? (
           <Animated.View style={[styles.marketsSection, marketsAnimatedStyle]}>
-            <View style={styles.marketsHeader}>
-              <Ionicons
-                name="pulse-outline"
-                size={12}
-                color={themeColors.accentMint}
-              />
-              <Text style={[styles.marketsLabel, { color: themeColors.accentMint }]}>
-                RELATED MARKETS
-              </Text>
-            </View>
             <View style={styles.marketsStack}>
               {markets.slice(0, MAX_VISIBLE_MARKETS).map((market) => (
                 <SwipeBetCard
@@ -438,31 +431,32 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 24,
     paddingTop: 8,
+    overflow: "hidden",
     // paddingBottom set dynamically via safeAreaInsets
   },
   accentLine: {
     width: 32,
     height: 3,
-    borderRadius: 1.5, // Rounded ends for softer appearance
-    marginBottom: 12,
+    borderRadius: 1.5,
+    marginBottom: 8,
   },
   title: {
     fontFamily: fonts.body.bold,
     fontSize: 22,
     lineHeight: 30,
-    marginBottom: 10,
+    marginBottom: 8,
   },
   summary: {
     fontFamily: fonts.body.regular,
     fontSize: 15,
     lineHeight: 24,
-    marginBottom: 8,
+    marginBottom: 4,
   },
   meta: {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
-    marginBottom: 10,
+    marginBottom: 6,
   },
   metaText: {
     fontFamily: fonts.mono.regular,
@@ -475,12 +469,8 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   sourceLinkTouchable: {
-    minHeight: 40, // Minimum 40px hit area
-    minWidth: 40,
     justifyContent: "center" as const,
     alignItems: "flex-start" as const,
-    paddingVertical: 8,
-    paddingHorizontal: 4,
   },
   sourceLink: {
     fontFamily: fonts.mono.regular,
@@ -490,21 +480,11 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
   },
   marketsSection: {
-    gap: 6,
-    marginTop: 4,
-  },
-  marketsHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 5,
-  },
-  marketsLabel: {
-    fontFamily: fonts.mono.bold,
-    fontSize: 9,
-    letterSpacing: letterSpacing.wider,
+    gap: 4,
+    marginTop: 10,
   },
   marketsStack: {
-    gap: 6,
+    gap: 4,
   },
   createMarketButton: {
     flexDirection: "row",

@@ -1,8 +1,9 @@
-import { useState, useRef } from "react";
-import { View, Text, StyleSheet, ScrollView, Pressable, TextInput, Keyboard } from "react-native";
+import { useState, useRef, useCallback } from "react";
+import { View, Text, StyleSheet, ScrollView, Pressable, TextInput, Keyboard, Switch, Linking } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useMobileWallet } from "@wallet-ui/react-native-web3js";
-import { useAppStore, QUICK_BET_OPTIONS, QUICK_BET_MIN } from "@/lib/store";
+import { useAppStore, QUICK_BET_OPTIONS, QUICK_BET_MIN, QUICK_BET_MAX } from "@/lib/store";
+import { useNotificationPreferences } from "@/hooks/useNotificationPreferences";
 import { colors } from "@/constants/theme";
 import { fonts, fontSize, letterSpacing } from "@/constants/typography";
 import * as haptics from "@/lib/haptics";
@@ -13,37 +14,90 @@ export default function ProfileScreen() {
   const theme = useAppStore((s) => s.theme);
   const quickBetAmount = useAppStore((s) => s.quickBetAmount);
   const setQuickBetAmount = useAppStore((s) => s.setQuickBetAmount);
+  const notificationPermission = useAppStore((s) => s.notificationPermission);
   const themeColors = colors[theme];
   const { account } = useMobileWallet();
   const walletAddress = account?.address.toString() ?? null;
+  const { preferences: notifPrefs, updatePreference } = useNotificationPreferences();
 
-  const isPreset = (QUICK_BET_OPTIONS as readonly number[]).includes(quickBetAmount);
-  const [showCustomInput, setShowCustomInput] = useState(!isPreset);
-  const [customText, setCustomText] = useState(isPreset ? "" : String(quickBetAmount));
+  const handleMarketMoversToggle = useCallback((v: boolean) => {
+    haptics.selection();
+    updatePreference({ marketMovers: v });
+  }, [updatePreference]);
+
+  const handleBreakingNewsToggle = useCallback((v: boolean) => {
+    haptics.selection();
+    updatePreference({ breakingNews: v });
+  }, [updatePreference]);
+
+  const handleSettlementsToggle = useCallback((v: boolean) => {
+    haptics.selection();
+    updatePreference({ predictionSettled: v });
+  }, [updatePreference]);
+
+  const isCustom = !(QUICK_BET_OPTIONS as readonly number[]).includes(quickBetAmount);
+  const [isEditing, setIsEditing] = useState(false);
+  const [customText, setCustomText] = useState(isCustom ? String(quickBetAmount) : "");
+  const [validationError, setValidationError] = useState<string | null>(null);
   const inputRef = useRef<TextInput>(null);
+  const isSubmitting = useRef(false);
 
   const handlePresetChange = (amount: number) => {
     haptics.selection();
     setQuickBetAmount(amount);
-    setShowCustomInput(false);
+    setIsEditing(false);
     setCustomText("");
+    setValidationError(null);
     Keyboard.dismiss();
   };
 
   const handleCustomTap = () => {
+    if (isEditing) return;
     haptics.selection();
-    setShowCustomInput(true);
+    setIsEditing(true);
+    setCustomText(isCustom ? String(quickBetAmount) : "");
+    setValidationError(null);
     setTimeout(() => inputRef.current?.focus(), 100);
   };
 
+  const handleCustomTextChange = (text: string) => {
+    setCustomText(text.replace(/[^0-9]/g, ""));
+    setValidationError(null);
+  };
+
   const handleCustomSubmit = () => {
-    const parsed = parseInt(customText, 10);
-    if (!isNaN(parsed) && parsed >= QUICK_BET_MIN) {
-      setQuickBetAmount(parsed);
-    } else {
-      setCustomText(quickBetAmount >= QUICK_BET_MIN && !isPreset ? String(quickBetAmount) : "");
-      if (isPreset) setShowCustomInput(false);
+    if (isSubmitting.current) return;
+    isSubmitting.current = true;
+    // Reset flag after current event loop to prevent stale lock
+    setTimeout(() => { isSubmitting.current = false; }, 0);
+
+    const trimmed = customText.trim();
+    if (trimmed === "") {
+      setIsEditing(false);
+      setValidationError(null);
+      setCustomText(isCustom ? String(quickBetAmount) : "");
+      Keyboard.dismiss();
+      return;
     }
+
+    const parsed = parseInt(trimmed, 10);
+
+    if (isNaN(parsed) || parsed < QUICK_BET_MIN) {
+      setValidationError(`Min $${QUICK_BET_MIN}`);
+      haptics.warning();
+      return;
+    }
+
+    if (parsed > QUICK_BET_MAX) {
+      setValidationError(`Max $${QUICK_BET_MAX}`);
+      haptics.warning();
+      return;
+    }
+
+    setQuickBetAmount(parsed);
+    setIsEditing(false);
+    setValidationError(null);
+    haptics.success();
     Keyboard.dismiss();
   };
 
@@ -73,93 +127,155 @@ export default function ProfileScreen() {
             Default amount when swiping to bet on predictions
           </Text>
           <View style={styles.quickBetRow}>
-            {QUICK_BET_OPTIONS.map((amount) => (
-              <Pressable
-                key={amount}
-                onPress={() => handlePresetChange(amount)}
-                style={[
-                  styles.quickBetChip,
-                  {
-                    backgroundColor:
-                      quickBetAmount === amount && !showCustomInput
+            {QUICK_BET_OPTIONS.map((amount) => {
+              const selected = quickBetAmount === amount && !isCustom && !isEditing;
+              return (
+                <Pressable
+                  key={amount}
+                  onPress={() => handlePresetChange(amount)}
+                  style={[
+                    styles.quickBetChip,
+                    {
+                      backgroundColor: selected
                         ? themeColors.accentMint + "20"
                         : themeColors.card,
-                    borderColor:
-                      quickBetAmount === amount && !showCustomInput
+                      borderColor: selected
                         ? themeColors.accentMint
                         : themeColors.cardBorder,
-                  },
-                ]}
-                accessibilityRole="radio"
-                accessibilityState={{ selected: quickBetAmount === amount && !showCustomInput }}
-                accessibilityLabel={`Set quick bet to ${amount} dollars`}
-              >
-                <Text
-                  style={[
-                    styles.quickBetText,
-                    {
-                      color:
-                        quickBetAmount === amount && !showCustomInput
-                          ? themeColors.accentMint
-                          : themeColors.textMuted,
                     },
                   ]}
+                  accessibilityRole="radio"
+                  accessibilityState={{ selected }}
+                  accessibilityLabel={`Set quick bet to ${amount} dollars`}
                 >
-                  ${amount}
-                </Text>
-              </Pressable>
-            ))}
+                  <Text
+                    style={[
+                      styles.quickBetText,
+                      { color: selected ? themeColors.accentMint : themeColors.textMuted },
+                    ]}
+                  >
+                    ${amount}
+                  </Text>
+                </Pressable>
+              );
+            })}
+            {/* Custom chip — transforms into inline input when tapped */}
             <Pressable
               onPress={handleCustomTap}
               style={[
                 styles.quickBetChip,
                 {
-                  backgroundColor: showCustomInput
+                  backgroundColor: isCustom || isEditing
                     ? themeColors.accentMint + "20"
                     : themeColors.card,
-                  borderColor: showCustomInput
-                    ? themeColors.accentMint
-                    : themeColors.cardBorder,
+                  borderColor: validationError
+                    ? themeColors.negative
+                    : isCustom || isEditing
+                      ? themeColors.accentMint
+                      : themeColors.cardBorder,
                 },
               ]}
               accessibilityRole="radio"
-              accessibilityState={{ selected: showCustomInput }}
+              accessibilityState={{ selected: isCustom || isEditing }}
               accessibilityLabel="Set a custom bet amount"
             >
-              <Text
-                style={[
-                  styles.quickBetText,
-                  {
-                    color: showCustomInput
-                      ? themeColors.accentMint
-                      : themeColors.textMuted,
-                  },
-                ]}
-              >
-                Custom
-              </Text>
+              {isEditing ? (
+                <TextInput
+                  ref={inputRef}
+                  style={[
+                    styles.quickBetText,
+                    { color: themeColors.accentMint, minWidth: 40, textAlign: "center", padding: 0 },
+                  ]}
+                  value={customText}
+                  onChangeText={handleCustomTextChange}
+                  onSubmitEditing={handleCustomSubmit}
+                  onBlur={handleCustomSubmit}
+                  keyboardType="number-pad"
+                  returnKeyType="done"
+                  placeholder={`$${QUICK_BET_MIN}`}
+                  placeholderTextColor={themeColors.textFaint}
+                  maxLength={4}
+                />
+              ) : (
+                <Text
+                  style={[
+                    styles.quickBetText,
+                    { color: isCustom ? themeColors.accentMint : themeColors.textMuted },
+                  ]}
+                >
+                  {isCustom ? `$${quickBetAmount}` : "Custom"}
+                </Text>
+              )}
             </Pressable>
           </View>
-          {showCustomInput && (
-            <View style={[styles.customInputRow, { borderColor: themeColors.cardBorder }]}>
-              <Text style={[styles.customInputPrefix, { color: themeColors.textMuted }]}>$</Text>
-              <TextInput
-                ref={inputRef}
-                style={[
-                  styles.customInput,
-                  { color: themeColors.text, borderColor: themeColors.cardBorder, backgroundColor: themeColors.card },
-                ]}
-                value={customText}
-                onChangeText={setCustomText}
-                onSubmitEditing={handleCustomSubmit}
-                onBlur={handleCustomSubmit}
-                keyboardType="number-pad"
-                returnKeyType="done"
-                placeholder={`Min $${QUICK_BET_MIN}`}
-                placeholderTextColor={themeColors.textFaint}
-                maxLength={5}
-              />
-            </View>
+          {validationError && (
+            <Text style={[styles.validationError, { color: themeColors.negative }]}>
+              {validationError}
+            </Text>
+          )}
+        </View>
+
+        {/* Notifications */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <View style={[styles.sectionAccent, { backgroundColor: themeColors.accent }]} />
+            <Text
+              style={[styles.sectionTitle, { color: themeColors.textSecondary }]}
+            >
+              NOTIFICATIONS
+            </Text>
+          </View>
+          {notificationPermission === "denied" ? (
+            <Pressable onPress={() => Linking.openSettings()}>
+              <Text style={[styles.sectionDescription, { color: themeColors.negative }]}>
+                Notifications are disabled. Tap to open settings.
+              </Text>
+            </Pressable>
+          ) : (
+            <>
+              <View style={[styles.toggleRow, { borderColor: themeColors.cardBorder }]}>
+                <View style={styles.toggleLabel}>
+                  <Text style={[styles.toggleTitle, { color: themeColors.text }]}>Market Movers</Text>
+                  <Text style={[styles.toggleSubtitle, { color: themeColors.textMuted }]}>
+                    Price swings over 5% on major coins
+                  </Text>
+                </View>
+                <Switch
+                  value={notifPrefs.marketMovers}
+                  onValueChange={handleMarketMoversToggle}
+                  trackColor={{ false: themeColors.trackBg, true: themeColors.accentMint + "60" }}
+                  thumbColor={notifPrefs.marketMovers ? themeColors.accentMint : themeColors.textMuted}
+                />
+              </View>
+              <View style={[styles.toggleRow, { borderColor: themeColors.cardBorder }]}>
+                <View style={styles.toggleLabel}>
+                  <Text style={[styles.toggleTitle, { color: themeColors.text }]}>Breaking News</Text>
+                  <Text style={[styles.toggleSubtitle, { color: themeColors.textMuted }]}>
+                    Major regulatory and market events
+                  </Text>
+                </View>
+                <Switch
+                  value={notifPrefs.breakingNews}
+                  onValueChange={handleBreakingNewsToggle}
+                  trackColor={{ false: themeColors.trackBg, true: themeColors.accentMint + "60" }}
+                  thumbColor={notifPrefs.breakingNews ? themeColors.accentMint : themeColors.textMuted}
+                />
+              </View>
+              <View style={[styles.toggleRow, { borderColor: themeColors.cardBorder }]}>
+                <View style={styles.toggleLabel}>
+                  <Text style={[styles.toggleTitle, { color: themeColors.text }]}>Bet Settlements</Text>
+                  <Text style={[styles.toggleSubtitle, { color: themeColors.textMuted }]}>
+                    When your predictions resolve
+                  </Text>
+                </View>
+                <Switch
+                  value={notifPrefs.predictionSettled}
+                  onValueChange={handleSettlementsToggle}
+                  trackColor={{ false: themeColors.trackBg, true: themeColors.accentMint + "60" }}
+                  thumbColor={notifPrefs.predictionSettled ? themeColors.accentMint : themeColors.textMuted}
+                />
+              </View>
+            </>
           )}
         </View>
 
@@ -254,26 +370,31 @@ const styles = StyleSheet.create({
     fontSize: fontSize.base,
     letterSpacing: letterSpacing.wide,
   },
-  customInputRow: {
+  validationError: {
+    fontFamily: fonts.mono.regular,
+    fontSize: fontSize.xs,
+    marginTop: 6,
+    letterSpacing: letterSpacing.wide,
+  },
+  toggleRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: 10,
-    gap: 8,
+    justifyContent: "space-between",
+    paddingVertical: 14,
+    borderBottomWidth: 0.5,
   },
-  customInputPrefix: {
-    fontFamily: fonts.mono.bold,
-    fontSize: fontSize.lg,
-  },
-  customInput: {
+  toggleLabel: {
     flex: 1,
-    fontFamily: fonts.mono.bold,
+    marginRight: 12,
+  },
+  toggleTitle: {
+    fontFamily: fonts.body.regular,
     fontSize: fontSize.base,
-    letterSpacing: letterSpacing.wide,
-    borderWidth: 1.5,
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    minHeight: 44,
+    marginBottom: 2,
+  },
+  toggleSubtitle: {
+    fontFamily: fonts.body.light,
+    fontSize: fontSize.xs,
   },
   row: {
     flexDirection: "row",

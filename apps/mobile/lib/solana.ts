@@ -14,8 +14,8 @@ export const SOLANA_MWA_CHAIN: Chain = CHAIN_MAP[SOLANA_CLUSTER];
 
 export const APP_IDENTITY: AppIdentity = {
   name: "Midnight",
-  uri: "https://thecommunication.link",
-  icon: "/images/midnight.png",
+  uri: "https://midnightapp.link",
+  icon: "/logo.png",
 };
 const DEFAULT_SOLANA_RPC_URL = clusterApiUrl(SOLANA_CLUSTER);
 

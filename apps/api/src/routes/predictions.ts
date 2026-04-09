@@ -23,11 +23,14 @@ const jupiter = ky.create({
 async function forwardJupiterError(err: unknown, c: any) {
   if (err instanceof HTTPError) {
     const status = err.response.status;
-    const body = await err.response.json().catch(() => ({ message: err.message }));
+    const body = await err.response.json().catch(() => null);
     console.error("[Jupiter]", status, body);
-    return c.json(body, status);
+    // Return sanitized error — don't leak internal Jupiter API details
+    const message = typeof body?.message === "string" ? body.message : "Request failed. Please try again.";
+    return c.json({ error: message }, status >= 400 && status < 500 ? status : 502);
   }
-  throw err;
+  console.error("[Jupiter] Non-HTTP error:", err);
+  return c.json({ error: "Service temporarily unavailable" }, 502);
 }
 
 export const predictionRoutes = new Hono();
@@ -36,35 +39,43 @@ export const predictionRoutes = new Hono();
 
 predictionRoutes.get("/predictions/markets/:marketId", async (c) => {
   const { marketId } = c.req.param();
-  const data = await jupiter.get(`markets/${marketId}`).json<any>();
-  // Reject non-binary markets
-  if (!data?.pricing || data.pricing.buyYesPriceUsd <= 0 || data.pricing.buyNoPriceUsd <= 0) {
-    return c.json({ error: "Market is not a binary Yes/No market" }, 404);
-  }
-
-  // Fall back to event-level volume when market pricing reports 0
-  if (!data.pricing.volume || data.pricing.volume === 0) {
-    const dbMarket = await prisma.predictionMarket.findUnique({
-      where: { id: marketId },
-      select: { eventId: true },
-    });
-    if (dbMarket?.eventId) {
-      try {
-        const event = await jupiter.get(`events/${dbMarket.eventId}`).json<any>();
-        if (event?.volumeUsd) {
-          data.pricing.volume = Number(event.volumeUsd);
-        }
-      } catch { /* keep 0 */ }
+  try {
+    const data = await jupiter.get(`markets/${marketId}`).json<any>();
+    // Reject non-binary markets
+    if (!data?.pricing || data.pricing.buyYesPriceUsd <= 0 || data.pricing.buyNoPriceUsd <= 0) {
+      return c.json({ error: "Market is not a binary Yes/No market" }, 404);
     }
-  }
 
-  return c.json(data);
+    // Fall back to event-level volume when market pricing reports 0
+    if (!data.pricing.volume || data.pricing.volume === 0) {
+      const dbMarket = await prisma.predictionMarket.findUnique({
+        where: { id: marketId },
+        select: { eventId: true },
+      });
+      if (dbMarket?.eventId) {
+        try {
+          const event = await jupiter.get(`events/${dbMarket.eventId}`).json<any>();
+          if (event?.volumeUsd) {
+            data.pricing.volume = Number(event.volumeUsd);
+          }
+        } catch { /* keep 0 */ }
+      }
+    }
+
+    return c.json(data);
+  } catch (err) {
+    return forwardJupiterError(err, c);
+  }
 });
 
 predictionRoutes.get("/predictions/orderbook/:marketId", async (c) => {
   const { marketId } = c.req.param();
-  const data = await jupiter.get(`orderbook/${marketId}`).json();
-  return c.json(data);
+  try {
+    const data = await jupiter.get(`orderbook/${marketId}`).json();
+    return c.json(data);
+  } catch (err) {
+    return forwardJupiterError(err, c);
+  }
 });
 
 // --- Trading Status ---
@@ -99,14 +110,8 @@ predictionRoutes.post("/predictions/orders", async (c) => {
     return c.json(data);
   } catch (err: any) {
     const raw = await err?.response?.text?.().catch(() => null);
-    console.error("[Orders] Jupiter raw error:", err?.response?.status, raw);
-    try {
-      const parsed = JSON.parse(raw ?? "{}");
-      console.error("[Orders] Jupiter parsed error:", parsed);
-      return c.json(parsed, err?.response?.status ?? 500);
-    } catch {
-      return forwardJupiterError(err, c);
-    }
+    console.error("[Orders] Jupiter error:", err?.response?.status, raw);
+    return forwardJupiterError(err, c);
   }
 });
 

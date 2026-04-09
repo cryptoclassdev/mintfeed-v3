@@ -10,23 +10,56 @@ interface ToastMessage {
   onTap?: () => void;
 }
 
+interface ToastUpdate {
+  id: string;
+  variant?: ToastVariant;
+  title?: string;
+  message?: string | null;
+  duration?: number;
+  onTap?: (() => void) | null;
+  /** Trigger a horizontal shake animation on the toast */
+  shake?: boolean;
+}
+
 type ToastListener = (toast: ToastMessage) => void;
+type ToastUpdateListener = (update: ToastUpdate) => void;
 
 const listeners = new Set<ToastListener>();
+const updateListeners = new Set<ToastUpdateListener>();
 let nextId = 0;
 
 function emit(toast: ToastMessage) {
   listeners.forEach((fn) => fn(toast));
 }
 
+function emitUpdate(update: ToastUpdate) {
+  updateListeners.forEach((fn) => fn(update));
+}
+
+/**
+ * Show a new toast. Returns the toast ID for later updates.
+ */
 export function showToast(
   variant: ToastVariant,
   title: string,
   message?: string,
   duration = 3000,
   onTap?: () => void,
+): string {
+  const id = String(++nextId);
+  emit({ id, variant, title, message, duration, onTap });
+  return id;
+}
+
+/**
+ * Update an existing toast in-place without re-animating.
+ * Only updates fields that are provided.
+ */
+export function updateToast(
+  id: string,
+  updates: Omit<ToastUpdate, "id">,
 ) {
-  emit({ id: String(++nextId), variant, title, message, duration, onTap });
+  emitUpdate({ id, ...updates });
 }
 
 export function onToast(listener: ToastListener): () => void {
@@ -34,4 +67,9 @@ export function onToast(listener: ToastListener): () => void {
   return () => listeners.delete(listener);
 }
 
-export type { ToastMessage, ToastVariant };
+export function onToastUpdate(listener: ToastUpdateListener): () => void {
+  updateListeners.add(listener);
+  return () => updateListeners.delete(listener);
+}
+
+export type { ToastMessage, ToastVariant, ToastUpdate };

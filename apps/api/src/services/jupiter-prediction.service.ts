@@ -1,5 +1,6 @@
 import ky from "ky";
 import { prisma } from "@mintfeed/db";
+import { sendSettlementNotification } from "./notification.service";
 
 const JUPITER_API_URL = "https://api.jup.ag/prediction/v1";
 const MIN_VOLUME_USD = 1000;
@@ -281,7 +282,7 @@ export async function refreshMarketPrices(): Promise<void> {
 
   const activeMarkets = await prisma.predictionMarket.findMany({
     where: { closed: false },
-    select: { id: true, eventId: true, question: true },
+    select: { id: true, eventId: true, question: true, result: true },
   });
 
   if (activeMarkets.length === 0) {
@@ -311,6 +312,9 @@ export async function refreshMarketPrices(): Promise<void> {
       const hasValidPrices = Object.values(outcomePrices).some((v) => v > 0);
       if (!hasValidPrices) continue;
 
+      const wasOpen = market.result === null;
+      const justSettled = wasOpen && fresh.result !== null;
+
       await prisma.predictionMarket.update({
         where: { id: market.id },
         data: {
@@ -322,12 +326,40 @@ export async function refreshMarketPrices(): Promise<void> {
         },
       });
       updated++;
+
+      // Notify users whose bets just settled
+      if (justSettled) {
+        notifySettlement(market.id, market.question, fresh.result!).catch((err) => {
+          console.error(`[Jupiter] Settlement notification failed for "${market.question.slice(0, 40)}":`, err);
+        });
+      }
     } catch {
       // API unreachable — keep existing prices
     }
   }
 
   console.log(`[Jupiter] Refreshed ${updated}/${activeMarkets.length} markets`);
+}
+
+/**
+ * Notify all wallet holders who have registered devices about a settlement.
+ */
+async function notifySettlement(marketId: string, question: string, result: string): Promise<void> {
+  const devices = await prisma.pushDevice.findMany({
+    where: { walletAddress: { not: null }, isActive: true },
+    select: { walletAddress: true },
+    distinct: ["walletAddress"],
+  });
+
+  for (const device of devices) {
+    if (!device.walletAddress) continue;
+    await sendSettlementNotification({
+      walletAddress: device.walletAddress,
+      marketId,
+      question,
+      result,
+    });
+  }
 }
 
 /**
