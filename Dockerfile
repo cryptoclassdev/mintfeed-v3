@@ -17,6 +17,9 @@ COPY apps/api/package.json ./apps/api/
 COPY packages/db/package.json ./packages/db/
 COPY packages/shared/package.json ./packages/shared/
 
+# Copy patches (referenced by pnpm-lock.yaml)
+COPY patches/ ./patches/
+
 # Copy Prisma schema (needed for generate during install)
 COPY packages/db/prisma ./packages/db/prisma/
 
