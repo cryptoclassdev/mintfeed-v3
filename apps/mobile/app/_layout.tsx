@@ -3,6 +3,7 @@ import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MobileWalletProvider } from "@wallet-ui/react-native-web3js";
+import * as Sentry from "@sentry/react-native";
 import { Anton_400Regular } from "@expo-google-fonts/anton";
 import {
   Inter_300Light,
@@ -27,6 +28,13 @@ import { useNotifications } from "@/hooks/useNotifications";
 
 SplashScreen.preventAutoHideAsync();
 
+Sentry.init({
+  dsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
+  enabled: !__DEV__ && Boolean(process.env.EXPO_PUBLIC_SENTRY_DSN),
+  environment: process.env.EXPO_PUBLIC_SENTRY_ENVIRONMENT ?? "development",
+  tracesSampleRate: 0.1,
+});
+
 function NotificationBootstrap() {
   useNotifications();
   return null;
@@ -41,7 +49,7 @@ const queryClient = new QueryClient({
   },
 });
 
-export default function RootLayout() {
+function RootLayout() {
   const theme = useAppStore((s) => s.theme);
   const hasCompletedOnboarding = useAppStore((s) => s.hasCompletedOnboarding);
   const themeColors = colors[theme];
@@ -127,3 +135,5 @@ export default function RootLayout() {
     </ErrorBoundary>
   );
 }
+
+export default Sentry.wrap(RootLayout);

@@ -1,5 +1,6 @@
 import React from "react";
 import { View, Text, StyleSheet, Pressable } from "react-native";
+import * as Sentry from "@sentry/react-native";
 import { fonts, fontSize, letterSpacing } from "@/constants/typography";
 
 interface Props {
@@ -19,7 +20,10 @@ export class ErrorBoundary extends React.Component<Props, State> {
   }
 
   componentDidCatch(error: Error, info: React.ErrorInfo) {
-    console.error("[ErrorBoundary]", error, info.componentStack);
+    Sentry.captureException(error, {
+      extra: { componentStack: info.componentStack },
+    });
+    if (__DEV__) console.error("[ErrorBoundary]", error, info.componentStack);
   }
 
   handleRestart = () => {

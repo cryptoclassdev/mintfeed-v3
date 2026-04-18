@@ -10,8 +10,10 @@
       },
       "distribution": "internal",
       "channel": "staging",
+      "environment": "development",
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://mintfeed-api-staging.up.railway.app"
+        "EXPO_PUBLIC_API_URL": "https://mintfeed-api-staging.up.railway.app",
+        "EXPO_PUBLIC_SENTRY_ENVIRONMENT": "staging"
       }
     },
     "preview": {
@@ -20,15 +22,25 @@
       },
       "distribution": "internal",
       "channel": "preview",
+      "environment": "preview",
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://mintfeed-api-production.up.railway.app"
+        "EXPO_PUBLIC_API_URL": "https://mintfeed-api-production.up.railway.app",
+        "EXPO_PUBLIC_SENTRY_ENVIRONMENT": "preview"
       }
     },
     "production": {
       "autoIncrement": true,
       "channel": "production",
+      "environment": "production",
+      "android": {
+        "buildType": "apk"
+      },
+      "ios": {
+        "resourceClass": "m-medium"
+      },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://mintfeed-api-production.up.railway.app"
+        "EXPO_PUBLIC_API_URL": "https://mintfeed-api-production.up.railway.app",
+        "EXPO_PUBLIC_SENTRY_ENVIRONMENT": "production"
       }
     }
   }

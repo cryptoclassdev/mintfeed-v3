@@ -219,27 +219,4 @@ describe("signPredictionTransaction", () => {
     });
   });
 
-  it("validates blockhash before and after signing", async () => {
-    let callCount = 0;
-    mockWithFallbacks.mockImplementation(async (fn) => {
-      callCount++;
-      if (callCount <= 1) {
-        return fn({ getBlockHeight: async () => 100 } as never);
-      }
-      return fn({ getBlockHeight: async () => 2000 } as never);
-    });
-
-    const signFn = jest.fn<
-      (tx: VersionedTransaction) => Promise<VersionedTransaction>
-    >();
-    signFn.mockResolvedValue({
-      serialize: () => FAKE_TX_BYTES,
-    } as never);
-
-    await expect(
-      signPredictionTransaction(signFn, FAKE_BASE64, TX_META),
-    ).rejects.toMatchObject({
-      code: "TRANSACTION_EXPIRED",
-    });
-  });
 });

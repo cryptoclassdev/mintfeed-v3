@@ -1,6 +1,7 @@
 import { useEffect, useRef, useCallback } from "react";
 import { AppState, Platform } from "react-native";
 import * as Notifications from "expo-notifications";
+import * as Sentry from "@sentry/react-native";
 import { useRouter, useRootNavigationState } from "expo-router";
 import { useMobileWallet } from "@wallet-ui/react-native-web3js";
 import { useAppStore } from "@/lib/store";
@@ -69,7 +70,8 @@ async function registerTokenWithRetry(
     } catch (error) {
       const isLastAttempt = attempt === retries - 1;
       if (isLastAttempt) {
-        console.error("[Notifications] Registration failed after retries:", error);
+        Sentry.captureException(error, { tags: { area: "notifications", step: "register" } });
+        if (__DEV__) console.error("[Notifications] Registration failed after retries:", error);
         return false;
       }
       const delay = RETRY_BASE_DELAY_MS * 2 ** attempt;
@@ -172,7 +174,9 @@ export function useNotifications() {
           routeFromNotification(data);
         }
       })
-      .catch((err) => console.warn("[Notifications] Cold start check failed:", err));
+      .catch((err) => {
+        if (__DEV__) console.warn("[Notifications] Cold start check failed:", err);
+      });
   }, [routeFromNotification]);
 
   // Core permission + registration flow
@@ -261,10 +265,15 @@ export function useNotifications() {
 
       const success = await registerTokenWithRetry(token, wallet);
       if (!success) {
-        console.warn("[Notifications] Device registered locally but server registration failed");
+        Sentry.captureMessage(
+          "Device registered locally but server registration failed",
+          { level: "warning", tags: { area: "notifications" } },
+        );
+        if (__DEV__) console.warn("[Notifications] Device registered locally but server registration failed");
       }
     } catch (error) {
-      console.error("[Notifications] Failed to get push token:", error);
+      Sentry.captureException(error, { tags: { area: "notifications", step: "get-token" } });
+      if (__DEV__) console.error("[Notifications] Failed to get push token:", error);
     } finally {
       registrationInFlight.current = false;
     }
