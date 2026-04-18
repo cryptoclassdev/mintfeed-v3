@@ -14,7 +14,7 @@
     },
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.mintfeed.app",
+      "bundleIdentifier": "com.midnight.app",
       "icon": "./assets/adaptive-icon.png",
       "associatedDomains": ["applinks:midnightapp.link"]
     },
@@ -23,7 +23,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#030303"
       },
-      "package": "com.mintfeed.app",
+      "package": "com.midnight.app",
       "googleServicesFile": "./google-services.json",
       "permissions": [
         "POST_NOTIFICATIONS"

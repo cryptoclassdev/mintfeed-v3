@@ -4,7 +4,7 @@ This directory holds the Midnight listing content for [publish.solanamobile.com]
 
 ## One-time setup
 
-1. Sign in at `publish.solanamobile.com` and create the publisher + app for `com.mintfeed.app`.
+1. Sign in at `publish.solanamobile.com` and create the publisher + app for `com.midnight.app`.
 2. Generate an API key: Dashboard → Settings → API Keys.
 3. Store the key as an EAS secret and a GitHub Actions secret named `DAPP_STORE_API_KEY`:
    ```bash

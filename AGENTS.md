@@ -212,11 +212,11 @@ develop on stage → test on staging → PR stage → main → production
 
 | Item | Value |
 |------|-------|
-| Firebase project | `midnight-adc10` |
-| Firebase console | [console.firebase.google.com/project/midnight-adc10](https://console.firebase.google.com/project/midnight-adc10) |
-| Android package | `com.mintfeed.app` |
+| Firebase project | `midnight-97bd6` |
+| Firebase console | [console.firebase.google.com/project/midnight-97bd6](https://console.firebase.google.com/project/midnight-97bd6) |
+| Android package | `com.midnight.app` |
 | `google-services.json` | `apps/mobile/google-services.json` (gitignored, decoded from GitHub secret in CI) |
-| FCM auth | V1 API via service account `firebase-adminsdk-fbsvc@midnight-adc10.iam.gserviceaccount.com` |
+| FCM auth | V1 API via service account `firebase-adminsdk-fbsvc@midnight-97bd6.iam.gserviceaccount.com` |
 
 ### Expo Push Service
 
@@ -225,7 +225,7 @@ develop on stage → test on staging → PR stage → main → production
 | Expo account | `sebmonty` |
 | EAS project ID | `d1a61761-77d0-4831-ac18-eb984eca0f29` |
 | EAS slug | `mintfeed` (must match `slug` in `apps/mobile/app.json`) |
-| FCM V1 key | Uploaded to Expo via GraphQL, linked to `com.mintfeed.app` Android credentials |
+| FCM V1 key | Uploaded to Expo via `eas credentials`, linked to `com.midnight.app` Android credentials |
 | Server SDK | `expo-server-sdk` in `apps/api` — sends to Expo, which routes through FCM |
 
 ### Notification Architecture

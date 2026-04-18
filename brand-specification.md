@@ -9,7 +9,7 @@
 
 **Name:** Midnight
 **Tagline idea:** Crypto & AI news, one swipe at a time.
-**App identifier:** `com.mintfeed.app`
+**App identifier:** `com.midnight.app`
 **Platform:** Mobile-first (iOS & Android)
 
 **Personality:** Bold, minimal, data-driven. The brand leans into high-contrast, dark-first aesthetics with sharp typographic hierarchy. It feels like a Bloomberg terminal meets a modern content feed.
