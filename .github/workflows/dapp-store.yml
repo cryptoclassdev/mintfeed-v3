@@ -1,4 +1,4 @@
-name: dApp Store Submit
+name: Solana dApp Store Submit
 
 on:
   push:
@@ -13,35 +13,79 @@ on:
 
 jobs:
   submit:
+    name: Build + submit to Solana dApp Store
     runs-on: ubuntu-latest
+    timeout-minutes: 60
+    defaults:
+      run:
+        working-directory: apps/mobile
+
     steps:
       - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
 
       - uses: pnpm/action-setup@v4
         with:
           version: 9.15.0
 
-      - uses: actions/setup-node@v4
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        working-directory: .
+
+      - uses: actions/setup-java@v4
         with:
-          node-version: 20
-          cache: pnpm
+          distribution: temurin
+          java-version: 17
 
-      - uses: expo/expo-github-action@v8
-        with:
-          eas-version: latest
-          token: ${{ secrets.EXPO_TOKEN }}
+      - uses: android-actions/setup-android@v3
 
-      - run: pnpm install --frozen-lockfile
+      - name: Decode google-services.json
+        run: echo "$GOOGLE_SERVICES_JSON" | base64 -d > google-services.json
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
 
-      - name: Build production APK via EAS
-        working-directory: apps/mobile
+      - name: Run Expo prebuild
+        run: npx expo prebuild --platform android
+        env:
+          EXPO_PUBLIC_API_URL: ${{ secrets.PRODUCTION_API_URL }}
+          EXPO_PUBLIC_SOLANA_CLUSTER: ${{ vars.SOLANA_CLUSTER || 'mainnet-beta' }}
+          EXPO_PUBLIC_SOLANA_RPC_URL: ${{ secrets.SOLANA_RPC_URL }}
+
+      - name: Decode keystore
+        run: echo "$KEYSTORE_BASE64" | base64 -d > android/app/release.keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+
+      - name: Build signed APK
         run: |
-          eas build \
-            --platform android \
-            --profile production \
-            --non-interactive \
-            --wait \
-            --output ../../build.apk
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleRelease --build-cache --no-daemon -x lint \
+            -PreactNativeArchitectures=arm64-v8a
+        env:
+          EXPO_PUBLIC_API_URL: ${{ secrets.PRODUCTION_API_URL }}
+          EXPO_PUBLIC_SOLANA_CLUSTER: ${{ vars.SOLANA_CLUSTER || 'mainnet-beta' }}
+          EXPO_PUBLIC_SOLANA_RPC_URL: ${{ secrets.SOLANA_RPC_URL }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+
+      - name: Locate APK
+        id: apk
+        run: |
+          APK=$(ls android/app/build/outputs/apk/release/*.apk | head -1)
+          echo "path=$APK" >> $GITHUB_OUTPUT
+          echo "Built: $APK"
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: midnight-dapp-store-${{ github.ref_name }}
+          path: apps/mobile/${{ steps.apk.outputs.path }}
+          retention-days: 90
 
       - name: Submit to Solana dApp Store
         env:
@@ -49,5 +93,6 @@ jobs:
         run: |
           WHATS_NEW="${{ github.event.inputs.whats_new || format('Release {0}', github.ref_name) }}"
           pnpm dapp-store:submit \
-            --apk-file ./build.apk \
+            --apk-file ${{ steps.apk.outputs.path }} \
             --whats-new "$WHATS_NEW"
+        working-directory: .

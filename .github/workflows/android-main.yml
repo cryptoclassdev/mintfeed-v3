@@ -92,12 +92,11 @@ jobs:
           EXPO_PUBLIC_SOLANA_RPC_URL: ${{ secrets.SOLANA_RPC_URL }}
 
       - name: Decode keystore
-        if: ${{ env.KEYSTORE_BASE64 != '' }}
         run: echo "$KEYSTORE_BASE64" | base64 -d > android/app/release.keystore
         env:
           KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
 
-      - name: Build APK
+      - name: Build signed APK
         run: |
           cd android
           chmod +x gradlew
@@ -107,6 +106,9 @@ jobs:
           EXPO_PUBLIC_API_URL: ${{ secrets.PRODUCTION_API_URL }}
           EXPO_PUBLIC_SOLANA_CLUSTER: ${{ vars.SOLANA_CLUSTER || 'mainnet-beta' }}
           EXPO_PUBLIC_SOLANA_RPC_URL: ${{ secrets.SOLANA_RPC_URL }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
