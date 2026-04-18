@@ -57,7 +57,7 @@ app.use(
   cors({
     origin: ALLOWED_ORIGINS.length > 0
       ? ALLOWED_ORIGINS
-      : ["https://mintfeed-api-production.up.railway.app", "https://mintfeed-api-staging.up.railway.app"],
+      : ["https://midnight-api-production.up.railway.app", "https://midnight-api-staging.up.railway.app"],
     allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowHeaders: ["Content-Type", "Authorization"],
   }),

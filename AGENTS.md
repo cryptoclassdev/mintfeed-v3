@@ -169,16 +169,16 @@ The repo root `Dockerfile` is used for builds (Node 20, tsup bundler, serves `di
 ### Production
 
 - **Project:** MintFeed V3, **Environment:** production
-- **Service:** mintfeed-api
+- **Service:** midnight-api
 - **Branch:** `main` (auto-deploys on push)
-- **URL:** `https://mintfeed-api-production.up.railway.app`
+- **URL:** `https://midnight-api-production.up.railway.app`
 - **Database:** Supabase production project
 
 ### Staging
 
 - **Project:** MintFeed V3, **Environment:** staging
 - **Branch:** `stage` (auto-deploys on push)
-- **URL:** `https://mintfeed-api-staging.up.railway.app`
+- **URL:** `https://midnight-api-staging.up.railway.app`
 - **Database:** Supabase staging project (`mintfeed-staging`)
 
 ### Deploy Commands

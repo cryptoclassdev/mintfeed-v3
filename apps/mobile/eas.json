@@ -12,7 +12,7 @@
       "channel": "staging",
       "environment": "development",
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://mintfeed-api-staging.up.railway.app",
+        "EXPO_PUBLIC_API_URL": "https://midnight-api-staging.up.railway.app",
         "EXPO_PUBLIC_SENTRY_ENVIRONMENT": "staging"
       }
     },
@@ -24,7 +24,7 @@
       "channel": "preview",
       "environment": "preview",
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://mintfeed-api-production.up.railway.app",
+        "EXPO_PUBLIC_API_URL": "https://midnight-api-production.up.railway.app",
         "EXPO_PUBLIC_SENTRY_ENVIRONMENT": "preview"
       }
     },
@@ -39,7 +39,7 @@
         "resourceClass": "m-medium"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://mintfeed-api-production.up.railway.app",
+        "EXPO_PUBLIC_API_URL": "https://midnight-api-production.up.railway.app",
         "EXPO_PUBLIC_SENTRY_ENVIRONMENT": "production"
       }
     }

@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
-const API_BASE = "https://mintfeed-api-production.up.railway.app";
+const API_BASE = "https://midnight-api-production.up.railway.app";
 const CHECK_INTERVAL_MS = 30_000;
 const MAX_HISTORY = 30;
 

@@ -51,7 +51,7 @@ Create a fully isolated staging environment where code on the `stage` branch aut
    │  Railway          │  │  Railway          │
    │  production env   │  │  staging env      │
    │                   │  │                   │
-   │  mintfeed-api     │  │  mintfeed-api     │
+   │  midnight-api     │  │  midnight-api     │
    │  :3000            │  │  :3000            │
    └────────┬──────────┘  └────────┬──────────┘
             │                      │
@@ -93,7 +93,7 @@ Create a fully isolated staging environment where code on the `stage` branch aut
 1. Open [railway.com](https://railway.com) → MintFeed V3 project
 2. Click the environment dropdown (top-left, currently says "production") → **New Environment**
 3. Name: `staging`
-4. Railway will clone the service structure. The `mintfeed-api` service will exist in staging but with no deployments yet.
+4. Railway will clone the service structure. The `midnight-api` service will exist in staging but with no deployments yet.
 
 **Actions (Railway CLI):**
 ```bash
@@ -137,7 +137,7 @@ railway variables set SOLANA_RPC_URL="<same RPC>"
 
 **Actions (Railway Dashboard):**
 1. Switch to the **staging** environment (dropdown)
-2. Click **mintfeed-api** service → **Settings**
+2. Click **midnight-api** service → **Settings**
 3. Under **Source** → Connect repo `cryptoclassdev/midnight-v3`
 4. Set **Branch** to `stage`
 5. Ensure the **Dockerfile** builder is selected (should auto-detect)
@@ -155,7 +155,7 @@ railway variables set SOLANA_RPC_URL="<same RPC>"
 **Actions (Railway Dashboard or CLI):**
 ```bash
 railway domain
-# This generates a URL like: mintfeed-api-staging.up.railway.app
+# This generates a URL like: midnight-api-staging.up.railway.app
 ```
 
 If the auto-generated domain isn't clear enough, set a custom one via the dashboard.
@@ -193,7 +193,7 @@ railway run pnpm --filter db db:seed
       "android": { "buildType": "apk" },
       "distribution": "internal",
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://mintfeed-api-production.up.railway.app"
+        "EXPO_PUBLIC_API_URL": "https://midnight-api-production.up.railway.app"
       }
     },
     "production": {
@@ -224,14 +224,14 @@ railway run pnpm --filter db db:seed
       "distribution": "internal",
       "channel": "preview",
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://mintfeed-api-production.up.railway.app"
+        "EXPO_PUBLIC_API_URL": "https://midnight-api-production.up.railway.app"
       }
     },
     "production": {
       "autoIncrement": true,
       "channel": "production",
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://mintfeed-api-production.up.railway.app"
+        "EXPO_PUBLIC_API_URL": "https://midnight-api-production.up.railway.app"
       }
     }
   }
@@ -291,9 +291,9 @@ SOLANA_RPC_URL="https://your-rpc-provider.example.com"
 ### Production
 - **Platform:** Railway (account: tldrcryptolink@gmail.com, workspace: breakthesimulation)
 - **Project:** MintFeed V3, Environment: production
-- **Service:** mintfeed-api
+- **Service:** midnight-api
 - **Branch:** `main` (auto-deploys on push)
-- **URL:** `https://mintfeed-api-production.up.railway.app`
+- **URL:** `https://midnight-api-production.up.railway.app`
 - **Database:** Supabase production project
 
 ### Staging
