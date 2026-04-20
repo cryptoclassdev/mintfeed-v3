@@ -108,7 +108,7 @@ jobs:
         run: |
           cd android
           chmod +x gradlew
-          ./gradlew assembleRelease --build-cache --no-daemon -x lint \
+          ./gradlew assembleRelease --no-build-cache --no-daemon -x lint \
             -PreactNativeArchitectures=arm64-v8a
         env:
           EXPO_PUBLIC_API_URL: ${{ secrets.STAGING_API_URL }}
