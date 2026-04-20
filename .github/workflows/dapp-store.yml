@@ -48,7 +48,7 @@ jobs:
           GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
 
       - name: Run Expo prebuild
-        run: npx expo prebuild --platform android
+        run: npx expo prebuild --clean --platform android
         env:
           EXPO_PUBLIC_API_URL: ${{ secrets.PRODUCTION_API_URL }}
           EXPO_PUBLIC_SOLANA_CLUSTER: ${{ vars.SOLANA_CLUSTER || 'mainnet-beta' }}
@@ -72,6 +72,7 @@ jobs:
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          SENTRY_DISABLE_AUTO_UPLOAD: 'true'
 
       - name: Locate APK
         id: apk
