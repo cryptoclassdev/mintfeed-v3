@@ -24,6 +24,11 @@ describe("validateTradeAmount", () => {
     expect(validateTradeAmount("0")).toEqual({ valid: false, error: "BELOW_MINIMUM" });
   });
 
+  it("supports a caller-provided market minimum", () => {
+    expect(validateTradeAmount("5.00", 5)).toEqual({ valid: false, error: "BELOW_MINIMUM" });
+    expect(validateTradeAmount("5.01", 5)).toEqual({ valid: true });
+  });
+
   it("returns INVALID_NUMBER for non-numeric input", () => {
     expect(validateTradeAmount("")).toEqual({ valid: false, error: "INVALID_NUMBER" });
     expect(validateTradeAmount("abc")).toEqual({ valid: false, error: "INVALID_NUMBER" });

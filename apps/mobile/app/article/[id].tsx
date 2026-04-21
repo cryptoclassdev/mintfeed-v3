@@ -14,6 +14,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Ionicons } from "@expo/vector-icons";
 import { api } from "@/lib/api-client";
 import { useAppStore } from "@/lib/store";
+import { closeModal } from "@/lib/navigation";
 import { colors } from "@/constants/theme";
 import { fonts, fontSize, lineHeight, letterSpacing } from "@/constants/typography";
 import type { Article, PaginatedResponse } from "@midnight/shared";
@@ -43,6 +44,7 @@ export default function ArticleDetailScreen() {
   const queryClient = useQueryClient();
 
   const cachedArticle = id ? findArticleInFeedCache(queryClient, id) : undefined;
+  const handleClose = () => closeModal(router);
 
   const { data: article, isLoading } = useQuery({
     queryKey: ["article", id],
@@ -67,7 +69,7 @@ export default function ArticleDetailScreen() {
     >
       <View style={styles.header}>
         <Pressable
-          onPress={() => router.back()}
+          onPress={handleClose}
           accessibilityRole="button"
           accessibilityLabel="Close article"
           hitSlop={12}

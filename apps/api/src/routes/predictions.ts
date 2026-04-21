@@ -64,6 +64,7 @@ function setCacheStatus(c: Context, status: LoadStatus): void {
 }
 
 const MICRO_USD = 1_000_000;
+const DEFAULT_PREDICTION_MIN_TRADE_USD = 1;
 
 type PredictionMarketSnapshot = {
   id: string;
@@ -74,6 +75,17 @@ type PredictionMarketSnapshot = {
   closed: boolean;
   result: string | null;
 };
+
+export function getPredictionMinimumTradeUsd(
+  env: Record<string, string | undefined> = process.env,
+): number {
+  const raw = Number(env.PREDICTION_MIN_TRADE_USD);
+  if (Number.isFinite(raw) && raw >= DEFAULT_PREDICTION_MIN_TRADE_USD) {
+    return raw;
+  }
+
+  return DEFAULT_PREDICTION_MIN_TRADE_USD;
+}
 
 function readOutcomePrice(outcomePrices: unknown, side: "Yes" | "No"): number {
   if (!outcomePrices || typeof outcomePrices !== "object") return 0;
@@ -289,13 +301,17 @@ predictionRoutes.get("/predictions/orderbook/:marketId", async (c) => {
 
 predictionRoutes.get("/predictions/trading-status", async (c) => {
   try {
+    const minimumOrderUsd = getPredictionMinimumTradeUsd();
     const { value, status } = await jupiterCache.fetch(
       "trading-status",
       TTL_TRADING_STATUS_MS,
       () => jupiter.get("trading-status").json(),
     );
     setCacheStatus(c, status);
-    return c.json(value as object);
+    return c.json({
+      ...(value as object),
+      minimum_order_usd: minimumOrderUsd,
+    });
   } catch (err) {
     return forwardJupiterError(err, c);
   }
@@ -308,6 +324,13 @@ predictionRoutes.post("/predictions/orders", async (c) => {
   const parsed = CreateOrderSchema.safeParse(body);
   if (!parsed.success) {
     return c.json({ error: formatZodErrors(parsed.error) }, 400);
+  }
+  const minimumOrderUsd = getPredictionMinimumTradeUsd();
+  if (parsed.data.isBuy && parsed.data.depositAmount) {
+    const depositUsd = Number(parsed.data.depositAmount) / MICRO_USD;
+    if (depositUsd < minimumOrderUsd) {
+      return c.json({ error: `Minimum order is $${minimumOrderUsd}` }, 400);
+    }
   }
   // Jupiter accepts depositAmount/contracts as string | number.
   // Convert numeric strings to numbers to match their preferred format.

@@ -10,10 +10,13 @@ interface ValidationResult {
   error?: ValidationError;
 }
 
-export function validateTradeAmount(amountStr: string): ValidationResult {
+export function validateTradeAmount(
+  amountStr: string,
+  minimumTradeUsd = MINIMUM_TRADE_USD,
+): ValidationResult {
   const parsed = parseTradeAmount(amountStr);
   if (parsed === null) return { valid: false, error: "INVALID_NUMBER" };
-  if (parsed <= MINIMUM_TRADE_USD) return { valid: false, error: "BELOW_MINIMUM" };
+  if (parsed <= minimumTradeUsd) return { valid: false, error: "BELOW_MINIMUM" };
   return { valid: true };
 }
 

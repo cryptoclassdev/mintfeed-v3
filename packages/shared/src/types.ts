@@ -200,4 +200,5 @@ export interface PredictionOrder {
 
 export interface TradingStatus {
   trading_active: boolean;
+  minimum_order_usd?: number;
 }

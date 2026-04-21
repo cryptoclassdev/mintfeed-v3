@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import {
   View,
   Text,
@@ -20,6 +20,7 @@ import { usePredictionMarketDetail } from "@/hooks/usePredictionMarket";
 import { useCreateOrder, useTradingStatus } from "@/hooks/usePredictionTrading";
 import { useWalletBalance } from "@/hooks/useWalletBalance";
 import { getBalanceError } from "@/lib/balance";
+import { getMinimumTradeUsdFromError } from "@/lib/prediction-errors";
 import {
   microToUsd,
   usdToMicro,
@@ -32,6 +33,7 @@ import {
 } from "@midnight/shared";
 import { showToast } from "@/lib/toast";
 import * as haptics from "@/lib/haptics";
+import { closeModal } from "@/lib/navigation";
 import { buildResolutionRulePreview, formatResolveDateTime } from "./utils";
 
 const STATUS_COLORS = {
@@ -54,17 +56,22 @@ export default function MarketSheet() {
   const createOrder = useCreateOrder();
   const { data: tradingStatus } = useTradingStatus();
   const { data: walletBalances } = useWalletBalance(walletAddress);
+  const serverMinimumTradeUsd = tradingStatus?.minimum_order_usd ?? MINIMUM_TRADE_USD;
 
   const [selectedSide, setSelectedSide] = useState<"yes" | "no">("yes");
   const [amount, setAmount] = useState("");
   const [showFullRules, setShowFullRules] = useState(false);
+  const [effectiveMinimumTradeUsd, setEffectiveMinimumTradeUsd] = useState(serverMinimumTradeUsd);
 
   const yesPrice = market ? microToUsd(market.pricing.buyYesPriceUsd) : 0;
   const noPrice = market ? microToUsd(market.pricing.buyNoPriceUsd) : 0;
   const yesPercent = Math.round(yesPrice * 100);
   const noPercent = Math.round(noPrice * 100);
 
-  const tradeValidation = useMemo(() => validateTradeAmount(amount), [amount]);
+  const tradeValidation = useMemo(
+    () => validateTradeAmount(amount, effectiveMinimumTradeUsd),
+    [amount, effectiveMinimumTradeUsd],
+  );
   const resolutionPreview = useMemo(
     () => buildResolutionRulePreview(market?.metadata.rulesPrimary),
     [market?.metadata.rulesPrimary],
@@ -89,6 +96,18 @@ export default function MarketSheet() {
     return Math.floor(usd / price);
   }, [amount, selectedSide, yesPrice, noPrice]);
 
+  useEffect(() => {
+    setEffectiveMinimumTradeUsd(serverMinimumTradeUsd);
+  }, [marketId, serverMinimumTradeUsd]);
+
+  useEffect(() => {
+    setEffectiveMinimumTradeUsd((currentMinimum) => Math.max(currentMinimum, serverMinimumTradeUsd));
+  }, [serverMinimumTradeUsd]);
+
+  const handleClose = useCallback(() => {
+    closeModal(router);
+  }, [router]);
+
   const handleConnectWallet = useCallback(async () => {
     haptics.mediumImpact();
     try {
@@ -100,11 +119,11 @@ export default function MarketSheet() {
 
   const handlePlaceBet = useCallback(async () => {
     if (!walletAddress || !marketId) return;
-    const validation = validateTradeAmount(amount);
+    const validation = validateTradeAmount(amount, effectiveMinimumTradeUsd);
     if (!validation.valid) {
       haptics.warning();
       const msg = validation.error === "BELOW_MINIMUM"
-        ? `Minimum bet: >$${MINIMUM_TRADE_USD.toFixed(2)}`
+        ? `Minimum bet: >$${effectiveMinimumTradeUsd.toFixed(2)}`
         : "Enter a valid amount.";
       showToast("error", "Invalid amount", msg);
       return;
@@ -131,10 +150,26 @@ export default function MarketSheet() {
       setAmount("");
     } catch (err: unknown) {
       haptics.error();
-      const message = err instanceof Error ? err.message : String(err);
+      const minimumTradeUsd = getMinimumTradeUsdFromError(err);
+      if (minimumTradeUsd && minimumTradeUsd > effectiveMinimumTradeUsd) {
+        setEffectiveMinimumTradeUsd(minimumTradeUsd);
+      }
+      const message = minimumTradeUsd
+        ? `Minimum bet for this market is >$${minimumTradeUsd.toFixed(2)}.`
+        : err instanceof Error
+          ? err.message
+          : String(err);
       showToast("error", "Trade Failed", message);
     }
-  }, [walletAddress, marketId, amount, selectedSide, createOrder, queryClient]);
+  }, [
+    walletAddress,
+    marketId,
+    amount,
+    selectedSide,
+    createOrder,
+    effectiveMinimumTradeUsd,
+    queryClient,
+  ]);
 
   const isTradingPaused = tradingStatus?.trading_active === false;
   const hasAmountInput = amount.length > 0;
@@ -145,13 +180,21 @@ export default function MarketSheet() {
   const buyButtonText = useMemo(() => {
     if (isTradingPaused) return "Trading Paused";
     if (!hasAmountInput || tradeValidation.error === "INVALID_NUMBER") {
-      return `Enter >$${MINIMUM_TRADE_USD} to bet`;
+      return `Enter >$${effectiveMinimumTradeUsd} to bet`;
     }
     if (tradeValidation.error === "BELOW_MINIMUM") {
-      return `Enter >$${MINIMUM_TRADE_USD} to bet`;
+      return `Enter >$${effectiveMinimumTradeUsd} to bet`;
     }
     return `Buy ${selectedSide.toUpperCase()} \u00B7 ${selectedSide === "yes" ? yesPercent : noPercent}\u00A2`;
-  }, [isTradingPaused, hasAmountInput, tradeValidation, selectedSide, yesPercent, noPercent]);
+  }, [
+    effectiveMinimumTradeUsd,
+    hasAmountInput,
+    isTradingPaused,
+    noPercent,
+    selectedSide,
+    tradeValidation,
+    yesPercent,
+  ]);
 
   const isBinary = market && yesPrice > 0 && noPrice > 0;
 
@@ -172,7 +215,7 @@ export default function MarketSheet() {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: themeColors.background }]}>
         <View style={styles.header}>
-          <Pressable onPress={() => router.back()} hitSlop={12} style={styles.headerButton}>
+          <Pressable onPress={handleClose} hitSlop={12} style={styles.headerButton}>
             <Ionicons name="close" size={24} color={themeColors.text} />
           </Pressable>
           <View style={{ flex: 1 }} />
@@ -199,7 +242,7 @@ export default function MarketSheet() {
       {/* Header — close button only */}
       <View style={styles.header}>
         <Pressable
-          onPress={() => router.back()}
+          onPress={handleClose}
           hitSlop={12}
           accessibilityRole="button"
           accessibilityLabel="Close market sheet"
@@ -388,13 +431,13 @@ export default function MarketSheet() {
             {/* Validation error */}
             {!balanceWarning && isAmountInvalid && tradeValidation.error === "BELOW_MINIMUM" && (
               <Text style={[styles.errorText, { color: themeColors.negative }]}>
-                Minimum bet: {'>'}${MINIMUM_TRADE_USD.toFixed(2)}
+                Minimum bet: {'>'}${effectiveMinimumTradeUsd.toFixed(2)}
               </Text>
             )}
 
             {/* Persistent hint */}
             <Text style={[styles.hintText, { color: themeColors.textMuted }]}>
-              Min. bet: {'>'}${MINIMUM_TRADE_USD.toFixed(2)} USDC
+              Min. bet: {'>'}${effectiveMinimumTradeUsd.toFixed(2)} USDC
             </Text>
 
             {estimatedShares > 0 && (

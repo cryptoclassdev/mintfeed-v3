@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   buildPredictionMarketDetailFromSnapshot,
+  getPredictionMinimumTradeUsd,
   getJupiterRetryAfterSeconds,
 } from "./predictions";
 
@@ -58,5 +59,20 @@ describe("getJupiterRetryAfterSeconds", () => {
   it("derives retry delay from x-ratelimit-reset epoch seconds", () => {
     const headers = new Headers({ "x-ratelimit-reset": "1776793652" });
     expect(getJupiterRetryAfterSeconds(headers, Date.parse("2026-04-21T17:47:25Z"))).toBe(7);
+  });
+});
+
+describe("getPredictionMinimumTradeUsd", () => {
+  it("defaults to $1 when the env var is absent", () => {
+    expect(getPredictionMinimumTradeUsd({})).toBe(1);
+  });
+
+  it("reads a higher environment-configured minimum", () => {
+    expect(getPredictionMinimumTradeUsd({ PREDICTION_MIN_TRADE_USD: "5" })).toBe(5);
+  });
+
+  it("ignores invalid environment values", () => {
+    expect(getPredictionMinimumTradeUsd({ PREDICTION_MIN_TRADE_USD: "0" })).toBe(1);
+    expect(getPredictionMinimumTradeUsd({ PREDICTION_MIN_TRADE_USD: "abc" })).toBe(1);
   });
 });

@@ -1,9 +1,10 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { View, Text, StyleSheet, ScrollView, Pressable, TextInput, Keyboard, Switch, Linking } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useMobileWallet } from "@wallet-ui/react-native-web3js";
 import { useAppStore, QUICK_BET_OPTIONS, QUICK_BET_MIN, QUICK_BET_MAX } from "@/lib/store";
 import { useNotificationPreferences } from "@/hooks/useNotificationPreferences";
+import { useTradingStatus } from "@/hooks/usePredictionTrading";
 import { colors } from "@/constants/theme";
 import { fonts, fontSize, letterSpacing } from "@/constants/typography";
 import * as haptics from "@/lib/haptics";
@@ -19,6 +20,11 @@ export default function ProfileScreen() {
   const { account } = useMobileWallet();
   const walletAddress = account?.address.toString() ?? null;
   const { preferences: notifPrefs, updatePreference } = useNotificationPreferences();
+  const { data: tradingStatus } = useTradingStatus();
+  const minimumQuickBetUsd = Math.max(
+    QUICK_BET_MIN,
+    tradingStatus?.minimum_order_usd ?? QUICK_BET_MIN,
+  );
 
   const handleMarketMoversToggle = useCallback((v: boolean) => {
     haptics.selection();
@@ -41,6 +47,12 @@ export default function ProfileScreen() {
   const [validationError, setValidationError] = useState<string | null>(null);
   const inputRef = useRef<TextInput>(null);
   const isSubmitting = useRef(false);
+
+  useEffect(() => {
+    if (quickBetAmount < minimumQuickBetUsd) {
+      setQuickBetAmount(minimumQuickBetUsd);
+    }
+  }, [minimumQuickBetUsd, quickBetAmount, setQuickBetAmount]);
 
   const handlePresetChange = (amount: number) => {
     haptics.selection();
@@ -82,8 +94,8 @@ export default function ProfileScreen() {
 
     const parsed = parseInt(trimmed, 10);
 
-    if (isNaN(parsed) || parsed < QUICK_BET_MIN) {
-      setValidationError(`Min $${QUICK_BET_MIN}`);
+    if (isNaN(parsed) || parsed < minimumQuickBetUsd) {
+      setValidationError(`Min $${minimumQuickBetUsd}`);
       haptics.warning();
       return;
     }
@@ -125,6 +137,9 @@ export default function ProfileScreen() {
           </View>
           <Text style={[styles.sectionDescription, { color: themeColors.textMuted }]}>
             Default amount when swiping to bet on predictions
+          </Text>
+          <Text style={[styles.sectionDescription, { color: themeColors.textFaint }]}>
+            Current venue minimum: ${minimumQuickBetUsd}
           </Text>
           <View style={styles.quickBetRow}>
             {QUICK_BET_OPTIONS.map((amount) => {
@@ -192,7 +207,7 @@ export default function ProfileScreen() {
                   onBlur={handleCustomSubmit}
                   keyboardType="number-pad"
                   returnKeyType="done"
-                  placeholder={`$${QUICK_BET_MIN}`}
+                  placeholder={`$${minimumQuickBetUsd}`}
                   placeholderTextColor={themeColors.textFaint}
                   maxLength={4}
                 />

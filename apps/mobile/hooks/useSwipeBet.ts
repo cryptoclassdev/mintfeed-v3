@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef } from "react";
 import { useMobileWallet } from "@wallet-ui/react-native-web3js";
 import { useAppStore, QUICK_BET_MIN } from "@/lib/store";
-import { useCreateOrder } from "@/hooks/usePredictionTrading";
+import { useCreateOrder, useTradingStatus } from "@/hooks/usePredictionTrading";
+import { getMinimumTradeUsdFromError } from "@/lib/prediction-errors";
 import { usdToMicro, USDC_MINT } from "@midnight/shared";
 import { showToast, updateToast } from "@/lib/toast";
 import * as haptics from "@/lib/haptics";
@@ -28,8 +29,13 @@ export function useSwipeBet() {
   const { account } = useMobileWallet();
   const walletAddress = account?.address.toString() ?? null;
   const createOrder = useCreateOrder();
+  const { data: tradingStatus } = useTradingStatus();
   const quickBetAmount = useAppStore((s) => s.quickBetAmount);
   const pendingRef = useRef<PendingBet | null>(null);
+  const minimumQuickBetUsd = Math.max(
+    QUICK_BET_MIN,
+    tradingStatus?.minimum_order_usd ?? QUICK_BET_MIN,
+  );
 
   const executeBet = useCallback(
     async (marketId: string, side: "yes" | "no", amount: number, toastId: string) => {
@@ -44,11 +50,11 @@ export function useSwipeBet() {
         return;
       }
 
-      if (amount < QUICK_BET_MIN) {
+      if (amount < minimumQuickBetUsd) {
         updateToast(toastId, {
           variant: "error",
           title: "Bet Too Small",
-          message: `Minimum bet is $${QUICK_BET_MIN}`,
+          message: `Minimum bet is $${minimumQuickBetUsd}`,
           duration: 3000,
           onTap: null,
           shake: true,
@@ -93,7 +99,12 @@ export function useSwipeBet() {
         }
       } catch (err: unknown) {
         haptics.error();
-        const message = err instanceof Error ? err.message : String(err);
+        const minimumTradeUsd = getMinimumTradeUsdFromError(err);
+        const message = minimumTradeUsd
+          ? `Minimum bet for this market is >$${minimumTradeUsd.toFixed(2)}.`
+          : err instanceof Error
+            ? err.message
+            : String(err);
         const retryable = err instanceof Error && (err as any).retryable === true;
         updateToast(toastId, {
           variant: "error",
@@ -107,7 +118,7 @@ export function useSwipeBet() {
         });
       }
     },
-    [walletAddress, createOrder],
+    [walletAddress, createOrder, minimumQuickBetUsd],
   );
 
   const cancelPending = useCallback(() => {

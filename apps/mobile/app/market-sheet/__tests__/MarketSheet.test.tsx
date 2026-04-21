@@ -70,10 +70,11 @@ describe("MarketSheet buy button state", () => {
       validation: { valid: boolean; error?: string },
       selectedSide: "yes" | "no",
       percent: number,
+      minimumTradeUsd = MINIMUM_TRADE_USD,
     ) => {
       if (isTradingPaused) return "Trading Paused";
-      if (!hasAmountInput || validation.error === "INVALID_NUMBER") return `Enter >$${MINIMUM_TRADE_USD} to bet`;
-      if (validation.error === "BELOW_MINIMUM") return `Enter >$${MINIMUM_TRADE_USD} to bet`;
+      if (!hasAmountInput || validation.error === "INVALID_NUMBER") return `Enter >$${minimumTradeUsd} to bet`;
+      if (validation.error === "BELOW_MINIMUM") return `Enter >$${minimumTradeUsd} to bet`;
       return `Buy ${selectedSide.toUpperCase()} \u00B7 ${percent}\u00A2`;
     };
 
@@ -82,6 +83,7 @@ describe("MarketSheet buy button state", () => {
     expect(getButtonText(false, true, { valid: false, error: "BELOW_MINIMUM" }, "yes", 50)).toBe("Enter >$1 to bet");
     expect(getButtonText(false, true, { valid: true }, "yes", 73)).toBe("Buy YES \u00B7 73\u00A2");
     expect(getButtonText(false, true, { valid: true }, "no", 27)).toBe("Buy NO \u00B7 27\u00A2");
+    expect(getButtonText(false, true, { valid: false, error: "BELOW_MINIMUM" }, "yes", 50, 5)).toBe("Enter >$5 to bet");
   });
 
   it("determines button disabled state", () => {
