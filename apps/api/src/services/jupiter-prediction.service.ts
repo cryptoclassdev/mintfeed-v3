@@ -6,9 +6,9 @@ const JUPITER_API_URL = "https://api.jup.ag/prediction/v1";
 const MIN_VOLUME_USD = 1000;
 const MICRO_USD = 1_000_000;
 const BACKGROUND_PREDICTION_WINDOW_MS = 10_000;
-const BACKGROUND_PREDICTION_REQUEST_LIMIT = 4;
+const BACKGROUND_PREDICTION_REQUEST_LIMIT = 2;
 const BACKGROUND_PREDICTION_FALLBACK_COOLDOWN_MS = 30_000;
-const BACKFILL_ARTICLE_LIMIT = 10;
+const BACKFILL_ARTICLE_LIMIT = 4;
 
 const jupiterClient = ky.create({
   prefixUrl: JUPITER_API_URL,
@@ -182,10 +182,10 @@ export async function matchMarketForArticle(
     if (slotsRemaining <= 0) return;
 
     const response = await loadBackgroundPrediction(
-      `match search for "${originalTitle.slice(0, 40)}"`,
-      () => jupiterClient
-        .get("events/search", {
-          searchParams: { query: originalTitle.slice(0, 120), limit: 4 },
+        `match search for "${originalTitle.slice(0, 40)}"`,
+        () => jupiterClient
+          .get("events/search", {
+          searchParams: { query: originalTitle.slice(0, 120), limit: 2 },
         })
         .json<JupiterSearchResponse>(),
     );

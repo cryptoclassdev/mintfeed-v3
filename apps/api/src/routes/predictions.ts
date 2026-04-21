@@ -137,8 +137,8 @@ export function getJupiterRetryAfterSeconds(headers: Headers, nowMs = Date.now()
 // book isn't stale for perceptible periods.
 const TTL_MARKET_MS = 5_000;
 const TTL_ORDERBOOK_MS = 5_000;
-const TTL_TRADING_STATUS_MS = 30_000;
-const TTL_PER_WALLET_MS = 10_000;
+const TTL_TRADING_STATUS_MS = 60_000;
+const TTL_PER_WALLET_MS = 60_000;
 
 export const predictionRoutes = new Hono();
 
