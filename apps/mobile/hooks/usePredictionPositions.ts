@@ -5,13 +5,23 @@ import type { JupiterPaginatedResponse, PredictionPosition } from "@midnight/sha
 const POSITIONS_REFETCH_INTERVAL_MS = 30_000;
 const POSITIONS_STALE_TIME_MS = 30_000;
 
-export function usePredictionPositions(ownerPubkey: string | undefined) {
+interface UsePredictionPositionsOptions {
+  enabled?: boolean;
+  fresh?: boolean;
+  refetchInterval?: number;
+  staleTime?: number;
+}
+
+export function usePredictionPositions(
+  ownerPubkey: string | undefined,
+  options?: UsePredictionPositionsOptions,
+) {
   return useQuery<JupiterPaginatedResponse<PredictionPosition>>({
-    queryKey: ["prediction-positions", ownerPubkey],
-    queryFn: () => fetchPositions(ownerPubkey!),
-    enabled: !!ownerPubkey,
-    refetchInterval: POSITIONS_REFETCH_INTERVAL_MS,
-    staleTime: POSITIONS_STALE_TIME_MS,
+    queryKey: ["prediction-positions", ownerPubkey, options?.fresh ? "fresh" : "cached"],
+    queryFn: () => fetchPositions(ownerPubkey!, { fresh: options?.fresh }),
+    enabled: options?.enabled ?? !!ownerPubkey,
+    refetchInterval: options?.refetchInterval ?? POSITIONS_REFETCH_INTERVAL_MS,
+    staleTime: options?.staleTime ?? POSITIONS_STALE_TIME_MS,
     refetchOnMount: false,
     placeholderData: (prev) => prev,
   });

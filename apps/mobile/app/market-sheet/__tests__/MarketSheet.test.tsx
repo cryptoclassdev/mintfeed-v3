@@ -7,7 +7,7 @@ import {
 import {
   buildResolutionRulePreview,
   formatResolveDateTime,
-} from "../utils";
+} from "@/lib/market-sheet-utils";
 
 // Mock all hooks used by MarketSheet
 jest.mock("@/lib/store", () => ({

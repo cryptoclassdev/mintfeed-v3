@@ -265,7 +265,7 @@ describe("sendPredictionTransaction", () => {
     });
   });
 
-  it("throws TRANSACTION_SEND_FAILED on other send errors", async () => {
+  it("throws TRANSACTION_SUBMISSION_UNKNOWN on other send errors", async () => {
     const sendFn = jest.fn<
       (tx: VersionedTransaction, minContextSlot?: number) => Promise<string>
     >();
@@ -274,7 +274,7 @@ describe("sendPredictionTransaction", () => {
     await expect(
       sendPredictionTransaction(sendFn, FAKE_BASE64, TX_META),
     ).rejects.toMatchObject({
-      code: "TRANSACTION_SEND_FAILED",
+      code: "TRANSACTION_SUBMISSION_UNKNOWN",
     });
   });
 });

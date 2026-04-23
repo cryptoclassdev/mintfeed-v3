@@ -9,11 +9,11 @@ const ORDERBOOK_STALE_TIME_MS = 5_000;
 
 export function usePredictionMarketDetail(
   marketId: string | undefined,
-  options?: { initialData?: PredictionMarketDetail },
+  options?: { initialData?: PredictionMarketDetail; fresh?: boolean },
 ) {
   return useQuery<PredictionMarketDetail>({
-    queryKey: ["prediction-market", marketId],
-    queryFn: () => fetchMarket(marketId!),
+    queryKey: ["prediction-market", marketId, options?.fresh ? "fresh" : "cached"],
+    queryFn: () => fetchMarket(marketId!, { fresh: options?.fresh }),
     enabled: !!marketId,
     refetchInterval: MARKET_REFETCH_INTERVAL_MS,
     staleTime: MARKET_STALE_TIME_MS,

@@ -34,7 +34,7 @@ import {
 import { showToast } from "@/lib/toast";
 import * as haptics from "@/lib/haptics";
 import { closeModal } from "@/lib/navigation";
-import { buildResolutionRulePreview, formatResolveDateTime } from "./utils";
+import { buildResolutionRulePreview, formatResolveDateTime } from "@/lib/market-sheet-utils";
 
 const STATUS_COLORS = {
   open: "#00ff66",
@@ -52,7 +52,21 @@ export default function MarketSheet() {
   const { connect } = useMobileWallet();
   const themeColors = colors[theme];
 
-  const { data: market, isLoading: marketLoading } = usePredictionMarketDetail(marketId);
+  const {
+    data: cachedMarket,
+    isLoading: cachedMarketLoading,
+  } = usePredictionMarketDetail(marketId);
+  const {
+    data: freshMarket,
+    isLoading: freshMarketLoading,
+    isError: freshMarketError,
+  } = usePredictionMarketDetail(marketId, {
+    fresh: true,
+  });
+  const market = freshMarket ?? cachedMarket;
+  const marketLoading = !market && (cachedMarketLoading || freshMarketLoading);
+  const hasFreshQuote = !!freshMarket;
+  const quoteRefreshBlocked = !!market && !hasFreshQuote;
   const createOrder = useCreateOrder();
   const { data: tradingStatus } = useTradingStatus();
   const { data: walletBalances } = useWalletBalance(walletAddress);
@@ -73,8 +87,8 @@ export default function MarketSheet() {
     [amount, effectiveMinimumTradeUsd],
   );
   const resolutionPreview = useMemo(
-    () => buildResolutionRulePreview(market?.metadata.rulesPrimary),
-    [market?.metadata.rulesPrimary],
+    () => buildResolutionRulePreview(market?.metadata?.rulesPrimary),
+    [market?.metadata?.rulesPrimary],
   );
 
   const balanceWarning = useMemo(() => {
@@ -146,7 +160,13 @@ export default function MarketSheet() {
         depositMint: USDC_MINT,
       });
       haptics.success();
-      if (result.status === "pending") {
+      if (result.verification === "uncertain") {
+        showToast(
+          "info",
+          "Checking Trade Status",
+          `Your ${selectedSide.toUpperCase()} bet may have landed. We're refreshing your positions now.`,
+        );
+      } else if (result.status === "pending") {
         showToast("info", "Transaction Pending", `Your ${selectedSide.toUpperCase()} bet was submitted.`);
       } else {
         showToast("success", "Bet Placed", `Your ${selectedSide.toUpperCase()} bet was confirmed.`);
@@ -179,10 +199,16 @@ export default function MarketSheet() {
   const hasAmountInput = amount.length > 0;
   const isAmountInvalid = hasAmountInput && !tradeValidation.valid;
 
-  const buyButtonDisabled = !tradeValidation.valid || createOrder.isPending || isTradingPaused || !!balanceWarning;
+  const buyButtonDisabled =
+    !tradeValidation.valid ||
+    createOrder.isPending ||
+    isTradingPaused ||
+    !!balanceWarning ||
+    quoteRefreshBlocked;
 
   const buyButtonText = useMemo(() => {
     if (isTradingPaused) return "Trading Paused";
+    if (quoteRefreshBlocked) return freshMarketError ? "Quote unavailable" : "Refreshing quote...";
     if (!hasAmountInput || tradeValidation.error === "INVALID_NUMBER") {
       return `Enter >$${effectiveMinimumTradeUsd} to bet`;
     }
@@ -192,9 +218,11 @@ export default function MarketSheet() {
     return `Buy ${selectedSide.toUpperCase()} \u00B7 ${selectedSide === "yes" ? yesPercent : noPercent}\u00A2`;
   }, [
     effectiveMinimumTradeUsd,
+    freshMarketError,
     hasAmountInput,
     isTradingPaused,
     noPercent,
+    quoteRefreshBlocked,
     selectedSide,
     tradeValidation,
     yesPercent,
@@ -234,7 +262,7 @@ export default function MarketSheet() {
     );
   }
 
-  const marketTitle = question ?? market?.metadata.title ?? "Market";
+  const marketTitle = question ?? market?.metadata?.title ?? "Market";
   const marketStatus = market?.status ?? "open";
   const statusColor = STATUS_COLORS[marketStatus] ?? STATUS_COLORS.open;
 
@@ -325,7 +353,7 @@ export default function MarketSheet() {
               </Text>
             </View>
             <Text style={[styles.resolutionText, { color: themeColors.textSecondary }]}>
-              {showFullRules ? market?.metadata.rulesPrimary?.replace(/\s+/g, " ").trim() : resolutionPreview.text}
+              {showFullRules ? market?.metadata?.rulesPrimary?.replace(/\s+/g, " ").trim() : resolutionPreview.text}
             </Text>
             {resolutionPreview.truncated && (
               <Pressable
@@ -432,8 +460,21 @@ export default function MarketSheet() {
               </Text>
             )}
 
+            {!balanceWarning && quoteRefreshBlocked && (
+              <Text
+                style={[
+                  styles.errorText,
+                  { color: freshMarketError ? themeColors.negative : themeColors.textMuted },
+                ]}
+              >
+                {freshMarketError
+                  ? "Latest quote unavailable. Retrying..."
+                  : "Refreshing latest quote before trading..."}
+              </Text>
+            )}
+
             {/* Validation error */}
-            {!balanceWarning && isAmountInvalid && tradeValidation.error === "BELOW_MINIMUM" && (
+            {!balanceWarning && !quoteRefreshBlocked && isAmountInvalid && tradeValidation.error === "BELOW_MINIMUM" && (
               <Text style={[styles.errorText, { color: themeColors.negative }]}>
                 Minimum bet: {'>'}${effectiveMinimumTradeUsd.toFixed(2)}
               </Text>

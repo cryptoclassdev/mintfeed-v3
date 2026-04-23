@@ -100,7 +100,7 @@ function timeAgo(dateString: string): string {
 
 interface NewsCardProps {
   article: Article;
-  onSwipeBet: (marketId: string, side: "yes" | "no") => void;
+  onSwipeBet: (marketId: string, side: "yes" | "no", indicativePriceUsd: number | null) => void;
   walletConnected: boolean;
 }
 

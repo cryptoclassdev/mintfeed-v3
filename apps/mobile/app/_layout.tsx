@@ -32,6 +32,7 @@ import { OnboardingFlow } from "@/components/onboarding/OnboardingFlow";
 import { ToastProvider } from "@/components/ui/Toast";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { useNotifications } from "@/hooks/useNotifications";
+import { PredictionTradeReconciliation } from "@/components/trading/PredictionTradeReconciliation";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -62,13 +63,13 @@ function WalletDataPrefetch() {
   useEffect(() => {
     if (!address) return;
     queryClient.prefetchQuery({
-      queryKey: ["prediction-positions", address],
-      queryFn: () => fetchPositions(address),
+      queryKey: ["prediction-positions", address, "cached"],
+      queryFn: () => fetchPositions(address, { fresh: false }),
       staleTime: WALLET_DATA_STALE_TIME_MS,
     });
     queryClient.prefetchQuery({
-      queryKey: ["prediction-orders", address],
-      queryFn: () => fetchOrders(address),
+      queryKey: ["prediction-orders", address, "cached"],
+      queryFn: () => fetchOrders(address, { fresh: false }),
       staleTime: WALLET_DATA_STALE_TIME_MS,
     });
   }, [address, queryClient]);
@@ -136,6 +137,7 @@ function RootLayout() {
             <StatusBar style={theme === "dark" ? "light" : "dark"} />
             <NotificationBootstrap />
             <WalletDataPrefetch />
+            <PredictionTradeReconciliation />
             <OnboardingFlow />
           </MobileWalletProvider>
         </QueryClientProvider>
@@ -155,6 +157,7 @@ function RootLayout() {
             <StatusBar style={theme === "dark" ? "light" : "dark"} />
             <NotificationBootstrap />
             <WalletDataPrefetch />
+            <PredictionTradeReconciliation />
             <Stack
               screenOptions={{
                 headerShown: false,

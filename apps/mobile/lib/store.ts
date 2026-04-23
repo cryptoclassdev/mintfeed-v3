@@ -7,6 +7,24 @@ export const QUICK_BET_OPTIONS = [5, 10, 25, 50] as const;
 export const QUICK_BET_MIN = 5;
 export const QUICK_BET_MAX = 500;
 export type QuickBetPreset = (typeof QUICK_BET_OPTIONS)[number];
+const PENDING_PREDICTION_TRADE_MAX_AGE_MS = 15 * 60 * 1000;
+
+export type PendingPredictionTradeKind = "buy" | "close" | "claim";
+export type PendingPredictionTradeVerification = "sent" | "uncertain";
+
+export interface PendingPredictionTrade {
+  id: string;
+  walletAddress: string;
+  kind: PendingPredictionTradeKind;
+  verification: PendingPredictionTradeVerification;
+  createdAt: number;
+  marketId?: string;
+  positionPubkey?: string;
+  isYes?: boolean;
+  amountUsd?: number;
+  externalOrderId?: string | null;
+  baselineContracts?: number;
+}
 
 type NotificationPermission = "undetermined" | "granted" | "denied";
 
@@ -21,6 +39,7 @@ interface AppState {
   expoPushToken: string | null;
   feedSessionCount: number;
   pendingArticleId: string | null;
+  pendingPredictionTrades: Record<string, PendingPredictionTrade>;
   setCategory: (category: "all" | "crypto" | "ai") => void;
   setTheme: (theme: ThemeMode) => void;
   toggleTheme: () => void;
@@ -32,6 +51,9 @@ interface AppState {
   setExpoPushToken: (token: string | null) => void;
   incrementFeedSession: () => void;
   setPendingArticleId: (id: string | null) => void;
+  upsertPendingPredictionTrade: (trade: PendingPredictionTrade) => void;
+  removePendingPredictionTrade: (id: string) => void;
+  prunePendingPredictionTrades: (now?: number) => void;
 }
 
 export const useAppStore = create<AppState>()(
@@ -47,6 +69,7 @@ export const useAppStore = create<AppState>()(
       expoPushToken: null,
       feedSessionCount: 0,
       pendingArticleId: null,
+      pendingPredictionTrades: {},
 
       setCategory: (category) => set({ selectedCategory: category }),
 
@@ -75,6 +98,35 @@ export const useAppStore = create<AppState>()(
       incrementFeedSession: () =>
         set((state) => ({ feedSessionCount: state.feedSessionCount + 1 })),
       setPendingArticleId: (id) => set({ pendingArticleId: id }),
+      upsertPendingPredictionTrade: (trade) =>
+        set((state) => ({
+          pendingPredictionTrades: {
+            ...state.pendingPredictionTrades,
+            [trade.id]: trade,
+          },
+        })),
+      removePendingPredictionTrade: (id) =>
+        set((state) => {
+          if (!(id in state.pendingPredictionTrades)) return state;
+          const nextTrades = { ...state.pendingPredictionTrades };
+          delete nextTrades[id];
+          return { pendingPredictionTrades: nextTrades };
+        }),
+      prunePendingPredictionTrades: (now = Date.now()) =>
+        set((state) => {
+          let changed = false;
+          const nextTrades: Record<string, PendingPredictionTrade> = {};
+
+          for (const [id, trade] of Object.entries(state.pendingPredictionTrades)) {
+            if (now - trade.createdAt <= PENDING_PREDICTION_TRADE_MAX_AGE_MS) {
+              nextTrades[id] = trade;
+            } else {
+              changed = true;
+            }
+          }
+
+          return changed ? { pendingPredictionTrades: nextTrades } : state;
+        }),
     }),
     {
       name: "midnight-app-store",
@@ -88,10 +140,14 @@ export const useAppStore = create<AppState>()(
         notificationPermission: state.notificationPermission,
         expoPushToken: state.expoPushToken,
         feedSessionCount: state.feedSessionCount,
+        pendingPredictionTrades: state.pendingPredictionTrades,
       }),
       onRehydrateStorage: () => (state) => {
         if (state && state.quickBetAmount < QUICK_BET_MIN) {
           state.setQuickBetAmount(QUICK_BET_MIN);
+        }
+        if (state) {
+          state.prunePendingPredictionTrades();
         }
         // Prune readArticleIds to prevent unbounded AsyncStorage growth.
         // CUIDs are time-sortable, so reverse-sorting keeps the most recent.

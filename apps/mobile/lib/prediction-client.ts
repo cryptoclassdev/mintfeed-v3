@@ -15,8 +15,15 @@ const BASE = "api/v1/predictions";
 
 // --- Markets ---
 
-export function fetchMarket(marketId: string): Promise<PredictionMarketDetail> {
-  return api.get(`${BASE}/markets/${marketId}`).json();
+export function fetchMarket(
+  marketId: string,
+  options?: { fresh?: boolean },
+): Promise<PredictionMarketDetail> {
+  return api
+    .get(`${BASE}/markets/${marketId}`, {
+      searchParams: options?.fresh ? { fresh: "1" } : undefined,
+    })
+    .json();
 }
 
 export function fetchOrderbook(marketId: string): Promise<OrderbookData> {
@@ -37,16 +44,30 @@ export function createOrder(body: CreateOrderRequest): Promise<CreateOrderRespon
 
 export function fetchOrders(
   ownerPubkey: string,
+  options?: { fresh?: boolean },
 ): Promise<JupiterPaginatedResponse<PredictionOrder>> {
-  return api.get(`${BASE}/orders`, { searchParams: { ownerPubkey } }).json();
+  return api
+    .get(`${BASE}/orders`, {
+      searchParams: options?.fresh
+        ? { ownerPubkey, fresh: "1" }
+        : { ownerPubkey },
+    })
+    .json();
 }
 
 // --- Positions ---
 
 export function fetchPositions(
   ownerPubkey: string,
+  options?: { fresh?: boolean },
 ): Promise<JupiterPaginatedResponse<PredictionPosition>> {
-  return api.get(`${BASE}/positions`, { searchParams: { ownerPubkey } }).json();
+  return api
+    .get(`${BASE}/positions`, {
+      searchParams: options?.fresh
+        ? { ownerPubkey, fresh: "1" }
+        : { ownerPubkey },
+    })
+    .json();
 }
 
 export function fetchPosition(positionPubkey: string): Promise<PredictionPosition> {

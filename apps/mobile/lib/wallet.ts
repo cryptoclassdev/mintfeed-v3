@@ -7,12 +7,14 @@ import { withSolanaConnectionFallbacks } from "@/lib/solana";
 export type WalletErrorCode =
   | "WALLET_APPROVAL_REJECTED"
   | "TRANSACTION_EXPIRED"
-  | "TRANSACTION_SEND_FAILED";
+  | "TRANSACTION_SEND_FAILED"
+  | "TRANSACTION_SUBMISSION_UNKNOWN";
 
 const WALLET_ERROR_CODES = new Set<WalletErrorCode>([
   "WALLET_APPROVAL_REJECTED",
   "TRANSACTION_EXPIRED",
   "TRANSACTION_SEND_FAILED",
+  "TRANSACTION_SUBMISSION_UNKNOWN",
 ]);
 
 export class WalletError extends Error {
@@ -53,6 +55,8 @@ const ERROR_MESSAGES: Record<WalletErrorCode, string> = {
   TRANSACTION_EXPIRED:
     "Transaction expired before approval. Try placing the bet again.",
   TRANSACTION_SEND_FAILED: "Transaction broadcast failed. Try again.",
+  TRANSACTION_SUBMISSION_UNKNOWN:
+    "We couldn't verify the wallet response. Checking your transaction status.",
 };
 
 export function walletError(
@@ -173,6 +177,6 @@ export async function sendPredictionTransaction(
     if (isTransactionExpired(error)) {
       throw walletError("TRANSACTION_EXPIRED", error);
     }
-    throw walletError("TRANSACTION_SEND_FAILED", error);
+    throw walletError("TRANSACTION_SUBMISSION_UNKNOWN", error);
   }
 }

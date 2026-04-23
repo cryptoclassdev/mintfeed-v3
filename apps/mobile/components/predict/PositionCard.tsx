@@ -89,7 +89,9 @@ export const PositionCard = memo(function PositionCard({
       });
       setProgressState("idle");
       setSheetVisible(false);
-      if (result.status === "pending") {
+      if (result.verification === "uncertain") {
+        showToast("info", "Checking Close Status", "Your close may have landed. Refreshing positions now.");
+      } else if (result.status === "pending") {
         showToast("info", "Close Pending", "Your close order was submitted.");
       } else {
         showToast("success", "Position Closed", "Your position has been sold.");
@@ -115,7 +117,9 @@ export const PositionCard = memo(function PositionCard({
         claimable: position.claimable,
       });
       setProgressState("idle");
-      if (result.status === "pending") {
+      if (result.verification === "uncertain") {
+        showToast("info", "Checking Claim Status", "Your claim may have landed. Refreshing wallet state now.");
+      } else if (result.status === "pending") {
         showToast("info", "Claim Pending", "Your claim transaction was submitted.");
       } else {
         showToast("success", "Claimed!", "Winnings have been sent to your wallet.");

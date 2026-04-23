@@ -13,7 +13,6 @@ import Animated, {
 } from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { useQueryClient } from "@tanstack/react-query";
 import { useAppStore } from "@/lib/store";
 import { colors } from "@/constants/theme";
 import { fonts, fontSize, letterSpacing } from "@/constants/typography";
@@ -21,10 +20,9 @@ import { useLiveMarketPrice } from "@/hooks/useLiveMarketPrice";
 import {
   formatCompactVolume,
   formatCompactDate,
-  MICRO_USD,
 } from "@midnight/shared";
 import * as haptics from "@/lib/haptics";
-import type { PredictionMarket, PredictionMarketDetail } from "@midnight/shared";
+import type { PredictionMarket } from "@midnight/shared";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -49,7 +47,7 @@ function parsePrices(raw: unknown): Record<string, number> {
 
 interface SwipeBetCardProps {
   market: PredictionMarket;
-  onSwipeBet: (marketId: string, side: "yes" | "no") => void;
+  onSwipeBet: (marketId: string, side: "yes" | "no", indicativePriceUsd: number | null) => void;
   walletConnected: boolean;
 }
 
@@ -59,7 +57,6 @@ export const SwipeBetCard = memo(function SwipeBetCard({
   walletConnected,
 }: SwipeBetCardProps) {
   const router = useRouter();
-  const queryClient = useQueryClient();
   const theme = useAppStore((s) => s.theme);
   const quickBetAmount = useAppStore((s) => s.quickBetAmount);
   const themeColors = colors[theme];
@@ -104,45 +101,20 @@ export const SwipeBetCard = memo(function SwipeBetCard({
 
   const handleSwipeBet = useCallback(
     (side: "yes" | "no") => {
-      onSwipeBet(market.id, side);
+      const indicativePriceUsd = side === "yes" ? yesPrice : noPrice;
+      onSwipeBet(market.id, side, indicativePriceUsd > 0 ? indicativePriceUsd : null);
     },
-    [market.id, onSwipeBet],
+    [market.id, noPrice, onSwipeBet, yesPrice],
   );
 
   const openMarketSheet = useCallback(() => {
     haptics.lightImpact();
 
-    // Pre-seed the market-detail query so the sheet can paint its headline
-    // and Yes/No prices instantly instead of waiting on a network round-trip.
-    const cacheKey = ["prediction-market", market.id];
-    if (!queryClient.getQueryData<PredictionMarketDetail>(cacheKey)) {
-      const snapshot = parsePrices(market.outcomePrices);
-      const buyYesPriceUsd = Math.round((snapshot["Yes"] ?? 0) * MICRO_USD);
-      const buyNoPriceUsd = Math.round((snapshot["No"] ?? 0) * MICRO_USD);
-      const skeleton: PredictionMarketDetail = {
-        marketId: market.id,
-        status: "open",
-        result: market.result ?? null,
-        openTime: 0,
-        closeTime: market.endDate ? new Date(market.endDate).getTime() / 1000 : 0,
-        resolveAt: null,
-        metadata: { title: market.question },
-        pricing: {
-          buyYesPriceUsd,
-          buyNoPriceUsd,
-          sellYesPriceUsd: buyYesPriceUsd,
-          sellNoPriceUsd: buyNoPriceUsd,
-          volume: market.volume ?? 0,
-        },
-      };
-      queryClient.setQueryData(cacheKey, skeleton);
-    }
-
     router.push({
       pathname: `/market-sheet/${market.id}`,
       params: { question: market.question },
     });
-  }, [router, queryClient, market]);
+  }, [router, market]);
 
   // Gesture: Pan horizontal for swipe-to-bet
   const panGesture = Gesture.Pan()

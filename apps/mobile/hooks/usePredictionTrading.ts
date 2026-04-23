@@ -6,6 +6,8 @@ import {
   closePosition,
   closeAllPositions,
   claimPosition,
+  fetchOrders,
+  fetchPositions,
 } from "@/lib/prediction-client";
 import {
   isWalletError,
@@ -15,18 +17,23 @@ import {
   type TransactionMeta,
 } from "@/lib/wallet";
 import { fetchWalletBalances, getBalanceError } from "@/lib/balance";
-import { useAppStore } from "@/lib/store";
+import { useAppStore, type PendingPredictionTrade } from "@/lib/store";
+import { shouldResolvePendingPredictionTrade } from "@/lib/prediction-trade-reconciliation";
 import type {
   CreateOrderRequest,
   CreateOrderResponse,
   ClaimPositionResponse,
+  JupiterPaginatedResponse,
+  PredictionPosition,
   TradingStatus,
 } from "@midnight/shared";
 import type { VersionedTransaction } from "@solana/web3.js";
 
 const TRADING_STATUS_REFETCH_INTERVAL_MS = 30_000;
 const CLOSE_POSITION_TIMEOUT_MS = 60_000;
-const TRADE_REFRESH_DELAYS_MS = [0, 3_000, 8_000] as const;
+const TRADE_REFRESH_DELAYS_MS = [0, 3_000, 8_000, 20_000, 45_000, 65_000] as const;
+const SUBMISSION_RECONCILIATION_TIMEOUT_MS = 20_000;
+const SUBMISSION_RECONCILIATION_INTERVAL_MS = 4_000;
 
 export function toWalletActionError(error: unknown): Error {
   if (isWalletError(error)) {
@@ -37,21 +44,37 @@ export function toWalletActionError(error: unknown): Error {
 }
 
 interface RelayResult {
-  signature: string;
+  signature: string | null;
   status: "confirmed" | "pending";
+  verification: "sent" | "uncertain";
+}
+
+interface WalletSubmissionResult {
+  outcome: "sent" | "uncertain";
+  signature: string | null;
 }
 
 async function signAndSend(
   sendFn: (tx: VersionedTransaction, minContextSlot?: number) => Promise<string>,
   unsignedTransaction: string,
   txMeta: TransactionMeta,
-): Promise<RelayResult> {
-  const signature = await sendPredictionTransaction(
-    sendFn,
-    unsignedTransaction,
-    txMeta,
-  );
-  return { signature, status: "pending" };
+): Promise<WalletSubmissionResult> {
+  try {
+    const signature = await sendPredictionTransaction(
+      sendFn,
+      unsignedTransaction,
+      txMeta,
+    );
+    return { outcome: "sent", signature };
+  } catch (error) {
+    if (
+      isWalletError(error) &&
+      error.code === "TRANSACTION_SUBMISSION_UNKNOWN"
+    ) {
+      return { outcome: "uncertain", signature: null };
+    }
+    throw error;
+  }
 }
 
 function refreshTradingQueries(
@@ -79,6 +102,102 @@ function scheduleTradingRefreshes(
       refreshTradingQueries(queryClient, walletAddress);
     }, delayMs);
   }
+}
+
+function getCachedPositions(
+  queryClient: ReturnType<typeof useQueryClient>,
+  walletAddress: string,
+): PredictionPosition[] {
+  const cached =
+    queryClient.getQueryData<JupiterPaginatedResponse<PredictionPosition>>([
+      "prediction-positions",
+      walletAddress,
+      "cached",
+    ]) ??
+    queryClient.getQueryData<JupiterPaginatedResponse<PredictionPosition>>([
+      "prediction-positions",
+      walletAddress,
+    ]);
+  return cached?.data ?? [];
+}
+
+function getBaselineContracts(
+  queryClient: ReturnType<typeof useQueryClient>,
+  walletAddress: string,
+  options: {
+    marketId?: string;
+    isYes?: boolean;
+    positionPubkey?: string;
+  },
+): number {
+  const positions = getCachedPositions(queryClient, walletAddress);
+  const target = positions.find((position) =>
+    options.positionPubkey
+      ? position.pubkey === options.positionPubkey
+      : position.marketId === options.marketId && position.isYes === options.isYes,
+  );
+  return target ? Number(positionContracts(target.contracts)) : 0;
+}
+
+function positionContracts(value: string): number {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+async function reconcileTradeSubmission(
+  walletAddress: string,
+  trade: PendingPredictionTrade,
+): Promise<boolean> {
+  const deadline = Date.now() + SUBMISSION_RECONCILIATION_TIMEOUT_MS;
+
+  while (Date.now() < deadline) {
+    const [orders, positions] = await Promise.all([
+      fetchOrders(walletAddress, { fresh: true }).catch(() => undefined),
+      fetchPositions(walletAddress, { fresh: true }).catch(() => undefined),
+    ]);
+
+    if (shouldResolvePendingPredictionTrade(trade, orders, positions)) {
+      return true;
+    }
+
+    await new Promise((resolve) =>
+      setTimeout(resolve, SUBMISSION_RECONCILIATION_INTERVAL_MS),
+    );
+  }
+
+  return false;
+}
+
+function makePendingResult(
+  verification: RelayResult["verification"],
+  signature: string | null,
+): RelayResult {
+  return {
+    signature,
+    status: "pending",
+    verification,
+  };
+}
+
+function resolveWalletSubmission(
+  walletAddress: string,
+  submission: WalletSubmissionResult,
+  trade: PendingPredictionTrade,
+): RelayResult {
+  if (submission.outcome === "sent") {
+    return makePendingResult("sent", submission.signature);
+  }
+
+  const store = useAppStore.getState();
+  store.upsertPendingPredictionTrade(trade);
+
+  void reconcileTradeSubmission(walletAddress, trade).then((reconciled) => {
+    if (reconciled) {
+      useAppStore.getState().removePendingPredictionTrade(trade.id);
+    }
+  });
+
+  return makePendingResult("uncertain", null);
 }
 
 export function useTradingStatus() {
@@ -164,12 +283,37 @@ export function useCreateOrder() {
         }));
 
       try {
-        const result = await signAndSend(
+        const submission = await signAndSend(
           (tx, minContextSlot) => signAndSendTransactions(tx, minContextSlot ?? 0),
           response.transaction,
           response.txMeta,
         );
-        if (__DEV__) console.log("[createOrder] TX signature:", result.signature, "status:", result.status);
+        const pendingTrade: PendingPredictionTrade = {
+          id: response.externalOrderId ?? `buy:${walletAddress}:${Date.now()}`,
+          walletAddress,
+          kind: "buy",
+          verification: submission.outcome === "sent" ? "sent" : "uncertain",
+          createdAt: Date.now(),
+          marketId: request.marketId,
+          isYes: request.isYes,
+          amountUsd: request.depositAmount ? Number(request.depositAmount) / 1_000_000 : undefined,
+          externalOrderId: response.externalOrderId ?? null,
+          baselineContracts: getBaselineContracts(queryClient, walletAddress, {
+            marketId: request.marketId,
+            isYes: request.isYes,
+          }),
+        };
+        const result = resolveWalletSubmission(walletAddress, submission, pendingTrade);
+        if (__DEV__) {
+          console.log(
+            "[createOrder] TX signature:",
+            result.signature,
+            "status:",
+            result.status,
+            "verification:",
+            result.verification,
+          );
+        }
         return result;
       } catch (err: unknown) {
         if (isWalletError(err)) {
@@ -244,7 +388,7 @@ export function useClosePosition() {
       onBeforeSign?.();
 
       try {
-        return await withTimeout(
+        const submission = await withTimeout(
           signAndSend(
             (tx, minContextSlot) => signAndSendTransactions(tx, minContextSlot ?? 0),
             response.transaction,
@@ -253,6 +397,20 @@ export function useClosePosition() {
           CLOSE_POSITION_TIMEOUT_MS,
           "Close position",
         );
+        return resolveWalletSubmission(walletAddress, submission, {
+          id: response.externalOrderId ?? `close:${positionPubkey}:${Date.now()}`,
+          walletAddress,
+          kind: "close",
+          verification: submission.outcome === "sent" ? "sent" : "uncertain",
+          createdAt: Date.now(),
+          marketId: (response.order as { marketId?: string }).marketId,
+          positionPubkey,
+          isYes,
+          externalOrderId: response.externalOrderId ?? null,
+          baselineContracts: getBaselineContracts(queryClient, walletAddress, {
+            positionPubkey,
+          }),
+        });
       } catch (error) {
         if (isWalletError(error)) {
           throw toWalletActionError(error);
@@ -302,7 +460,9 @@ export function useCloseAllPositions() {
             r.transaction,
             r.txMeta,
           );
-          signatures.push(result.signature);
+          if (result.signature) {
+            signatures.push(result.signature);
+          }
         } catch (error) {
           if (isWalletError(error)) {
             // User rejected — stop processing remaining
@@ -372,11 +532,22 @@ export function useClaimPosition() {
       }
 
       try {
-        return await signAndSend(
+        const submission = await signAndSend(
           (tx, minContextSlot) => signAndSendTransactions(tx, minContextSlot ?? 0),
           response.transaction,
           response.txMeta,
         );
+        return resolveWalletSubmission(walletAddress, submission, {
+          id: `claim:${positionPubkey}:${Date.now()}`,
+          walletAddress,
+          kind: "claim",
+          verification: submission.outcome === "sent" ? "sent" : "uncertain",
+          createdAt: Date.now(),
+          positionPubkey,
+          baselineContracts: getBaselineContracts(queryClient, walletAddress, {
+            positionPubkey,
+          }),
+        });
       } catch (error) {
         if (isWalletError(error)) {
           throw toWalletActionError(error);

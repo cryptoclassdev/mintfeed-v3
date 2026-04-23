@@ -63,6 +63,11 @@ function setCacheStatus(c: Context, status: LoadStatus): void {
   c.header("X-Cache", status);
 }
 
+function isFreshReadRequested(c: Context): boolean {
+  const value = c.req.query("fresh");
+  return value === "1" || value === "true";
+}
+
 const MICRO_USD = 1_000_000;
 const DEFAULT_PREDICTION_MIN_TRADE_USD = 1;
 
@@ -120,6 +125,23 @@ export function buildPredictionMarketDetailFromSnapshot(snapshot: PredictionMark
       sellYesPriceUsd: buyYesPriceUsd,
       sellNoPriceUsd: buyNoPriceUsd,
       volume: snapshot.volume,
+    },
+  };
+}
+
+async function fetchLivePredictionMarketDetail(marketId: string) {
+  const data = await jupiter.get(`markets/${marketId}`).json<any>();
+
+  if (!data?.pricing || data.pricing.buyYesPriceUsd <= 0 || data.pricing.buyNoPriceUsd <= 0) {
+    throw new NonBinaryMarketError();
+  }
+
+  const { title, rulesPrimary, ...rest } = data;
+  return {
+    ...rest,
+    metadata: {
+      title: title ?? "Market",
+      rulesPrimary: rulesPrimary ?? undefined,
     },
   };
 }
@@ -206,7 +228,13 @@ async function fetchEventVolume(eventId: string): Promise<number | null> {
 
 predictionRoutes.get("/predictions/markets/:marketId", async (c) => {
   const { marketId } = c.req.param();
+  const fresh = isFreshReadRequested(c);
   try {
+    if (fresh) {
+      c.header("X-Cache", "live");
+      return c.json(await fetchLivePredictionMarketDetail(marketId));
+    }
+
     const dbMarket = await prisma.predictionMarket.findUnique({
       where: { id: marketId },
       select: {
@@ -233,17 +261,12 @@ predictionRoutes.get("/predictions/markets/:marketId", async (c) => {
         // event-volume fallback, so overlapping it with the Jupiter round-trip
         // hides the extra latency.
         const [data, dbMarket] = await Promise.all([
-          jupiter.get(`markets/${marketId}`).json<any>(),
+          fetchLivePredictionMarketDetail(marketId),
           prisma.predictionMarket.findUnique({
             where: { id: marketId },
             select: { eventId: true },
           }).catch(() => null),
         ]);
-
-        // Reject non-binary markets — thrown so it's never cached as "success"
-        if (!data?.pricing || data.pricing.buyYesPriceUsd <= 0 || data.pricing.buyNoPriceUsd <= 0) {
-          throw new NonBinaryMarketError();
-        }
 
         // Fall back to cached event-level volume when market pricing reports 0
         if ((!data.pricing.volume || data.pricing.volume === 0) && dbMarket?.eventId) {
@@ -252,17 +275,7 @@ predictionRoutes.get("/predictions/markets/:marketId", async (c) => {
             data.pricing.volume = eventVolume;
           }
         }
-
-        // Normalize: Jupiter returns title/rulesPrimary at top level,
-        // but PredictionMarketDetail expects them nested under metadata
-        const { title, rulesPrimary, ...rest } = data;
-        return {
-          ...rest,
-          metadata: {
-            title: title ?? "Market",
-            rulesPrimary: rulesPrimary ?? undefined,
-          },
-        };
+        return data;
       },
     );
     setCacheStatus(c, status);
@@ -359,7 +372,14 @@ predictionRoutes.post("/predictions/orders", async (c) => {
 predictionRoutes.get("/predictions/orders", async (c) => {
   const url = new URL(c.req.url);
   const params = Object.fromEntries(url.searchParams);
+  delete params.fresh;
+  const fresh = isFreshReadRequested(c);
   try {
+    if (fresh) {
+      c.header("X-Cache", "live");
+      return c.json(await jupiter.get("orders", { searchParams: params }).json());
+    }
+
     const { value, status } = await jupiterCache.fetch(
       `orders:${url.search}`,
       TTL_PER_WALLET_MS,
@@ -392,34 +412,43 @@ predictionRoutes.post("/predictions/transactions/submit", async (c) => {
 predictionRoutes.get("/predictions/positions", async (c) => {
   const url = new URL(c.req.url);
   const params = Object.fromEntries(url.searchParams);
+  delete params.fresh;
+  const fresh = isFreshReadRequested(c);
   try {
+    const loadPositions = async () => {
+      const data = await jupiter.get("positions", { searchParams: params }).json<any>();
+
+      // Normalize positions: use event title (the actual question) and map field names
+      const positions = data?.data ?? [];
+      const enriched = positions.map((pos: any) => {
+        // Use eventMetadata.title (the question) instead of market.title (the outcome name "Yes"/"No")
+        const title = pos.eventMetadata?.title ?? pos.market?.title ?? "Unknown Market";
+        return {
+          ...pos,
+          // Map Jupiter's totalCostUsd to costBasisUsd for the client
+          costBasisUsd: pos.costBasisUsd ?? pos.totalCostUsd ?? "0",
+          market: {
+            ...pos.market,
+            title,
+            status: pos.marketMetadata?.status ?? pos.market?.status ?? "open",
+            result: pos.marketMetadata?.result ?? pos.market?.result ?? null,
+            pricing: pos.market?.pricing,
+          },
+        };
+      });
+
+      return { ...data, data: enriched };
+    };
+
+    if (fresh) {
+      c.header("X-Cache", "live");
+      return c.json(await loadPositions());
+    }
+
     const { value, status } = await jupiterCache.fetch(
       `positions:${url.search}`,
       TTL_PER_WALLET_MS,
-      async () => {
-        const data = await jupiter.get("positions", { searchParams: params }).json<any>();
-
-        // Normalize positions: use event title (the actual question) and map field names
-        const positions = data?.data ?? [];
-        const enriched = positions.map((pos: any) => {
-          // Use eventMetadata.title (the question) instead of market.title (the outcome name "Yes"/"No")
-          const title = pos.eventMetadata?.title ?? pos.market?.title ?? "Unknown Market";
-          return {
-            ...pos,
-            // Map Jupiter's totalCostUsd to costBasisUsd for the client
-            costBasisUsd: pos.costBasisUsd ?? pos.totalCostUsd ?? "0",
-            market: {
-              ...pos.market,
-              title,
-              status: pos.marketMetadata?.status ?? pos.market?.status ?? "open",
-              result: pos.marketMetadata?.result ?? pos.market?.result ?? null,
-              pricing: pos.market?.pricing,
-            },
-          };
-        });
-
-        return { ...data, data: enriched };
-      },
+      loadPositions,
     );
     setCacheStatus(c, status);
     return c.json(value as object);
