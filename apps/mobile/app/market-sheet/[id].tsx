@@ -19,7 +19,7 @@ import { fonts, fontSize, letterSpacing } from "@/constants/typography";
 import { usePredictionMarketDetail } from "@/hooks/usePredictionMarket";
 import { useCreateOrder, useTradingStatus } from "@/hooks/usePredictionTrading";
 import { useWalletBalance } from "@/hooks/useWalletBalance";
-import { getBalanceError } from "@/lib/balance";
+import { getUsdcBalanceError } from "@/lib/balance";
 import { getMinimumTradeUsdFromError } from "@/lib/prediction-errors";
 import {
   microToUsd,
@@ -95,7 +95,7 @@ export default function MarketSheet() {
     if (!walletBalances) return null;
     const usd = parseTradeAmount(amount);
     if (!usd || usd <= 0) return null;
-    return getBalanceError(walletBalances, Number(usdToMicro(usd)));
+    return getUsdcBalanceError(walletBalances, Number(usdToMicro(usd)));
   }, [walletBalances, amount]);
 
   const usdcBalance = walletBalances

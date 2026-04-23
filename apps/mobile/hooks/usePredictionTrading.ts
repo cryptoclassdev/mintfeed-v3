@@ -16,7 +16,16 @@ import {
   withTimeout,
   type TransactionMeta,
 } from "@/lib/wallet";
-import { fetchWalletBalances, getBalanceError } from "@/lib/balance";
+import {
+  fetchWalletBalances,
+  getSolFeeBalanceError,
+  getUsdcBalanceError,
+  type WalletBalances,
+} from "@/lib/balance";
+import {
+  estimateSolRequirementForTransaction,
+  estimateSolRequirementForTransactions,
+} from "@/lib/solana-fees";
 import { useAppStore, type PendingPredictionTrade } from "@/lib/store";
 import { shouldResolvePendingPredictionTrade } from "@/lib/prediction-trade-reconciliation";
 import type {
@@ -179,6 +188,80 @@ function makePendingResult(
   };
 }
 
+async function fetchFreshWalletBalances(
+  queryClient: ReturnType<typeof useQueryClient>,
+  walletAddress: string,
+  context: string,
+): Promise<WalletBalances | null> {
+  queryClient.invalidateQueries({ queryKey: ["wallet-balance", walletAddress] });
+  try {
+    const balances = await fetchWalletBalances(walletAddress);
+    queryClient.setQueryData(["wallet-balance", walletAddress], balances);
+    return balances;
+  } catch (error) {
+    if (__DEV__) console.warn(`[${context}] Balance check failed:`, error);
+    return null;
+  }
+}
+
+function throwRetryableInsufficientBalance(message: string): never {
+  const error = new Error(message);
+  (error as any).retryable = true;
+  throw error;
+}
+
+async function assertSufficientSolForTransaction(
+  queryClient: ReturnType<typeof useQueryClient>,
+  walletAddress: string,
+  base64Transaction: string,
+  context: string,
+  balances?: WalletBalances | null,
+): Promise<void> {
+  const [feeRequirement, currentBalances] = await Promise.all([
+    estimateSolRequirementForTransaction(base64Transaction),
+    balances
+      ? Promise.resolve(balances)
+      : fetchFreshWalletBalances(queryClient, walletAddress, context),
+  ]);
+
+  if (!currentBalances) {
+    return;
+  }
+
+  const solError = getSolFeeBalanceError(
+    currentBalances,
+    feeRequirement.requiredLamports,
+  );
+  if (solError) {
+    throwRetryableInsufficientBalance(solError);
+  }
+}
+
+async function assertSufficientSolForTransactions(
+  queryClient: ReturnType<typeof useQueryClient>,
+  walletAddress: string,
+  base64Transactions: string[],
+  context: string,
+): Promise<void> {
+  if (base64Transactions.length === 0) {
+    return;
+  }
+
+  const [feeRequirement, balances] = await Promise.all([
+    estimateSolRequirementForTransactions(base64Transactions),
+    fetchFreshWalletBalances(queryClient, walletAddress, context),
+  ]);
+
+  if (!balances) {
+    return;
+  }
+
+  const solError = getSolFeeBalanceError(balances, feeRequirement.requiredLamports);
+  if (solError) {
+    throwRetryableInsufficientBalance(solError);
+  }
+}
+
 function resolveWalletSubmission(
   walletAddress: string,
   submission: WalletSubmissionResult,
@@ -221,26 +304,24 @@ export function useCreateOrder() {
 
       if (__DEV__) console.log("[createOrder] Request:", JSON.stringify(request));
 
-      // Pre-flight balance check for buy orders — invalidate the cached
-      // balance first so a stale "insufficient" result can't block a user
-      // who just deposited funds.
+      let latestBalances: WalletBalances | null = null;
+
+      // Pre-flight buy checks only validate USDC. SOL fees are checked against
+      // the actual returned transaction below, after Jupiter builds it.
       if (request.isBuy && request.depositAmount) {
-        queryClient.invalidateQueries({ queryKey: ["wallet-balance", walletAddress] });
-        try {
-          const balances = await fetchWalletBalances(walletAddress);
-          queryClient.setQueryData(["wallet-balance", walletAddress], balances);
-          const balanceError = getBalanceError(balances, Number(request.depositAmount));
+        latestBalances = await fetchFreshWalletBalances(
+          queryClient,
+          walletAddress,
+          "createOrder",
+        );
+        if (latestBalances) {
+          const balanceError = getUsdcBalanceError(
+            latestBalances,
+            Number(request.depositAmount),
+          );
           if (balanceError) {
-            const error = new Error(balanceError);
-            (error as any).retryable = true;
-            throw error;
+            throwRetryableInsufficientBalance(balanceError);
           }
-        } catch (err) {
-          if (err instanceof Error && err.message.startsWith("Insufficient")) {
-            throw err;
-          }
-          // RPC failure — proceed anyway, server will catch
-          if (__DEV__) console.warn("[createOrder] Balance check failed:", err);
         }
       }
 
@@ -266,7 +347,7 @@ export function useCreateOrder() {
         const code = body?.code ?? "";
         if (code === "INSUFFICIENT_FUNDS" || code === "ANCHOR_6025") {
           throw new Error(
-            "Insufficient balance. You need both USDC (for the bet) and SOL (\u22480.03 for fees/rent).",
+            "Insufficient balance. You need enough USDC for the bet and a small amount of SOL for network fees.",
           );
         }
         throw new Error(
@@ -281,6 +362,14 @@ export function useCreateOrder() {
             : null,
           order: response.order,
         }));
+
+      await assertSufficientSolForTransaction(
+        queryClient,
+        walletAddress,
+        response.transaction,
+        "createOrder",
+        latestBalances,
+      );
 
       try {
         const submission = await signAndSend(
@@ -362,19 +451,6 @@ export function useClosePosition() {
         throw new Error("Wallet not connected");
       }
 
-      // SOL pre-check (closing needs fees)
-      queryClient.invalidateQueries({ queryKey: ["wallet-balance", walletAddress] });
-      try {
-        const balances = await fetchWalletBalances(walletAddress);
-        queryClient.setQueryData(["wallet-balance", walletAddress], balances);
-        if (balances.solLamports < 30_000_000) {
-          throw new Error("Insufficient SOL for transaction fees. You need ~0.03 SOL.");
-        }
-      } catch (err) {
-        if (err instanceof Error && err.message.startsWith("Insufficient")) throw err;
-        if (__DEV__) console.warn("[closePosition] Balance check failed:", err);
-      }
-
       let response: CreateOrderResponse;
       try {
         response = await closePosition(positionPubkey, ownerPubkey, isYes, contracts);
@@ -383,6 +459,13 @@ export function useClosePosition() {
         const body = await httpErr?.response?.json?.().catch(() => null);
         throw new Error(body?.error ?? body?.message ?? httpErr?.message ?? "Failed to close position");
       }
+
+      await assertSufficientSolForTransaction(
+        queryClient,
+        walletAddress,
+        response.transaction,
+        "closePosition",
+      );
 
       // API is done — from here on we are waiting on the wallet send flow.
       onBeforeSign?.();
@@ -450,6 +533,12 @@ export function useCloseAllPositions() {
       }
       const responses: CreateOrderResponse[] =
         await closeAllPositions(ownerPubkey);
+      await assertSufficientSolForTransactions(
+        queryClient,
+        walletAddress,
+        responses.map((response) => response.transaction),
+        "closeAllPositions",
+      );
       const signatures: string[] = [];
       const failures: string[] = [];
 
@@ -511,17 +600,6 @@ export function useClaimPosition() {
         throw new Error("This position is not yet claimable.");
       }
 
-      // SOL pre-check
-      try {
-        const balances = await fetchWalletBalances(walletAddress);
-        if (balances.solLamports < 30_000_000) {
-          throw new Error("Insufficient SOL for transaction fees. You need ~0.03 SOL.");
-        }
-      } catch (err) {
-        if (err instanceof Error && err.message.startsWith("Insufficient")) throw err;
-        if (__DEV__) console.warn("[claimPosition] Balance check failed:", err);
-      }
-
       let response: ClaimPositionResponse;
       try {
         response = await claimPosition(positionPubkey, ownerPubkey);
@@ -532,6 +610,12 @@ export function useClaimPosition() {
       }
 
       try {
+        await assertSufficientSolForTransaction(
+          queryClient,
+          walletAddress,
+          response.transaction,
+          "claimPosition",
+        );
         const submission = await signAndSend(
           (tx, minContextSlot) => signAndSendTransactions(tx, minContextSlot ?? 0),
           response.transaction,

@@ -9,9 +9,6 @@ export interface WalletBalances {
 
 const USDC_MINT_PUBKEY = new PublicKey(USDC_MINT);
 
-/** Minimum SOL required for transaction fees (~0.03 SOL) */
-export const MIN_SOL_FOR_FEES = 30_000_000;
-
 export async function fetchWalletBalances(pubkey: string): Promise<WalletBalances> {
   const owner = new PublicKey(pubkey);
 
@@ -38,13 +35,16 @@ export async function fetchWalletBalances(pubkey: string): Promise<WalletBalance
   return { solLamports, usdcMicroAmount };
 }
 
-export function getBalanceError(
+export function formatSolLamports(lamports: number): string {
+  const sol = lamports / 1_000_000_000;
+  const decimals = sol < 0.01 ? 6 : 4;
+  return sol.toFixed(decimals).replace(/\.?0+$/, "");
+}
+
+export function getUsdcBalanceError(
   balances: WalletBalances,
   tradeAmountMicro: number,
 ): string | null {
-  if (balances.solLamports < MIN_SOL_FOR_FEES) {
-    return "Insufficient SOL for transaction fees. You need ~0.03 SOL.";
-  }
   if (balances.usdcMicroAmount < tradeAmountMicro) {
     const haveUsd = (balances.usdcMicroAmount / 1_000_000).toFixed(2);
     const needUsd = (tradeAmountMicro / 1_000_000).toFixed(2);
@@ -52,3 +52,16 @@ export function getBalanceError(
   }
   return null;
 }
+
+export function getSolFeeBalanceError(
+  balances: WalletBalances,
+  requiredLamports: number,
+): string | null {
+  if (balances.solLamports >= requiredLamports) {
+    return null;
+  }
+
+  return `Need about ${formatSolLamports(requiredLamports)} SOL for network fees. You have ${formatSolLamports(balances.solLamports)} SOL.`;
+}
+
+export const getBalanceError = getUsdcBalanceError;
