@@ -1,10 +1,20 @@
 import { GoogleGenerativeAI, SchemaType } from "@google/generative-ai";
-import type { GenerativeModel, ResponseSchema } from "@google/generative-ai";
+import type { GenerativeModel, GenerationConfig, ResponseSchema } from "@google/generative-ai";
 import { ARTICLE_SUMMARY_WORD_LIMIT, ARTICLE_TITLE_MAX_LENGTH } from "@midnight/shared";
 
+export const GEMINI_REWRITE_MODEL = "gemini-2.5-flash";
+const GEMINI_MAX_OUTPUT_TOKENS = 1200;
+const FALLBACK_SUMMARY_MAX_LENGTH = 300;
+
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY ?? "");
-const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+const model = genAI.getGenerativeModel({ model: GEMINI_REWRITE_MODEL });
 export const GEMINI_REWRITE_PROMPT_VERSION = "article-rewrite-v2";
+
+type GeminiGenerationConfig = GenerationConfig & {
+  thinkingConfig?: {
+    thinkingBudget: number;
+  };
+};
 
 interface GeminiResult {
   title: string;
@@ -73,6 +83,26 @@ function normalizeSummary(summary: string): string {
     : summary.replace(/[ \t]+/g, " ").trim();
 }
 
+function trimSummaryToSentenceBoundary(summary: string): string {
+  const normalized = sanitize(summary).replace(/\s+/g, " ").trim();
+  if (normalized.length <= FALLBACK_SUMMARY_MAX_LENGTH) return normalized;
+
+  const truncated = normalized.slice(0, FALLBACK_SUMMARY_MAX_LENGTH);
+  const sentenceEnds = [...truncated.matchAll(/[.!?](?=\s|$)/g)];
+  const lastSentenceEnd = sentenceEnds.at(-1)?.index;
+
+  if (lastSentenceEnd !== undefined && lastSentenceEnd > FALLBACK_SUMMARY_MAX_LENGTH * 0.35) {
+    return truncated.slice(0, lastSentenceEnd + 1).trim();
+  }
+
+  const lastSpace = truncated.lastIndexOf(" ");
+  const wordBoundary =
+    lastSpace > FALLBACK_SUMMARY_MAX_LENGTH * 0.5 ? truncated.slice(0, lastSpace) : truncated;
+  const cleanSummary = wordBoundary.replace(TRAILING_PUNCT_REGEX, "").trim();
+
+  return cleanSummary.endsWith(".") ? cleanSummary : `${cleanSummary}.`;
+}
+
 function isValidGeminiResult(result: GeminiResult): boolean {
   if (!result.title || result.title.length > ARTICLE_TITLE_MAX_LENGTH) return false;
   if (!result.summary || !SENTENCE_END_REGEX.test(result.summary.trim())) return false;
@@ -83,7 +113,7 @@ function isValidGeminiResult(result: GeminiResult): boolean {
 function fallbackResult(originalTitle: string, originalBody: string): GeminiResult {
   return {
     title: trimTitleToLimit(sanitize(originalTitle), ARTICLE_TITLE_MAX_LENGTH),
-    summary: sanitize(originalBody).slice(0, 300),
+    summary: trimSummaryToSentenceBoundary(originalBody),
     breaking: false,
   };
 }
@@ -102,17 +132,20 @@ export async function rewriteArticle(
   rewriteModel: GenerativeModel = model,
 ): Promise<GeminiResult> {
   try {
+    const generationConfig: GeminiGenerationConfig = {
+      responseMimeType: "application/json",
+      responseSchema: REWRITE_RESPONSE_SCHEMA,
+      temperature: 0.4,
+      maxOutputTokens: GEMINI_MAX_OUTPUT_TOKENS,
+      thinkingConfig: { thinkingBudget: 0 },
+    };
+
     const result = await rewriteModel.generateContent({
       systemInstruction: SYSTEM_PROMPT,
       contents: [
         { role: "user", parts: [{ text: buildUserPrompt(originalTitle, originalBody) }] },
       ],
-      generationConfig: {
-        responseMimeType: "application/json",
-        responseSchema: REWRITE_RESPONSE_SCHEMA,
-        temperature: 0.4,
-        maxOutputTokens: 600,
-      },
+      generationConfig,
     });
 
     const text = result.response.text();
