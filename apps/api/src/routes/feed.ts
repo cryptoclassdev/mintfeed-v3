@@ -72,16 +72,63 @@ function dedupeMappedArticles<T extends ReturnType<typeof mapArticle>>(articles:
 }
 
 const VALID_CATEGORIES = new Set(["all", "crypto", "ai"]);
+const LEGACY_FALLBACK_SUMMARY_LENGTH = 300;
+const FEED_SUMMARY_MIN_WORDS = 20;
+const FEED_SCAN_BATCH_LIMIT = 150;
+const FEED_SCAN_MAX_BATCHES = 20;
+
+export function isFeedSummaryReady(summary: string) {
+  const normalized = summary.trim();
+
+  if (!normalized) return false;
+  if (normalized.length === LEGACY_FALLBACK_SUMMARY_LENGTH) return false;
+  if (!/[.!?]$/.test(normalized)) return false;
+
+  return normalized.split(/\s+/).filter(Boolean).length >= FEED_SUMMARY_MIN_WORDS;
+}
 
 export function buildFeedWhere(categoryParam: string) {
-  const imageReadyFilter = {
+  const feedReadyFilter = {
     imageUrl: { not: null },
     imageBlurhash: { not: null },
+    summary: { not: "" },
   };
 
   return categoryParam === "all"
-    ? imageReadyFilter
-    : { category: categoryParam.toUpperCase() as Category, ...imageReadyFilter };
+    ? feedReadyFilter
+    : { category: categoryParam.toUpperCase() as Category, ...feedReadyFilter };
+}
+
+async function collectFeedPage<T extends { id: string; summary: string }>(
+  limit: number,
+  cursor: string | undefined,
+  fetchBatch: (cursor: string | undefined, take: number) => Promise<T[]>,
+) {
+  const readyArticles: T[] = [];
+  const batchSize = Math.min(Math.max(limit * 3, limit + 1), FEED_SCAN_BATCH_LIMIT);
+  let rawCursor = cursor;
+  let reachedEnd = false;
+
+  for (let batchCount = 0; readyArticles.length <= limit && batchCount < FEED_SCAN_MAX_BATCHES; batchCount += 1) {
+    const batch = await fetchBatch(rawCursor, batchSize + 1);
+    const rawArticles = batch.length > batchSize ? batch.slice(0, batchSize) : batch;
+
+    readyArticles.push(...rawArticles.filter((article) => isFeedSummaryReady(article.summary)));
+
+    if (batch.length <= batchSize || rawArticles.length === 0) {
+      reachedEnd = true;
+      break;
+    }
+
+    rawCursor = rawArticles[rawArticles.length - 1]?.id;
+  }
+
+  const data = readyArticles.slice(0, limit);
+  const scannedExtraReadyArticle = readyArticles.length > limit;
+  const hasMore = scannedExtraReadyArticle || (!reachedEnd && data.length > 0);
+  const nextCursor = hasMore ? data[data.length - 1]?.id ?? rawCursor ?? null : null;
+
+  return { data, nextCursor, hasMore };
 }
 
 feedRoutes.get("/feed", async (c) => {
@@ -97,39 +144,39 @@ feedRoutes.get("/feed", async (c) => {
   const where = buildFeedWhere(categoryParam);
 
   try {
-    const articles = await prisma.article.findMany({
-      where,
-      orderBy: { publishedAt: "desc" },
-      take: limit + 1,
-      ...(cursor && { cursor: { id: cursor }, skip: 1 }),
-      select: ARTICLE_SELECT_WITH_PREDICTIONS,
+    const page = await collectFeedPage(limit, cursor, (batchCursor, take) => {
+      return prisma.article.findMany({
+        where,
+        orderBy: { publishedAt: "desc" },
+        take,
+        ...(batchCursor && { cursor: { id: batchCursor }, skip: 1 }),
+        select: ARTICLE_SELECT_WITH_PREDICTIONS,
+      });
     });
 
-    const hasMore = articles.length > limit;
-    const raw = hasMore ? articles.slice(0, limit) : articles;
-    const data = dedupeMappedArticles(raw.map(mapArticle));
-    const nextCursor = hasMore ? data[data.length - 1]?.id ?? null : null;
+    const data = dedupeMappedArticles(page.data.map(mapArticle));
+    const nextCursor = page.hasMore ? data[data.length - 1]?.id ?? page.nextCursor : null;
 
-    return c.json({ data, nextCursor, hasMore });
+    return c.json({ data, nextCursor, hasMore: page.hasMore });
   } catch (error) {
     // If the prediction markets relation fails (e.g. table not yet created),
     // fall back to serving articles without prediction data.
     console.error("[Feed] Query with predictions failed, retrying without:", (error as Error).message);
     try {
-      const articles = await prisma.article.findMany({
-        where,
-        orderBy: { publishedAt: "desc" },
-        take: limit + 1,
-        ...(cursor && { cursor: { id: cursor }, skip: 1 }),
-        select: ARTICLE_SELECT,
+      const page = await collectFeedPage(limit, cursor, (batchCursor, take) => {
+        return prisma.article.findMany({
+          where,
+          orderBy: { publishedAt: "desc" },
+          take,
+          ...(batchCursor && { cursor: { id: batchCursor }, skip: 1 }),
+          select: ARTICLE_SELECT,
+        });
       });
 
-      const hasMore = articles.length > limit;
-      const raw = hasMore ? articles.slice(0, limit) : articles;
-      const data = dedupeArticlesByContent(raw.map((a) => ({ ...a, predictionMarkets: [] })));
-      const nextCursor = hasMore ? data[data.length - 1]?.id ?? null : null;
+      const data = dedupeArticlesByContent(page.data.map((a) => ({ ...a, predictionMarkets: [] })));
+      const nextCursor = page.hasMore ? data[data.length - 1]?.id ?? page.nextCursor : null;
 
-      return c.json({ data, nextCursor, hasMore });
+      return c.json({ data, nextCursor, hasMore: page.hasMore });
     } catch (fallbackError) {
       console.error("[Feed] Fallback query also failed:", (fallbackError as Error).message);
       return c.json({ data: [], nextCursor: null, hasMore: false });
