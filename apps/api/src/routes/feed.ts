@@ -73,6 +73,17 @@ function dedupeMappedArticles<T extends ReturnType<typeof mapArticle>>(articles:
 
 const VALID_CATEGORIES = new Set(["all", "crypto", "ai"]);
 
+export function buildFeedWhere(categoryParam: string) {
+  const imageReadyFilter = {
+    imageUrl: { not: null },
+    imageBlurhash: { not: null },
+  };
+
+  return categoryParam === "all"
+    ? imageReadyFilter
+    : { category: categoryParam.toUpperCase() as Category, ...imageReadyFilter };
+}
+
 feedRoutes.get("/feed", async (c) => {
   const categoryParam = (c.req.query("category") ?? "all").toLowerCase();
   const cursor = c.req.query("cursor");
@@ -83,10 +94,7 @@ feedRoutes.get("/feed", async (c) => {
     return c.json({ error: "Invalid category. Must be: all, crypto, or ai" }, 400);
   }
 
-  const where =
-    categoryParam === "all"
-      ? { imageUrl: { not: null } }
-      : { category: categoryParam.toUpperCase() as Category, imageUrl: { not: null } };
+  const where = buildFeedWhere(categoryParam);
 
   try {
     const articles = await prisma.article.findMany({
