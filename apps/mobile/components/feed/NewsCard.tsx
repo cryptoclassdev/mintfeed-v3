@@ -198,6 +198,9 @@ export const NewsCard = memo(function NewsCard({ article, onSwipeBet, walletConn
               placeholder={article.imageBlurhash ?? undefined}
               style={styles.image}
               contentFit="cover"
+              cachePolicy="memory-disk"
+              priority="high"
+              recyclingKey={article.id}
               transition={300}
               accessibilityLabel={`Image for ${article.sourceName} article`}
             />

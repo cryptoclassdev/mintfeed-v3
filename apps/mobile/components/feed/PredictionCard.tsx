@@ -43,7 +43,7 @@ export const PredictionCard = memo(function PredictionCard({
   const scale = useSharedValue(1);
   const cardOpacity = useSharedValue(0);
   const cardTranslateY = useSharedValue(10);
-  const barWidth = useSharedValue(0);
+  const barScale = useSharedValue(0);
 
   const cardShadowStyle = useMemo(() => ({
     backgroundColor: themeColors.card,
@@ -92,14 +92,14 @@ export const PredictionCard = memo(function PredictionCard({
     let timer: ReturnType<typeof setTimeout> | undefined;
     if (hasOdds) {
       timer = setTimeout(() => {
-        barWidth.value = withSpring(yesPercent, { damping: 20, stiffness: 300 });
+        barScale.value = withSpring(yesPercent / 100, { damping: 20, stiffness: 300 });
       }, 150);
     }
 
     return () => {
       if (timer) clearTimeout(timer);
     };
-  }, [hasOdds, yesPercent]);
+  }, [barScale, cardOpacity, cardTranslateY, hasOdds, yesPercent]);
 
   // Animated styles
   const scaleAnimatedStyle = useAnimatedStyle(() => ({
@@ -112,7 +112,7 @@ export const PredictionCard = memo(function PredictionCard({
   }));
 
   const barAnimatedStyle = useAnimatedStyle(() => ({
-    width: `${barWidth.value}%`,
+    transform: [{ scaleX: barScale.value }],
   }));
 
   // Press handlers
@@ -292,6 +292,8 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 0,
     left: 0,
+    right: 0,
+    transformOrigin: "left center",
   },
   metaText: {
     fontFamily: fonts.mono.regular,

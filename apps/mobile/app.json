@@ -5,17 +5,17 @@
     "version": "1.0.0",
     "scheme": "midnight",
     "orientation": "portrait",
-    "icon": "./assets/adaptive-icon.png",
+    "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
     "splash": {
-      "image": "./assets/icon.png",
+      "image": "./assets/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#030303"
     },
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.midnight.app",
-      "icon": "./assets/adaptive-icon.png",
+      "icon": "./assets/icon.png",
       "associatedDomains": ["applinks:midnightapp.link"]
     },
     "android": {
@@ -62,12 +62,21 @@
       "expo-font",
       "expo-secure-store",
       "expo-web-browser",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-logo.png",
+          "imageWidth": 220,
+          "resizeMode": "contain",
+          "backgroundColor": "#030303"
+        }
+      ],
       "./plugins/wallet-queries",
       "./plugins/android-release-signing",
       [
         "expo-notifications",
         {
-          "icon": "./assets/adaptive-icon.png",
+          "icon": "./assets/notification-icon.png",
           "color": "#4C8BD0"
         }
       ],

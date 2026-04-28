@@ -3,8 +3,9 @@ import { persist, createJSONStorage } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { ThemeMode } from "@/constants/theme";
 
-export const QUICK_BET_OPTIONS = [5, 10, 25, 50] as const;
-export const QUICK_BET_MIN = 5;
+export const QUICK_BET_OPTIONS = [10, 25, 50, 100] as const;
+export const QUICK_BET_DEFAULT = 10;
+export const QUICK_BET_MIN = QUICK_BET_DEFAULT;
 export const QUICK_BET_MAX = 500;
 export type QuickBetPreset = (typeof QUICK_BET_OPTIONS)[number];
 const PENDING_PREDICTION_TRADE_MAX_AGE_MS = 15 * 60 * 1000;
@@ -64,7 +65,7 @@ export const useAppStore = create<AppState>()(
       hapticsEnabled: true,
       readArticleIds: {},
       hasCompletedOnboarding: false,
-      quickBetAmount: 5,
+      quickBetAmount: QUICK_BET_DEFAULT,
       notificationPermission: "undetermined",
       expoPushToken: null,
       feedSessionCount: 0,
@@ -143,8 +144,8 @@ export const useAppStore = create<AppState>()(
         pendingPredictionTrades: state.pendingPredictionTrades,
       }),
       onRehydrateStorage: () => (state) => {
-        if (state && state.quickBetAmount < QUICK_BET_MIN) {
-          state.setQuickBetAmount(QUICK_BET_MIN);
+        if (state && state.quickBetAmount < QUICK_BET_DEFAULT) {
+          state.setQuickBetAmount(QUICK_BET_DEFAULT);
         }
         if (state) {
           state.prunePendingPredictionTrades();
