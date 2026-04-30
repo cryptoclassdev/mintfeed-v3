@@ -74,6 +74,16 @@ jobs:
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
           SENTRY_DISABLE_AUTO_UPLOAD: 'true'
 
+      - name: Verify release signing
+        run: |
+          APK=$(ls android/app/build/outputs/apk/release/*.apk | head -1)
+          APKSIGNER=$(find "$ANDROID_HOME/build-tools" -name apksigner | sort | tail -1)
+          "$APKSIGNER" verify --verbose --print-certs "$APK" | tee /tmp/apksigner.txt
+          if grep -q "CN=Android Debug" /tmp/apksigner.txt; then
+            echo "APK is debug-signed; refusing to submit to dApp Store."
+            exit 1
+          fi
+
       - name: Locate APK
         id: apk
         run: |
@@ -88,6 +98,11 @@ jobs:
           path: apps/mobile/${{ steps.apk.outputs.path }}
           retention-days: 90
 
+      - name: Decode dApp Store signer keypair
+        run: echo "$DAPP_STORE_SIGNER_KEYPAIR_BASE64" | base64 -d > /tmp/dapp-store-signer.json
+        env:
+          DAPP_STORE_SIGNER_KEYPAIR_BASE64: ${{ secrets.DAPP_STORE_SIGNER_KEYPAIR_BASE64 }}
+
       - name: Submit to Solana dApp Store
         env:
           DAPP_STORE_API_KEY: ${{ secrets.DAPP_STORE_API_KEY }}
@@ -95,5 +110,6 @@ jobs:
           WHATS_NEW="${{ github.event.inputs.whats_new || format('Release {0}', github.ref_name) }}"
           pnpm dapp-store:submit \
             --apk-file ${{ steps.apk.outputs.path }} \
-            --whats-new "$WHATS_NEW"
+            --whats-new "$WHATS_NEW" \
+            --keypair /tmp/dapp-store-signer.json
         working-directory: .

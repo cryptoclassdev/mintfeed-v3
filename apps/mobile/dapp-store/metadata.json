@@ -16,6 +16,5 @@
     "banner": "./banner.png",
     "screenshots_dir": "./screenshots/",
     "preview_video": "./preview.mp4"
-  },
-  "_notes": "This file is a scaffold. Before submitting, replace placeholder text with final product copy (legal + marketing review), drop real assets into this directory at the paths above, and fill in categories/age rating from the publish.solanamobile.com dashboard questionnaire."
+  }
 }

@@ -6,12 +6,12 @@ This directory holds the Midnight listing content for [publish.solanamobile.com]
 
 1. Sign in at `publish.solanamobile.com` and create the publisher + app for `com.midnight.app`.
 2. Generate an API key: Dashboard → Settings → API Keys.
-3. Store the key as an EAS secret and a GitHub Actions secret named `DAPP_STORE_API_KEY`:
+3. Store the portal API key and publisher signer keypair as GitHub Actions secrets:
    ```bash
-   eas secret:create --scope project --name DAPP_STORE_API_KEY --value <key>
    gh secret set DAPP_STORE_API_KEY --body <key>
+   base64 -i /path/to/publisher-keypair.json | gh secret set DAPP_STORE_SIGNER_KEYPAIR_BASE64
    ```
-4. Back up the Android release keystore from EAS (`eas credentials -p android`). Losing it means you can't update the app.
+4. Back up the Android release keystore from EAS (`eas credentials -p android`) and the publisher keypair. Losing either means you can't update the app.
 
 ## Required assets (drop into this directory)
 
@@ -31,7 +31,8 @@ After EAS builds a production APK:
 ```bash
 pnpm dapp-store:submit \
   --apk-file ./build.apk \
-  --whats-new "Initial release: swipe feed, prediction markets, push notifications"
+  --whats-new "Initial release: swipe feed, prediction markets, push notifications" \
+  --keypair /path/to/publisher-keypair.json
 ```
 
 In CI this runs automatically on a `v*` tag — see `.github/workflows/dapp-store.yml`.
