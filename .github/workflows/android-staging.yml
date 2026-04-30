@@ -104,6 +104,16 @@ jobs:
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
           SENTRY_DISABLE_AUTO_UPLOAD: 'true'
 
+      - name: Verify release signing
+        run: |
+          APK=$(ls android/app/build/outputs/apk/release/*.apk | head -1)
+          APKSIGNER=$(find "$ANDROID_HOME/build-tools" -name apksigner | sort | tail -1)
+          "$APKSIGNER" verify --verbose --print-certs "$APK" | tee /tmp/apksigner.txt
+          if grep -q "CN=Android Debug" /tmp/apksigner.txt; then
+            echo "APK is debug-signed; refusing to upload staging artifact."
+            exit 1
+          fi
+
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
