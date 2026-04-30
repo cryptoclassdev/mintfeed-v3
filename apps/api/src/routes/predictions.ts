@@ -172,9 +172,21 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function withPredictionWriteRetry<T>(
+interface PredictionWriteRetryDependencies {
+  getRetryAfterSeconds?: typeof getJupiterRetryAfterSeconds;
+  pauseBackgroundReadsForMs?: typeof pauseBackgroundPredictionReadsForMs;
+  sleep?: typeof sleep;
+}
+
+export async function withPredictionWriteRetry<T>(
   run: () => Promise<T>,
+  dependencies: PredictionWriteRetryDependencies = {},
 ): Promise<T> {
+  const getRetryAfterSeconds =
+    dependencies.getRetryAfterSeconds ?? getJupiterRetryAfterSeconds;
+  const pauseBackgroundReadsForMs =
+    dependencies.pauseBackgroundReadsForMs ?? pauseBackgroundPredictionReadsForMs;
+  const sleepMs = dependencies.sleep ?? sleep;
   let attempt = 0;
 
   while (attempt < 3) {
@@ -185,11 +197,11 @@ async function withPredictionWriteRetry<T>(
         throw error;
       }
 
-      const retryAfterSeconds = getJupiterRetryAfterSeconds(error.response.headers) ?? 1;
+      const retryAfterSeconds = getRetryAfterSeconds(error.response.headers) ?? 1;
       const retryDelayMs = Math.min((retryAfterSeconds + 1) * 1000, 5_000);
 
-      pauseBackgroundPredictionReadsForMs(retryDelayMs);
-      await sleep(retryDelayMs);
+      pauseBackgroundReadsForMs(retryDelayMs);
+      await sleepMs(retryDelayMs);
       attempt += 1;
     }
   }

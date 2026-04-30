@@ -1,8 +1,10 @@
-import { describe, expect, it } from "vitest";
+import { HTTPError } from "ky";
+import { describe, expect, it, vi } from "vitest";
 import {
   buildPredictionMarketDetailFromSnapshot,
   getPredictionMinimumTradeUsd,
   getJupiterRetryAfterSeconds,
+  withPredictionWriteRetry,
 } from "./predictions";
 
 describe("buildPredictionMarketDetailFromSnapshot", () => {
@@ -74,5 +76,81 @@ describe("getPredictionMinimumTradeUsd", () => {
   it("ignores invalid environment values", () => {
     expect(getPredictionMinimumTradeUsd({ PREDICTION_MIN_TRADE_USD: "0" })).toBe(1);
     expect(getPredictionMinimumTradeUsd({ PREDICTION_MIN_TRADE_USD: "abc" })).toBe(1);
+  });
+});
+
+describe("withPredictionWriteRetry", () => {
+  function makeHttpError(status: number, headers?: Headers): HTTPError {
+    const response = new Response(JSON.stringify({ message: "boom" }), {
+      status,
+      statusText: status === 429 ? "Too Many Requests" : "Bad Request",
+      headers,
+    });
+    const request = new Request("https://api.jup.ag/prediction/v1/orders", {
+      method: "POST",
+    });
+    return new HTTPError(response, request, {});
+  }
+
+  it("retries 429 writes, pauses reads, and waits before retrying", async () => {
+    const pauseBackgroundReadsForMs = vi.fn();
+    const sleep = vi.fn().mockResolvedValue(undefined);
+    const run = vi
+      .fn()
+      .mockRejectedValueOnce(
+        makeHttpError(429, new Headers({ "retry-after": "2" })),
+      )
+      .mockResolvedValueOnce({ ok: true });
+
+    await expect(
+      withPredictionWriteRetry(run, {
+        pauseBackgroundReadsForMs,
+        sleep,
+      }),
+    ).resolves.toEqual({ ok: true });
+
+    expect(run).toHaveBeenCalledTimes(2);
+    expect(pauseBackgroundReadsForMs).toHaveBeenCalledWith(3000);
+    expect(sleep).toHaveBeenCalledWith(3000);
+  });
+
+  it("does not retry non-429 errors", async () => {
+    const pauseBackgroundReadsForMs = vi.fn();
+    const sleep = vi.fn().mockResolvedValue(undefined);
+    const error = makeHttpError(400);
+    const run = vi.fn().mockRejectedValue(error);
+
+    await expect(
+      withPredictionWriteRetry(run, {
+        pauseBackgroundReadsForMs,
+        sleep,
+      }),
+    ).rejects.toBe(error);
+
+    expect(run).toHaveBeenCalledTimes(1);
+    expect(pauseBackgroundReadsForMs).not.toHaveBeenCalled();
+    expect(sleep).not.toHaveBeenCalled();
+  });
+
+  it("stops retrying after the third 429 failure", async () => {
+    const pauseBackgroundReadsForMs = vi.fn();
+    const sleep = vi.fn().mockResolvedValue(undefined);
+    const error = makeHttpError(
+      429,
+      new Headers({ "x-ratelimit-reset": "1776793652" }),
+    );
+    const run = vi.fn().mockRejectedValue(error);
+
+    await expect(
+      withPredictionWriteRetry(run, {
+        pauseBackgroundReadsForMs,
+        sleep,
+        getRetryAfterSeconds: () => 1,
+      }),
+    ).rejects.toBe(error);
+
+    expect(run).toHaveBeenCalledTimes(3);
+    expect(pauseBackgroundReadsForMs).toHaveBeenCalledTimes(2);
+    expect(sleep).toHaveBeenCalledTimes(2);
   });
 });

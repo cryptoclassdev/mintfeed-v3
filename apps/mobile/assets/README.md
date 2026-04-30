@@ -6,8 +6,8 @@ Current files here are used by `app.json` for icons, splash, and notifications. 
 |------|---------|---------------|
 | `icon.png` | iOS/general launcher icon | 1024×1024 PNG, square, no alpha, rounded Midnight tile treatment |
 | `adaptive-icon.png` | Android adaptive launcher foreground | 1024×1024 PNG, transparent background, rounded tile inside mask safe zone |
-| `splash.png` | Full-resolution native splash plate | 1242×2436 PNG, dark bg (#030303), compact icon tile + lowercase `midnight` |
-| `splash-logo.png` | Native splash plugin logo | Transparent PNG, compact icon tile + lowercase `midnight`; keep static and minimal |
+| `splash.png` | Full-resolution native splash bridge | 1242×2436 PNG, solid `#030303`; keep visually quiet so React owns the brand intro |
+| `splash-logo.png` | Native splash plugin bridge logo | Transparent PNG; intentionally blank to avoid a duplicate logo before `MidnightIntro` |
 | `splash-tile.png` | React startup intro tile | 220×220 PNG, transparent background, rounded Midnight tile used with live text animation |
 | `intro-mark.png` | Reusable raw brand mark | Transparent PNG, tightly cropped moon/mountain mark |
 | `notification-icon.png` | Android notification channel icon | 96×96 PNG, **monochrome white on transparent**. Android renders color icons as white squares. |

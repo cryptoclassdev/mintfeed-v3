@@ -32,7 +32,7 @@ const PAGES = [
   {
     scene: "trade" as const,
     title: "Trade Predictions",
-    subtitle: "Pick a side, choose an amount, and approve from your wallet.",
+    subtitle: "Choose an amount, then approve from your wallet.",
     accent: "accentMint" as const,
   },
   {
@@ -113,18 +113,43 @@ function SignalsPreview({
     <View style={styles.previewStage}>
       <View
         style={[
-          styles.signalCard,
-          { backgroundColor: themeColors.card, borderColor: themeColors.cardBorder },
+          styles.feedPreview,
+          { backgroundColor: themeColors.background },
         ]}
       >
-        <View style={[styles.feedImage, { backgroundColor: "#12351F" }]} />
-        <Text style={[styles.previewKicker, { color: accentColor }]}>CRYPTO</Text>
-        <Text style={[styles.previewTitle, { color: themeColors.text }]}>
-          Bitcoin volatility returns before market open
-        </Text>
-        <Text style={[styles.previewBody, { color: themeColors.textMuted }]}>
-          Summary, source, and market context.
-        </Text>
+        <View style={styles.feedFilterRow}>
+          {["ALL", "CRYPTO", "AI"].map((label, index) => (
+            <View
+              key={label}
+              style={[
+                styles.feedFilterPill,
+                {
+                  backgroundColor: index === 0 ? themeColors.card : "transparent",
+                  borderColor: index === 0 ? themeColors.accent : themeColors.cardBorder,
+                },
+              ]}
+            >
+              <Text style={[styles.feedFilterText, { color: index === 0 ? themeColors.accent : themeColors.textMuted }]}>
+                {label}
+              </Text>
+            </View>
+          ))}
+        </View>
+        <View style={[styles.feedHero, { backgroundColor: themeColors.card, borderColor: themeColors.cardBorder }]}>
+          <View style={[styles.feedHeroMark, { backgroundColor: accentColor }]} />
+          <Text style={[styles.previewKicker, { color: accentColor }]}>CRYPTO</Text>
+          <Text style={[styles.feedHeadline, { color: themeColors.text }]}>
+            Bitcoin volatility returns before market open
+          </Text>
+          <Text style={[styles.feedMeta, { color: themeColors.textMuted }]}>
+            THE DEFIANT · 13H AGO · READ FULL ARTICLE
+          </Text>
+          <View style={styles.feedSummaryLines}>
+            <View style={[styles.feedSummaryLine, { backgroundColor: themeColors.textMuted }]} />
+            <View style={[styles.feedSummaryLine, { backgroundColor: themeColors.textMuted, width: "84%" }]} />
+            <View style={[styles.feedSummaryLine, { backgroundColor: themeColors.textMuted, width: "62%" }]} />
+          </View>
+        </View>
       </View>
     </View>
   );
@@ -138,18 +163,46 @@ function TradePreview({
     <View style={styles.previewStage}>
       <View
         style={[
-          styles.marketSheetPreview,
+          styles.tradePreview,
           {
             backgroundColor: themeColors.background,
             borderColor: themeColors.cardBorder,
           },
         ]}
       >
-        <View style={[styles.sheetHandle, { backgroundColor: themeColors.textFaint }]} />
-        <Text style={[styles.sheetLabel, { color: themeColors.textMuted }]}>YOUR PICK</Text>
-        <Text style={[styles.amountText, { color: themeColors.text }]}>$5.00</Text>
-        <View style={[styles.approveButton, { backgroundColor: accentColor }]}>
-          <Text style={styles.approveText}>REVIEW TRADE</Text>
+        <View style={styles.tradeHeaderRow}>
+          <Text style={[styles.tradeTitle, { color: themeColors.text }]}>Quick bet</Text>
+          <Text style={[styles.tradeMinimum, { color: themeColors.textMuted }]}>MIN $10</Text>
+        </View>
+        <Text style={[styles.tradeHint, { color: themeColors.textMuted }]}>
+          Default amount when swiping to bet
+        </Text>
+        <View style={styles.quickBetRow}>
+          {[10, 25, 50, 100].map((amount, index) => (
+            <View
+              key={amount}
+              style={[
+                styles.quickBetPill,
+                {
+                  backgroundColor: index === 0 ? `${accentColor}18` : themeColors.card,
+                  borderColor: index === 0 ? accentColor : themeColors.cardBorder,
+                },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.quickBetText,
+                  { color: index === 0 ? accentColor : themeColors.textMuted },
+                ]}
+              >
+                ${amount}
+              </Text>
+            </View>
+          ))}
+        </View>
+        <View style={[styles.walletButtonPreview, { backgroundColor: themeColors.accent }]}>
+          <Ionicons name="wallet-outline" size={15} color="#ffffff" />
+          <Text style={styles.walletButtonText}>APPROVE IN WALLET</Text>
         </View>
       </View>
     </View>
@@ -164,42 +217,50 @@ function ProfilePreview({
     <View
       style={[
         styles.profilePreview,
-        { backgroundColor: themeColors.card, borderColor: themeColors.cardBorder },
+        { backgroundColor: themeColors.background, borderColor: themeColors.cardBorder },
       ]}
     >
-      <View style={styles.profileHeader}>
-        <View style={[styles.avatar, { backgroundColor: `${accentColor}24` }]}>
-          <Ionicons name="person" size={20} color={accentColor} />
-        </View>
-        <View style={styles.profileNameBlock}>
-          <Text style={[styles.profileName, { color: themeColors.text }]}>Your profile</Text>
-          <Text style={[styles.profileWallet, { color: themeColors.textMuted }]}>
-            Wallet, positions, history
-          </Text>
-        </View>
+      <Text style={[styles.profileScreenTitle, { color: themeColors.text }]}>Profile</Text>
+      <Text style={[styles.profileConnectTitle, { color: themeColors.text }]}>
+        Connect your wallet
+      </Text>
+      <Text style={[styles.profileConnectBody, { color: themeColors.textMuted }]}>
+        Sign in with any Solana wallet app installed on your device.
+      </Text>
+      <View style={[styles.connectButtonPreview, { backgroundColor: themeColors.accent }]}>
+        <Ionicons name="wallet-outline" size={15} color="#ffffff" />
+        <Text style={styles.walletButtonText}>Connect Wallet</Text>
       </View>
 
-      <View
-        style={[
-          styles.positionPreview,
-          { backgroundColor: themeColors.background },
-        ]}
-      >
-        <View style={styles.positionTopRow}>
-          <Text style={[styles.previewKicker, { color: accentColor }]}>OPEN POSITION</Text>
-          <Text style={[styles.pnlText, { color: themeColors.positive }]}>+$1.42</Text>
-        </View>
-        <Text style={[styles.previewTitle, { color: themeColors.text }]}>
-          YES · SOL above $180
-        </Text>
-        <View style={[styles.profileBarTrack, { backgroundColor: themeColors.trackBg }]}>
-          <View style={[styles.profileBarFill, { backgroundColor: themeColors.positive }]} />
-        </View>
+      <View style={styles.profileSectionHeader}>
+        <View style={[styles.sectionAccent, { backgroundColor: accentColor }]} />
+        <Text style={[styles.profileSectionLabel, { color: themeColors.text }]}>QUICK BET</Text>
       </View>
-
-      <View style={styles.historyRows}>
-        <View style={[styles.historyLine, { backgroundColor: themeColors.border }]} />
-        <View style={[styles.historyLineShort, { backgroundColor: themeColors.border }]} />
+      <Text style={[styles.profileSettingHint, { color: themeColors.textMuted }]}>
+        Current venue minimum: $10
+      </Text>
+      <View style={styles.profileQuickBetRow}>
+        {[10, 25, 50, 100].map((amount, index) => (
+          <View
+            key={amount}
+            style={[
+              styles.profileQuickBetPill,
+              {
+                backgroundColor: index === 0 ? `${accentColor}18` : themeColors.card,
+                borderColor: index === 0 ? accentColor : themeColors.cardBorder,
+              },
+            ]}
+          >
+            <Text
+              style={[
+                styles.profileQuickBetText,
+                { color: index === 0 ? accentColor : themeColors.textMuted },
+              ]}
+            >
+              ${amount}
+            </Text>
+          </View>
+        ))}
       </View>
     </View>
   );
@@ -420,21 +481,40 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     width: Math.min(SCREEN_WIDTH * 0.82, 340),
   },
-  signalCard: {
-    borderRadius: 24,
+  feedPreview: {
+    gap: 12,
+    width: Math.min(SCREEN_WIDTH * 0.82, 330),
+  },
+  feedFilterRow: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: 8,
+    justifyContent: "flex-end",
+  },
+  feedFilterPill: {
+    borderRadius: 12,
     borderCurve: "continuous",
     borderWidth: 1,
-    minHeight: 176,
-    overflow: "hidden",
-    padding: 14,
-    position: "absolute",
-    width: Math.min(SCREEN_WIDTH * 0.78, 300),
+    paddingHorizontal: 12,
+    paddingVertical: 8,
   },
-  feedImage: {
-    borderRadius: 18,
+  feedFilterText: {
+    fontFamily: fonts.mono.regular,
+    fontSize: fontSize.xxs,
+    letterSpacing: letterSpacing.wider,
+  },
+  feedHero: {
+    borderRadius: 22,
     borderCurve: "continuous",
-    height: 62,
-    marginBottom: 12,
+    borderWidth: 1,
+    overflow: "hidden",
+    padding: 16,
+  },
+  feedHeroMark: {
+    borderRadius: 999,
+    height: 4,
+    marginBottom: 14,
+    width: 46,
   },
   previewKicker: {
     fontFamily: fonts.mono.bold,
@@ -442,152 +522,153 @@ const styles = StyleSheet.create({
     letterSpacing: letterSpacing.wider,
     marginBottom: 6,
   },
-  previewTitle: {
+  feedHeadline: {
     fontFamily: fonts.body.bold,
-    fontSize: fontSize.base,
-    lineHeight: 19,
+    fontSize: 19,
+    lineHeight: 23,
   },
-  previewBody: {
-    fontFamily: fonts.body.regular,
-    fontSize: fontSize.xs,
-    lineHeight: 16,
-    marginTop: 8,
-  },
-  tradeCard: {
-    borderRadius: 22,
-    borderCurve: "continuous",
-    borderWidth: 1,
-    padding: 16,
-    width: Math.min(SCREEN_WIDTH * 0.78, 300),
-  },
-  oddsRow: {
-    flexDirection: "row",
-    gap: 8,
-    marginTop: 12,
-  },
-  yesPill: {
-    borderRadius: 999,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-  },
-  noPill: {
-    borderRadius: 999,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-  },
-  pillText: {
-    fontFamily: fonts.mono.bold,
-    fontSize: fontSize.xxs,
-    letterSpacing: letterSpacing.wide,
-  },
-  marketSheetPreview: {
-    borderRadius: 24,
-    borderCurve: "continuous",
-    borderWidth: 1,
-    padding: 14,
-    width: Math.min(SCREEN_WIDTH * 0.74, 286),
-  },
-  sheetHandle: {
-    alignSelf: "center",
-    borderRadius: 999,
-    height: 3,
-    marginBottom: 12,
-    width: 34,
-  },
-  sheetLabel: {
-    fontFamily: fonts.mono.bold,
+  feedMeta: {
+    fontFamily: fonts.mono.regular,
     fontSize: fontSize.xxs,
     letterSpacing: letterSpacing.wider,
+    marginTop: 12,
   },
-  amountText: {
-    fontFamily: fonts.brand.extraBold,
-    fontSize: 30,
-    marginVertical: 6,
+  feedSummaryLines: {
+    gap: 7,
+    marginTop: 12,
   },
-  approveButton: {
-    alignItems: "center",
-    borderRadius: 12,
-    borderCurve: "continuous",
-    paddingVertical: 10,
+  feedSummaryLine: {
+    borderRadius: 999,
+    height: 5,
+    opacity: 0.45,
+    width: "100%",
   },
-  approveText: {
-    color: "#ffffff",
-    fontFamily: fonts.mono.bold,
-    fontSize: fontSize.xxs,
-    letterSpacing: letterSpacing.wide,
-  },
-  profilePreview: {
+  tradePreview: {
     borderRadius: 28,
     borderCurve: "continuous",
     borderWidth: 1,
-    gap: 14,
-    padding: 16,
-    width: Math.min(SCREEN_WIDTH * 0.78, 300),
+    padding: 18,
+    width: Math.min(SCREEN_WIDTH * 0.82, 330),
   },
-  profileHeader: {
-    alignItems: "center",
-    flexDirection: "row",
-    gap: 10,
-  },
-  avatar: {
-    alignItems: "center",
-    borderRadius: 16,
-    height: 42,
-    justifyContent: "center",
-    width: 42,
-  },
-  profileNameBlock: {
-    flex: 1,
-  },
-  profileName: {
-    fontFamily: fonts.body.bold,
-    fontSize: fontSize.base,
-  },
-  profileWallet: {
-    fontFamily: fonts.mono.regular,
-    fontSize: fontSize.xxs,
-    letterSpacing: letterSpacing.wide,
-    marginTop: 2,
-  },
-  positionPreview: {
-    borderRadius: 18,
-    borderCurve: "continuous",
-    padding: 12,
-  },
-  positionTopRow: {
+  tradeHeaderRow: {
     alignItems: "center",
     flexDirection: "row",
     justifyContent: "space-between",
   },
-  pnlText: {
+  tradeTitle: {
+    fontFamily: fonts.brand.extraBold,
+    fontSize: 28,
+  },
+  tradeMinimum: {
+    fontFamily: fonts.mono.bold,
+    fontSize: fontSize.xxs,
+    letterSpacing: letterSpacing.wider,
+  },
+  tradeHint: {
+    fontFamily: fonts.body.regular,
+    fontSize: fontSize.xs,
+    marginTop: 6,
+  },
+  quickBetRow: {
+    flexDirection: "row",
+    gap: 8,
+    marginTop: 18,
+  },
+  quickBetPill: {
+    alignItems: "center",
+    borderRadius: 14,
+    borderCurve: "continuous",
+    borderWidth: 1,
+    flex: 1,
+    paddingVertical: 13,
+  },
+  quickBetText: {
     fontFamily: fonts.mono.bold,
     fontSize: fontSize.sm,
   },
-  profileBarTrack: {
-    borderRadius: 999,
-    height: 5,
-    marginTop: 12,
-    overflow: "hidden",
-  },
-  profileBarFill: {
-    borderRadius: 999,
-    height: "100%",
-    width: "68%",
-  },
-  historyRows: {
+  walletButtonPreview: {
+    alignItems: "center",
+    borderRadius: 12,
+    borderCurve: "continuous",
+    flexDirection: "row",
     gap: 8,
-    paddingTop: 2,
+    justifyContent: "center",
+    marginTop: 16,
+    paddingVertical: 12,
   },
-  historyLine: {
-    borderRadius: 999,
-    height: 6,
-    opacity: 0.7,
-    width: "92%",
+  walletButtonText: {
+    color: "#ffffff",
+    fontFamily: fonts.body.bold,
+    fontSize: fontSize.xs,
   },
-  historyLineShort: {
+  profilePreview: {
+    borderRadius: 26,
+    borderCurve: "continuous",
+    borderWidth: 1,
+    padding: 16,
+    width: Math.min(SCREEN_WIDTH * 0.82, 330),
+  },
+  profileScreenTitle: {
+    fontFamily: fonts.brand.extraBold,
+    fontSize: 24,
+    marginBottom: 14,
+  },
+  profileConnectTitle: {
+    fontFamily: fonts.brand.extraBold,
+    fontSize: 21,
+  },
+  profileConnectBody: {
+    fontFamily: fonts.body.regular,
+    fontSize: fontSize.xs,
+    lineHeight: 16,
+    marginTop: 6,
+  },
+  connectButtonPreview: {
+    alignItems: "center",
+    borderRadius: 12,
+    borderCurve: "continuous",
+    flexDirection: "row",
+    gap: 8,
+    justifyContent: "center",
+    marginTop: 14,
+    paddingVertical: 12,
+  },
+  profileSectionHeader: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: 8,
+    marginTop: 18,
+  },
+  sectionAccent: {
     borderRadius: 999,
-    height: 6,
-    opacity: 0.5,
-    width: "62%",
+    height: 22,
+    width: 4,
+  },
+  profileSectionLabel: {
+    fontFamily: fonts.mono.bold,
+    fontSize: fontSize.xxs,
+    letterSpacing: letterSpacing.wider,
+  },
+  profileSettingHint: {
+    fontFamily: fonts.body.regular,
+    fontSize: fontSize.xs,
+    marginTop: 10,
+  },
+  profileQuickBetRow: {
+    flexDirection: "row",
+    gap: 8,
+    marginTop: 12,
+  },
+  profileQuickBetPill: {
+    alignItems: "center",
+    borderRadius: 12,
+    borderCurve: "continuous",
+    borderWidth: 1,
+    flex: 1,
+    paddingVertical: 10,
+  },
+  profileQuickBetText: {
+    fontFamily: fonts.mono.bold,
+    fontSize: fontSize.xs,
   },
 });

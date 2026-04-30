@@ -44,6 +44,8 @@ import {
   closeAllPositions,
   closePosition,
   createOrder,
+  fetchOrders,
+  fetchPositions,
 } from "@/lib/prediction-client";
 import {
   estimateSolRequirementForTransaction,
@@ -67,6 +69,10 @@ const mockedCloseAllPositions =
   closeAllPositions as jest.MockedFunction<typeof closeAllPositions>;
 const mockedClaimPosition =
   claimPosition as jest.MockedFunction<typeof claimPosition>;
+const mockedFetchOrders =
+  fetchOrders as jest.MockedFunction<typeof fetchOrders>;
+const mockedFetchPositions =
+  fetchPositions as jest.MockedFunction<typeof fetchPositions>;
 const mockedEstimateSolRequirementForTransaction =
   estimateSolRequirementForTransaction as jest.MockedFunction<
     typeof estimateSolRequirementForTransaction
@@ -148,6 +154,8 @@ beforeEach(() => {
     { ...orderResponse, transaction: "base64-transaction-2" },
   ] as any);
   mockedClaimPosition.mockResolvedValue(orderResponse as any);
+  mockedFetchOrders.mockResolvedValue({ data: [] } as any);
+  mockedFetchPositions.mockResolvedValue({ data: [] } as any);
 });
 
 afterEach(() => {
@@ -328,6 +336,92 @@ describe("usePredictionTrading dynamic balance checks", () => {
     });
 
     expect(estimateSolRequirementForTransaction).toHaveBeenCalledTimes(2);
+  });
+
+  it("proceeds with order creation when the balance RPC fails", async () => {
+    mockedFetchWalletBalances.mockRejectedValue(new Error("rpc unavailable"));
+    const { result } = renderHook(() => useCreateOrder(), {
+      wrapper: createWrapper(),
+    });
+
+    await expect(
+      mutateInAct(result.current.mutateAsync({
+        ownerPubkey: "wallet-1",
+        marketId: "market-1",
+        isYes: true,
+        isBuy: true,
+        depositAmount: "5010000",
+        depositMint: "USDC",
+      })),
+    ).resolves.toEqual({
+      signature: "signature",
+      status: "pending",
+      verification: "sent",
+    });
+
+    expect(mockedCreateOrder).toHaveBeenCalledTimes(1);
+    expect(mockedSendPredictionTransaction).toHaveBeenCalledTimes(1);
+  });
+
+  it("maps API insufficient-funds errors into trading copy", async () => {
+    mockedCreateOrder.mockRejectedValue({
+      response: {
+        status: 400,
+        json: async () => ({ code: "INSUFFICIENT_FUNDS" }),
+      },
+      message: "bad request",
+    });
+    const { result } = renderHook(() => useCreateOrder(), {
+      wrapper: createWrapper(),
+    });
+
+    const error = await captureMutationError(result.current.mutateAsync({
+      ownerPubkey: "wallet-1",
+      marketId: "market-1",
+      isYes: true,
+      isBuy: true,
+      depositAmount: "5010000",
+      depositMint: "USDC",
+    }));
+
+    expect(error).toEqual(
+      expect.objectContaining({
+        message:
+          "Insufficient balance. You need enough USDC for the bet and a small amount of SOL for network fees.",
+      }),
+    );
+  });
+
+  it("returns an uncertain submission when the wallet cannot confirm local handoff", async () => {
+    const submissionUnknownError = Object.assign(
+      new Error("unknown submission"),
+      { code: "TRANSACTION_SUBMISSION_UNKNOWN" },
+    );
+    mockedSendPredictionTransaction.mockRejectedValueOnce(submissionUnknownError);
+    mockedFetchOrders.mockResolvedValue({
+      data: [{ externalOrderId: "external-order", marketId: "market-1", isYes: true, isBuy: true }],
+    } as any);
+    const { result } = renderHook(() => useCreateOrder(), {
+      wrapper: createWrapper(),
+    });
+
+    await expect(
+      mutateInAct(result.current.mutateAsync({
+        ownerPubkey: "wallet-1",
+        marketId: "market-1",
+        isYes: true,
+        isBuy: true,
+        depositAmount: "5010000",
+        depositMint: "USDC",
+      })),
+    ).resolves.toEqual({
+      signature: null,
+      status: "pending",
+      verification: "uncertain",
+    });
+
+    expect(mockedFetchOrders).toHaveBeenCalledWith("wallet-1", { fresh: true });
+    expect(mockedFetchPositions).toHaveBeenCalledWith("wallet-1", { fresh: true });
   });
 
   it("checks close-all transactions using summed fees plus one safety buffer", async () => {

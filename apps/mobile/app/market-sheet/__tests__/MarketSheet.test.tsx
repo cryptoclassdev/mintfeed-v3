@@ -1,3 +1,13 @@
+import React, { type ReactNode } from "react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react-native";
+import { useLocalSearchParams } from "expo-router";
+import { useMobileWallet } from "@wallet-ui/react-native-web3js";
 import {
   validateTradeAmount,
   parseTradeAmount,
@@ -8,11 +18,35 @@ import {
   buildResolutionRulePreview,
   formatResolveDateTime,
 } from "@/lib/market-sheet-utils";
+import { usePredictionMarketDetail } from "@/hooks/usePredictionMarket";
+import { useCreateOrder, useTradingStatus } from "@/hooks/usePredictionTrading";
+import { useWalletBalance } from "@/hooks/useWalletBalance";
+import { showToast } from "@/lib/toast";
+import MarketSheet from "../[id]";
+
+jest.mock("expo-router", () => ({
+  useRouter: jest.fn(() => ({
+    push: jest.fn(),
+    back: jest.fn(),
+    replace: jest.fn(),
+  })),
+  useLocalSearchParams: jest.fn(),
+  Link: "Link",
+}));
+
+jest.mock("@expo/vector-icons", () => ({
+  Ionicons: ({ name }: { name: string }) => name,
+}));
 
 // Mock all hooks used by MarketSheet
 jest.mock("@/lib/store", () => ({
-  useAppStore: jest.fn((selector: (s: Record<string, unknown>) => unknown) =>
-    selector({ theme: "dark" }),
+  useAppStore: Object.assign(
+    jest.fn((selector: (s: Record<string, unknown>) => unknown) =>
+      selector({ theme: "dark", hapticsEnabled: true }),
+    ),
+    {
+      getState: () => ({ hapticsEnabled: true }),
+    },
   ),
 }));
 
@@ -24,6 +58,131 @@ jest.mock("@/hooks/usePredictionTrading", () => ({
   useCreateOrder: jest.fn(() => ({ mutateAsync: jest.fn(), isPending: false })),
   useTradingStatus: jest.fn(() => ({ data: { trading_active: true } })),
 }));
+
+jest.mock("@/hooks/useWalletBalance", () => ({
+  useWalletBalance: jest.fn(() => ({ data: null })),
+}));
+
+jest.mock("@/lib/toast", () => ({
+  showToast: jest.fn(),
+}));
+
+jest.mock("@/lib/haptics", () => ({
+  selection: jest.fn(),
+  success: jest.fn(),
+  error: jest.fn(),
+  warning: jest.fn(),
+  mediumImpact: jest.fn(),
+  heavyImpact: jest.fn(),
+}));
+
+const mockedUseLocalSearchParams =
+  useLocalSearchParams as jest.MockedFunction<typeof useLocalSearchParams>;
+const mockedUseMobileWallet =
+  useMobileWallet as jest.MockedFunction<typeof useMobileWallet>;
+const mockedUsePredictionMarketDetail =
+  usePredictionMarketDetail as jest.MockedFunction<typeof usePredictionMarketDetail>;
+const mockedUseCreateOrder =
+  useCreateOrder as jest.MockedFunction<typeof useCreateOrder>;
+const mockedUseTradingStatus =
+  useTradingStatus as jest.MockedFunction<typeof useTradingStatus>;
+const mockedUseWalletBalance =
+  useWalletBalance as jest.MockedFunction<typeof useWalletBalance>;
+const mockedShowToast = showToast as jest.MockedFunction<typeof showToast>;
+
+const marketDetail = {
+  marketId: "market-1",
+  status: "open",
+  result: null,
+  openTime: 0,
+  closeTime: 1798761600,
+  resolveAt: null,
+  metadata: {
+    title: "Will Satoshi move any Bitcoin in 2026?",
+    rulesPrimary: "Resolves YES if Satoshi-linked wallets move BTC.",
+  },
+  pricing: {
+    buyYesPriceUsd: 100000,
+    buyNoPriceUsd: 900000,
+    sellYesPriceUsd: 100000,
+    sellNoPriceUsd: 900000,
+    volume: 2_638_803,
+  },
+};
+
+function createWrapper() {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false },
+    },
+  });
+
+  return function Wrapper({ children }: { children: ReactNode }) {
+    return (
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    );
+  };
+}
+
+function mockMarketData(options?: { freshMarket?: typeof marketDetail | null }) {
+  const freshMarket = options?.freshMarket === undefined
+    ? marketDetail
+    : options.freshMarket;
+  mockedUsePredictionMarketDetail.mockImplementation((_: string | undefined, queryOptions?: { fresh?: boolean }) => {
+    if (queryOptions?.fresh) {
+      return {
+        data: freshMarket,
+        isLoading: false,
+        isError: !freshMarket,
+      } as ReturnType<typeof usePredictionMarketDetail>;
+    }
+
+    return {
+      data: marketDetail,
+      isLoading: false,
+      isError: false,
+    } as ReturnType<typeof usePredictionMarketDetail>;
+  });
+}
+
+function renderMarketSheet() {
+  return render(<MarketSheet />, {
+    wrapper: createWrapper(),
+  });
+}
+
+beforeEach(() => {
+  jest.clearAllMocks();
+  mockedUseLocalSearchParams.mockReturnValue({
+    id: "market-1",
+    question: "Will Satoshi move any Bitcoin in 2026?",
+  });
+  mockedUseMobileWallet.mockReturnValue({
+    account: { address: { toString: () => "wallet-1" } },
+    connect: jest.fn(),
+    disconnect: jest.fn(),
+    signTransaction: jest.fn(),
+    signAndSendTransaction: jest.fn(),
+    signAndSendTransactions: jest.fn(),
+    signMessage: jest.fn(),
+    connection: {},
+  } as any);
+  mockMarketData();
+  mockedUseCreateOrder.mockReturnValue({
+    mutateAsync: jest.fn(),
+    isPending: false,
+  } as any);
+  mockedUseTradingStatus.mockReturnValue({
+    data: { trading_active: true, minimum_order_usd: 5 },
+  } as any);
+  mockedUseWalletBalance.mockReturnValue({
+    data: {
+      solLamports: 1_000_000,
+      usdcMicroAmount: 5_830_000,
+    },
+  } as any);
+});
 
 describe("MarketSheet trade validation logic", () => {
   beforeAll(() => {
@@ -94,6 +253,106 @@ describe("MarketSheet buy button state", () => {
     expect(isDisabled(false, false, false)).toBe(true);
     expect(isDisabled(true, true, false)).toBe(true);
     expect(isDisabled(true, false, true)).toBe(true);
+  });
+});
+
+describe("MarketSheet trading workflow", () => {
+  it("submits a valid buy with the server minimum and does not show a SOL-only balance warning", async () => {
+    const mutateAsync = jest.fn().mockResolvedValue({
+      status: "pending",
+      verification: "sent",
+      signature: "signature",
+    });
+    mockedUseCreateOrder.mockReturnValue({
+      mutateAsync,
+      isPending: false,
+    } as any);
+
+    renderMarketSheet();
+
+    fireEvent.changeText(screen.getByPlaceholderText("0.00"), "5.01");
+
+    expect(screen.queryByText(/network fees/i)).toBeNull();
+
+    const buyButton = screen.getByRole("button", {
+      name: "Buy yes at 10 cents",
+    });
+    expect(buyButton.props.accessibilityState?.disabled).not.toBe(true);
+
+    fireEvent.press(buyButton);
+
+    await waitFor(() => {
+      expect(mutateAsync).toHaveBeenCalledWith({
+        ownerPubkey: "wallet-1",
+        marketId: "market-1",
+        isYes: true,
+        isBuy: true,
+        depositAmount: "5010000",
+        depositMint: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      });
+    });
+  });
+
+  it("shows an insufficient USDC warning and disables buying", () => {
+    mockedUseWalletBalance.mockReturnValue({
+      data: {
+        solLamports: 18_000_000,
+        usdcMicroAmount: 1_000_000,
+      },
+    } as any);
+
+    renderMarketSheet();
+
+    fireEvent.changeText(screen.getByPlaceholderText("0.00"), "5.01");
+
+    expect(
+      screen.queryByText("Insufficient USDC. You have $1.00 but need $5.01."),
+    ).not.toBeNull();
+    expect(
+      screen.getByRole("button", { name: "Buy yes at 10 cents" }).props
+        .accessibilityState?.disabled,
+    ).toBe(true);
+  });
+
+  it("blocks trading while waiting for a fresh quote", () => {
+    mockMarketData({ freshMarket: null });
+
+    renderMarketSheet();
+
+    fireEvent.changeText(screen.getByPlaceholderText("0.00"), "5.01");
+
+    expect(screen.queryByText("Latest quote unavailable. Retrying...")).not.toBeNull();
+    expect(
+      screen.getByRole("button", { name: "Buy yes at 10 cents" }).props
+        .accessibilityState?.disabled,
+    ).toBe(true);
+    expect(screen.queryByText("Quote unavailable")).not.toBeNull();
+  });
+
+  it("raises the effective minimum when the server rejects the trade with a higher market minimum", async () => {
+    const mutateAsync = jest.fn().mockRejectedValue(new Error("Minimum order is $7"));
+    mockedUseCreateOrder.mockReturnValue({
+      mutateAsync,
+      isPending: false,
+    } as any);
+
+    renderMarketSheet();
+
+    fireEvent.changeText(screen.getByPlaceholderText("0.00"), "5.01");
+    fireEvent.press(
+      screen.getByRole("button", { name: "Buy yes at 10 cents" }),
+    );
+
+    await waitFor(() => {
+      expect(mockedShowToast).toHaveBeenCalledWith(
+        "error",
+        "Trade Failed",
+        "Minimum bet for this market is >$7.00.",
+      );
+    });
+
+    expect(screen.queryByText("Minimum bet: >$7.00")).not.toBeNull();
+    expect(screen.queryByText("Enter >$7 to bet")).not.toBeNull();
   });
 });
 
